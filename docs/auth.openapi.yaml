@@ -1,0 +1,212 @@
+openapi: 3.0.3
+info:
+  title: Hilt Authentication API
+  version: 1.0.0
+  description: Password registration and login checkpoint. Email verification and recovery are not yet implemented.
+servers:
+  - url: http://localhost:3000
+    description: Local development API
+security: []
+paths:
+  /api/auth/register:
+    post:
+      operationId: register
+      summary: Create an account
+      description: Emails are trimmed and lowercased. Passwords are preserved exactly. Does not log the user in.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registration'
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '409':
+          description: An account with this normalized email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          $ref: '#/components/responses/BodyTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /api/auth/login:
+    post:
+      operationId: login
+      summary: Log in and create a 24-hour session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+      responses:
+        '200':
+          description: Login succeeded. Send the token as Authorization Bearer on protected requests.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user, token, tokenType, expiresAt]
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    pattern: '^[a-f0-9]{64}$'
+                  tokenType:
+                    type: string
+                    enum: [Bearer]
+                  expiresAt:
+                    type: string
+                    format: date-time
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          $ref: '#/components/responses/BodyTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /api/auth/me:
+    get:
+      operationId: currentUser
+      summary: Read the authenticated user's profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/auth/logout:
+    post:
+      operationId: logout
+      summary: Revoke the current session
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Session revoked. There is no response body.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Opaque token returned by login (not a JWT).
+  schemas:
+    Credentials:
+      type: object
+      required: [emailAddress, password]
+      properties:
+        emailAddress:
+          type: string
+          format: email
+          example: checkpoint@example.com
+        password:
+          type: string
+          format: password
+          minLength: 1
+          maxLength: 128
+          example: my checkpoint passphrase
+    Registration:
+      allOf:
+        - $ref: '#/components/schemas/Credentials'
+        - type: object
+          required: [firstName, lastName]
+          properties:
+            firstName:
+              type: string
+              minLength: 1
+              maxLength: 100
+              example: Alex
+            lastName:
+              type: string
+              minLength: 1
+              maxLength: 100
+              example: Student
+            password:
+              type: string
+              format: password
+              minLength: 15
+              maxLength: 128
+    User:
+      type: object
+      required: [id, firstName, lastName, emailAddress]
+      properties:
+        id:
+          type: string
+          pattern: '^[a-f0-9]{24}$'
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailAddress:
+          type: string
+          format: email
+    UserResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+  responses:
+    InvalidInput:
+      description: Invalid fields or malformed JSON
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Invalid credentials, or a missing, invalid, or expired session
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BodyTooLarge:
+      description: Request body exceeds 8 KiB
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnsupportedMediaType:
+      description: Send application/json with a supported encoding
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Too many attempts in the 15-minute window
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds until the limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
