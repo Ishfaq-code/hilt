@@ -18,6 +18,33 @@ volume.
 To stop the services, run `docker compose down`. To also remove persisted
 MongoDB data, run `docker compose down --volumes`.
 
+## Production deployment
+
+The production stack serves the built frontend and API over HTTPS at
+<https://hilt.paolini.dev>. Caddy obtains and renews its TLS certificate
+automatically. Before starting it, point the domain's DNS A/AAAA records at the
+VPS and allow inbound TCP ports 80 and 443 (and UDP 443 for HTTP/3).
+
+On the VPS, copy `.env.prod.example` to `.env.prod`, choose a strong MongoDB
+password, and set `MONGODB_URI` to use the same username/password. URL-encode
+URI-reserved characters in the URI credentials. Keep `.env.prod` private and
+out of version control. Then, from the project directory, run:
+
+```sh
+docker compose --env-file .env.prod -f docker-compose.prod.yml up --build -d
+```
+
+Check `https://hilt.paolini.dev/api/health` for API/database status and inspect
+startup logs with:
+
+```sh
+docker compose --env-file .env.prod -f docker-compose.prod.yml logs -f
+```
+
+Only Caddy publishes host ports; the API and MongoDB remain on the private
+Compose network. Caddy's certificate and MongoDB data are persisted in Docker
+volumes. Back up `mongodb_data` before upgrading or migrating the VPS.
+
 Seed the database with repeatable demo users and an organization:
 
 ```sh

@@ -11,6 +11,8 @@ const port = process.env.PORT || 3000
 const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/HiltDB'
 
 app.disable('x-powered-by')
+// In production, requests reach Express through the single Caddy proxy.
+if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1)
 app.use('/api/auth', authRouter)
 
 app.get('/api/health', (req, res) => {

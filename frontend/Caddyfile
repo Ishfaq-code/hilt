@@ -1,0 +1,10 @@
+hilt.paolini.dev {
+	encode zstd gzip
+
+	@api path /api/*
+	reverse_proxy @api backend:3000
+
+	root * /srv
+	try_files {path} /index.html
+	file_server
+}
