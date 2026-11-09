@@ -27,16 +27,21 @@ hide column duration
 [Team 2 check-in; upload beforehand] as [checkin] happens 2026-11-09
 [checkin] is colored in #7C3AED
 
--- Remaining implementation window (owners unassigned) --
-[University verification and recovery - email server blocked] as [accounts] starts 2026-11-09 and ends 2026-11-18
-[Events, RSVP, calendar; API tests and contracts] as [events] starts 2026-11-09 and ends 2026-11-18
-[Custom roles; authorization and invariants] as [roles] starts 2026-11-09 and ends 2026-11-18
-[Page editor, safe assets, visibility, shared rendering] as [pages] starts 2026-11-09 and ends 2026-11-18
-[Attendance, QR, staff and self check-in] as [attendance] starts 2026-11-09 and ends 2026-11-18
-[Inbox, announcements, reminders, push/email/Discord] as [comms] starts 2026-11-09 and ends 2026-11-18
-[Moderation, recoverable audit, preview and restore] as [recovery] starts 2026-11-09 and ends 2026-11-18
-[OAuth, React Native, web/mobile parity and integration] as [mobile] starts 2026-11-09 and ends 2026-11-18
+-- Proposed implementation schedule (parallel work) --
+[Restore email delivery and verify server configuration] as [email] starts 2026-11-09 and ends 2026-11-10
+[University verification and password recovery] as [accounts] starts 2026-11-11 and ends 2026-11-12
+[Google/Microsoft OAuth and account linking] as [oauth] starts 2026-11-13 and ends 2026-11-14
+[Custom roles; authorization and invariants] as [roles] starts 2026-11-09 and ends 2026-11-10
+[Events, RSVP, calendar; API tests and contracts] as [events] starts 2026-11-09 and ends 2026-11-11
+[Attendance, QR, staff and self check-in] as [attendance] starts 2026-11-12 and ends 2026-11-14
+[Inbox, announcements, reminders, push/email/Discord] as [comms] starts 2026-11-13 and ends 2026-11-15
+[Page editor, safe assets, visibility, shared rendering] as [pages] starts 2026-11-10 and ends 2026-11-14
+[Moderation, recoverable audit, preview and restore] as [recovery] starts 2026-11-15 and ends 2026-11-16
+[React Native navigation and core club/event screens] as [mobile] starts 2026-11-10 and ends 2026-11-15
+[Web/mobile integration, parity and end-to-end flows] as [integration] starts 2026-11-17 and ends 2026-11-18
+[email] is colored in #D97706
 [accounts] is colored in #D97706
+[oauth] is colored in #D97706
 [events] is colored in #D97706
 [roles] is colored in #D97706
 [pages] is colored in #D97706
@@ -44,23 +49,35 @@ hide column duration
 [comms] is colored in #D97706
 [recovery] is colored in #D97706
 [mobile] is colored in #D97706
+[integration] is colored in #D97706
+[email] -> [accounts]
+[accounts] -> [oauth]
+[events] -> [attendance]
+[pages] -> [recovery]
+[mobile] -> [integration]
 
 -- Presentation preparation and submission --
-[Diagrams, slides, contributions and AI disclosure] as [slides] starts 2026-11-09 and ends 2026-11-19
-[API acceptance, Lighthouse, release checks and rehearsal] as [accept] starts 2026-11-16 and ends 2026-11-19
+[Use case/class/activity diagrams and slide draft] as [draft] starts 2026-11-10 and ends 2026-11-13
+[API acceptance, Lighthouse and regression testing] as [accept] starts 2026-11-17 and ends 2026-11-18
+[Final slides, contributions, AI disclosure and demo script] as [slides] starts 2026-11-17 and ends 2026-11-18
+[Final fixes, release checks and presentation rehearsal] as [rehearsal] starts 2026-11-19 and ends 2026-11-19
 [MERN presentation submission due - course deadline] as [deadline] happens 2026-11-20
+[draft] is colored in #D97706
 [slides] is colored in #D97706
 [accept] is colored in #D97706
+[rehearsal] is colored in #D97706
 [deadline] is colored in #7C3AED
-[slides] -> [deadline]
-[accept] -> [deadline]
+[integration] -> [rehearsal]
+[accept] -> [rehearsal]
+[slides] -> [rehearsal]
+[rehearsal] -> [deadline]
 
 legend bottom
   Green: dated evidence. Blue: current local work. Purple: check-in / course deadline.
-  Orange: proposed work windows; owners and individual feature durations are unassigned.
-  Implementation rows share the remaining window; they are not separate effort estimates.
+  Orange: proposed schedule with parallel backend, web and mobile work; owners unassigned.
+  Email setup is targeted for 9-10 November; verification/recovery depend on it.
   Deadline source: Course Calendar and instructor announcement of 2 November 2026.
   Presenting starts the week of 30 November; Team 2's slot is not yet assigned.
-  Email delivery remains blocked. Payment processing remains stretch scope.
+  Planned work is not recorded completion. Payment processing remains stretch scope.
 endlegend
 @endgantt
