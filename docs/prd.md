@@ -255,7 +255,7 @@ The product scope above is separate from the supporting work needed for COP4331C
 
 The presentation includes the team and contributions, technology, AI disclosure, what went well and poorly, a Gantt chart, ERD, use case diagram, class diagram, and sequence or activity diagram, plus web and mobile demonstrations and questions. The rubric lists Lighthouse targets of at least 95 for desktop performance and accessibility, and at least 95 on mobile.
 
-Canvas lists November 13, 2026, but the assignment states the actual submission deadline follows the team's presentation date and the slides must be submitted beforehand. The instructions mention both 12 and 15 minutes; the team should confirm the allotted duration rather than build a presentation around that ambiguity.
+The [Course Calendar](https://webcourses.ucf.edu/courses/1522264/pages/course-calendar) and the instructor's [November 2 announcement](https://webcourses.ucf.edu/courses/1522264/discussion_topics/8720599), checked November 9, set presentation submission for **November 20, 2026**. Presentation sessions run during the weeks of November 30 and December 7; the team schedule has not assigned speaking slots yet. The assignment still displays November 13 and requires slides before presenting. The instructions mention both 12 and 15 minutes; the team should confirm the allotted duration rather than build a presentation around that ambiguity.
 
 Source: [MERN Stack Project assignment](https://webcourses.ucf.edu/courses/1522264/assignments/9613148). These are delivery obligations, not a reason to reduce the agreed product scope.
 

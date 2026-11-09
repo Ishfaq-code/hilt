@@ -13,7 +13,7 @@ document.setTitle("Hilt - Team 2 instructor check-in diagrams")
 document.setAuthor("Hilt Team 2")
 diagrams = [
     ("erd.png", "Implemented schema - current source models"),
-    ("gantt.png", "Delivery forecast - future dates are estimates"),
+    ("gantt.png", "Delivery plan - presentation submission due 20 November 2026"),
     ("planned-erd.png", "Appendix - proposed PRD relationships, not implemented"),
 ]
 for number, (filename, caption) in enumerate(diagrams, 1):

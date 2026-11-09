@@ -8,7 +8,7 @@ Team 2 is first listed for today's check-in. Upload the finished documents befor
 | --- | --- | --- |
 | Implemented MongoDB ERD | [SVG](erd.svg), [PNG](erd.png) | [PlantUML](erd.puml) |
 | Proposed PRD relationships | [SVG](planned-erd.svg), [PNG](planned-erd.png) | [PlantUML](planned-erd.puml) |
-| Gantt and delivery forecast | [SVG](gantt.svg), [PNG](gantt.png) | [PlantUML](gantt.puml) |
+| Gantt and presentation delivery plan | [SVG](gantt.svg), [PNG](gantt.png) | [PlantUML](gantt.puml) |
 
 The [combined PDF](hilt-check-in-diagrams.pdf) contains the implemented ERD, Gantt, and proposed ERD appendix on three landscape A3 pages. The SVG files retain scalable text for slides.
 
@@ -25,12 +25,13 @@ This review uses the active `hilt/accounts` checkout at `4d0c821` plus the exist
 | 29 October: auth checkpoint | Commit `4d0c821`; author Alexander |
 | 6 November: minimal auth UI and disposable-account demo | Existing local source changes; historical result only |
 | 9 November: diagrams and profile workflow | Local tests and approved live rollout; verification results below |
+| 9 November: club workflows, URL routing and cookie sessions | Commit `761b784`; local and live verification in [clubs-rollout.md](../clubs-rollout.md) |
 
-Milestones indicate dated evidence, not a claim that work began or occupied the entire day. No historical hours are inferred. Future bars are proposed calendar windows, not recorded effort or commitments. The PRD explicitly leaves feature owners unassigned; future names are therefore omitted. The forecast assumes parallel work by the five-person team, agreement on a course demonstration subset, and reduced holiday capacity. The larger PRD remains visible after that demonstration rather than being represented as finished.
+Milestones indicate dated evidence, not a claim that work began or occupied the entire day. No historical hours are inferred. Orange bars are proposed work windows. Remaining feature rows share 9–18 November; individual effort estimates and owners are unassigned. Presentation preparation runs through 19 November, and the chart ends at the course's 20 November submission deadline. These windows do not establish that the remaining scope fits the team's available capacity. Email delivery remains blocked.
 
-The course demo target of 30 November and full PRD target of 12 February are estimates for planning. They are not instructor deadlines. The [course schedule](https://docs.google.com/spreadsheets/d/1jrs6ai3QpvChMNpvXw_X75MM-Wz_YAB6e4OaF-LJDiI/edit#gid=429347037), read on 9 November, has no teams assigned in its Monday–Thursday presentation slots. Confirm the actual team presentation date and owners, then revise the forecast. The [check-in assignment](https://webcourses.ucf.edu/courses/1522264/assignments/9613144) has a Canvas placeholder due date; the [instructor announcement](https://webcourses.ucf.edu/courses/1522264/discussion_topics/8728942) requires uploading diagrams before the team's check-in.
+Deadline verified on 9 November: the [Course Calendar](https://webcourses.ucf.edu/courses/1522264/pages/course-calendar) lists **MERN Project Presentations Due (11/20)**. The instructor's [2 November announcement](https://webcourses.ucf.edu/courses/1522264/discussion_topics/8720599) confirms that presentations are due **20 November 2026**, delayed by one week, and that presenting starts after Thanksgiving and continues into finals week. The calendar places those sessions in the weeks of 30 November and 7 December. The [team schedule](https://docs.google.com/spreadsheets/d/1jrs6ai3QpvChMNpvXw_X75MM-Wz_YAB6e4OaF-LJDiI/edit#gid=429347037) still has no assigned slots or dates, so Team 2's speaking time is unconfirmed. The [project assignment](https://webcourses.ucf.edu/courses/1522264/assignments/9613148) still displays 13 November and says slides must be submitted before presenting; the updated calendar and announcement supply the revised submission date. The previous 30 November and February delivery targets have been removed.
 
-Dependencies: agree scope before club workflows; university/account eligibility and club approval precede protected participation; club records precede events/RSVP; roles precede recovery permissions; communications and recovery must reconcile delivery history; web/mobile integration and API acceptance precede delivery. Later bars assume the course core is complete. If that slips, later estimates move too. Payments remain stretch scope and have no completion estimate.
+Dependencies: existing club records support events/RSVP; roles govern recovery permissions; communications and recovery must reconcile delivery history; web/mobile integration and API acceptance precede delivery. Payments remain stretch scope and have no completion estimate. The [check-in announcement](https://webcourses.ucf.edu/courses/1522264/discussion_topics/8728942) separately requires diagrams to be uploaded before the team's check-in.
 
 ## Profile milestone
 
@@ -50,9 +51,9 @@ Verified on 9 November:
 
 ## Remaining check-in gaps
 
-- Confirm the final presentation date, course demonstration scope, and feature owners with the team.
+- Confirm Team 2's speaking slot and feature owners; presentation submission is due 20 November.
 - Complete use case, class, and activity/sequence diagrams, slides, contribution/AI disclosure, and rehearsal. These are separate required artifacts; the ERDs and Gantt do not replace them.
-- The current checkout does not demonstrate clubs/events, a mobile app, university email verification/recovery, page publishing, attendance, notifications, or administrative recovery. The Gantt forecasts this work without claiming it is complete.
+- Events, a mobile app, university email verification/recovery, page publishing, attendance, notifications, and administrative recovery remain open. Club workflows and routed web access were completed later on 9 November; see [clubs-rollout.md](../clubs-rollout.md). The Gantt shows open work without claiming it is complete.
 - The real-account login is blocked by a confirmed mismatch between the supplied password and stored hash. The owner must use the matching password or separately authorize recovery; the successful disposable-account test does not resolve that personal credential mismatch.
 - Upload materials before the check-in. No Canvas upload or submission has been performed.
 

@@ -1,23 +1,25 @@
 @startgantt
-title Hilt — evidence and delivery forecast\nStatus: 9 November 2026 · future dates are estimates, not team commitments
+title Hilt - presentation delivery plan\nStatus: 9 November 2026 | Presentation submission due: 20 November 2026
 skinparam backgroundColor white
 skinparam defaultFontName SansSerif
 skinparam defaultFontSize 14
 Project starts 2026-10-22
-printscale weekly
+printscale daily
 hide column duration
 
 -- Recorded evidence (milestones, not hours worked) --
-[Scaffold, Docker, models — Ishfaq] as [scaffold] happens 2026-10-22
-[PRD draft — Alexander] as [prd] happens 2026-10-24
-[Auth API commit — Alexander] as [auth] happens 2026-10-29
+[Scaffold, Docker, models - Ishfaq] as [scaffold] happens 2026-10-22
+[PRD draft - Alexander] as [prd] happens 2026-10-24
+[Auth API commit - Alexander] as [auth] happens 2026-10-29
 [Minimal auth UI / live disposable-account check] as [demo] happens 2026-11-06
 [Approved profile rollout / live persistence check] as [profilelive] happens 2026-11-09
+[Club workflows, routed web, cookie sessions / live checks] as [clubslive] happens 2026-11-09
 [scaffold] is colored in #15803D
 [prd] is colored in #15803D
 [auth] is colored in #15803D
 [demo] is colored in #15803D
 [profilelive] is colored in #15803D
+[clubslive] is colored in #15803D
 
 -- Current work / known check-in --
 [ERD, Gantt, own-profile workflow; verification] as [current] starts 2026-11-09 and ends 2026-11-09
@@ -25,49 +27,40 @@ hide column duration
 [Team 2 check-in; upload beforehand] as [checkin] happens 2026-11-09
 [checkin] is colored in #7C3AED
 
--- Course delivery forecast (owners unassigned) --
-[Reconcile scope, owners, deadline; missing diagrams/slides] as [scope] starts 2026-11-09 and ends 2026-11-11
-[University verification and password recovery] as [accounts] starts 2026-11-10 and ends 2026-11-16
-[Club application, approval, membership, access checks] as [clubs] starts 2026-11-12 and ends 2026-11-20
-[Events, RSVP, calendar; API tests and contracts] as [events] starts 2026-11-21 and ends 2026-11-25
-[React Native core flow + web integration] as [mobile] starts 2026-11-16 and ends 2026-11-27
-[Acceptance, accessibility, rehearsal, approved release] as [accept] starts 2026-11-26 and ends 2026-11-30
-[Course demo delivery target — ESTIMATED] as [course] happens 2026-11-30
-[scope] is colored in #D97706
+-- Remaining implementation window (owners unassigned) --
+[University verification and recovery - email server blocked] as [accounts] starts 2026-11-09 and ends 2026-11-18
+[Events, RSVP, calendar; API tests and contracts] as [events] starts 2026-11-09 and ends 2026-11-18
+[Custom roles; authorization and invariants] as [roles] starts 2026-11-09 and ends 2026-11-18
+[Page editor, safe assets, visibility, shared rendering] as [pages] starts 2026-11-09 and ends 2026-11-18
+[Attendance, QR, staff and self check-in] as [attendance] starts 2026-11-09 and ends 2026-11-18
+[Inbox, announcements, reminders, push/email/Discord] as [comms] starts 2026-11-09 and ends 2026-11-18
+[Moderation, recoverable audit, preview and restore] as [recovery] starts 2026-11-09 and ends 2026-11-18
+[OAuth, React Native, web/mobile parity and integration] as [mobile] starts 2026-11-09 and ends 2026-11-18
 [accounts] is colored in #D97706
-[clubs] is colored in #D97706
 [events] is colored in #D97706
-[mobile] is colored in #D97706
-[accept] is colored in #D97706
-[course] is colored in #D97706
-[scope] -> [clubs]
-[clubs] -> [events]
-[events] -> [accept]
-
--- Remaining full PRD forecast (owners unassigned) --
-[Custom roles; invariant and authorization coverage] as [roles] starts 2026-12-01 and ends 2026-12-11
-[Page editor, safe assets, visibility, shared mobile rendering] as [pages] starts 2026-12-07 and ends 2027-01-08
-[Attendance, QR, staff and self check-in] as [attendance] starts 2026-12-14 and ends 2027-01-08
-[Inbox, announcements, reminders, push/email/Discord] as [comms] starts 2027-01-04 and ends 2027-01-22
-[Moderation, recoverable audit, preview and restore] as [recovery] starts 2027-01-11 and ends 2027-01-29
-[OAuth, mobile parity, full acceptance and release review] as [fulltest] starts 2027-01-25 and ends 2027-02-12
-[Full PRD delivery target — ESTIMATED] as [full] happens 2027-02-12
 [roles] is colored in #D97706
 [pages] is colored in #D97706
 [attendance] is colored in #D97706
 [comms] is colored in #D97706
 [recovery] is colored in #D97706
-[fulltest] is colored in #D97706
-[full] is colored in #D97706
-[roles] -> [recovery]
-[pages] -> [fulltest]
-[comms] -> [fulltest]
+[mobile] is colored in #D97706
+
+-- Presentation preparation and submission --
+[Diagrams, slides, contributions and AI disclosure] as [slides] starts 2026-11-09 and ends 2026-11-19
+[API acceptance, Lighthouse, release checks and rehearsal] as [accept] starts 2026-11-16 and ends 2026-11-19
+[MERN presentation submission due - course deadline] as [deadline] happens 2026-11-20
+[slides] is colored in #D97706
+[accept] is colored in #D97706
+[deadline] is colored in #7C3AED
+[slides] -> [deadline]
+[accept] -> [deadline]
 
 legend bottom
-  Green: dated repository / prior demo evidence. Blue: current local work. Purple: check-in.
-  Orange: proposed calendar windows. No recorded hours or inferred historical durations.
-  Course date and future owners require team confirmation; the course schedule is currently blank.
-  Forecast assumes parallel work across the team, reduced holiday capacity, and an agreed course subset.
-  Full PRD remains scheduled after the course demo; payment processing is stretch and excluded.
+  Green: dated evidence. Blue: current local work. Purple: check-in / course deadline.
+  Orange: proposed work windows; owners and individual feature durations are unassigned.
+  Implementation rows share the remaining window; they are not separate effort estimates.
+  Deadline source: Course Calendar and instructor announcement of 2 November 2026.
+  Presenting starts the week of 30 November; Team 2's slot is not yet assigned.
+  Email delivery remains blocked. Payment processing remains stretch scope.
 endlegend
 @endgantt
