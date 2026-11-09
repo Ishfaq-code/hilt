@@ -1,16 +1,16 @@
-import ClubCard from '../components/ClubCard'
-import PageFrame from '../components/PageFrame'
-import { useClubWorkspace } from '../hooks/useClubWorkspace'
-import type { PageProps } from '../types'
+import ClubCard from "../components/ClubCard";
+import PageFrame from "../components/PageFrame";
+import { useClubWorkspace } from "../hooks/useClubWorkspace";
+import type { PageProps } from "../types";
 
 export default function Club(props: PageProps) {
-  const workspace = useClubWorkspace('club', props)
-  const club = workspace.data?.selected
+  const workspace = useClubWorkspace("club", props);
+  const club = workspace.data?.selected;
 
   return (
     <PageFrame
-      title={club?.name || 'Club'}
-      back={{ href: '/discover', label: 'All clubs' }}
+      title={club?.name || "Club"}
+      back={{ href: "/discover", label: "All clubs" }}
       workspace={workspace}
     >
       {club && (
@@ -34,5 +34,5 @@ export default function Club(props: PageProps) {
         </div>
       )}
     </PageFrame>
-  )
+  );
 }

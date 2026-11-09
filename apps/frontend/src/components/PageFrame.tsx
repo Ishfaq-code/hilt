@@ -1,16 +1,16 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 
-import ClubDialogs from './ClubDialogs'
-import type { ClubWorkspace } from '../hooks/useClubWorkspace'
+import ClubDialogs from "./ClubDialogs";
+import type { ClubWorkspace } from "../hooks/useClubWorkspace";
 
 type Props = {
-  title: string
-  workspace: ClubWorkspace
-  description?: string
-  back?: { href: string; label: string }
-  hideRefresh?: boolean
-  children: ReactNode
-}
+  title: string;
+  workspace: ClubWorkspace;
+  description?: string;
+  back?: { href: string; label: string };
+  hideRefresh?: boolean;
+  children: ReactNode;
+};
 
 export default function PageFrame({
   title,
@@ -20,12 +20,14 @@ export default function PageFrame({
   hideRefresh = false,
   children,
 }: Props) {
-  const { loading, data, notice, error, modal, refresh } = workspace
+  const { loading, data, notice, error, modal, refresh } = workspace;
 
   return (
     <>
       {back && (
-        <a className="page-back" href={back.href}>← {back.label}</a>
+        <a className="page-back" href={back.href}>
+          ← {back.label}
+        </a>
       )}
 
       <div className="page-heading">
@@ -41,12 +43,18 @@ export default function PageFrame({
         )}
       </div>
 
-      {notice && <p className="notice" role="status">{notice}</p>}
+      {notice && (
+        <p className="notice" role="status">
+          {notice}
+        </p>
+      )}
 
       {error && !modal && (
         <div className="error" role="alert">
-          {error}{' '}
-          <button className="text-button" onClick={refresh}>Retry</button>
+          {error}{" "}
+          <button className="text-button" onClick={refresh}>
+            Retry
+          </button>
         </div>
       )}
 
@@ -54,5 +62,5 @@ export default function PageFrame({
 
       <ClubDialogs workspace={workspace} />
     </>
-  )
+  );
 }

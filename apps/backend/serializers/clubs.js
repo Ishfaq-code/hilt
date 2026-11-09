@@ -4,7 +4,7 @@ function universityView(university) {
     slug: university.slug,
     name: university.name,
     emailDomains: university.emailDomains,
-  }
+  };
 }
 
 function clubView(club) {
@@ -15,7 +15,7 @@ function clubView(club) {
     links: club.links,
     university: club.university ? universityView(club.university) : null,
     memberCount: new Set(club.members.map(String)).size,
-  }
+  };
 }
 
 function applicationView(club) {
@@ -32,11 +32,11 @@ function applicationView(club) {
       at,
       revision,
     })),
-  }
+  };
 }
 
 module.exports = {
   universityView,
   clubView,
   applicationView,
-}
+};

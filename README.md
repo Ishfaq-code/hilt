@@ -1,4 +1,5 @@
 # Hilt
+
 COP 4331 MERN
 
 ## Run with Docker
@@ -51,13 +52,13 @@ fields: `firstName`, `lastName`, `emailAddress`, and `password`. Email addresses
 are trimmed and lowercased; passwords are preserved exactly and must contain
 15–128 characters. Names must contain 1–100 characters after trimming.
 
-| Method | Endpoint | Success |
-| --- | --- | --- |
-| POST | `/api/auth/register` | `201` with a `user` containing `id`, `firstName`, `lastName`, and `emailAddress` |
-| POST | `/api/auth/login` | `200` with `token`, `tokenType`, `expiresAt`, and `user` |
-| GET | `/api/auth/me` | `200` with the current `user`; requires a session cookie or Bearer token |
-| PATCH | `/api/auth/me` | `200` with the saved own-name profile; requires a session cookie or Bearer token |
-| POST | `/api/auth/logout` | `204`; revokes the current session |
+| Method | Endpoint             | Success                                                                          |
+| ------ | -------------------- | -------------------------------------------------------------------------------- |
+| POST   | `/api/auth/register` | `201` with a `user` containing `id`, `firstName`, `lastName`, and `emailAddress` |
+| POST   | `/api/auth/login`    | `200` with `token`, `tokenType`, `expiresAt`, and `user`                         |
+| GET    | `/api/auth/me`       | `200` with the current `user`; requires a session cookie or Bearer token         |
+| PATCH  | `/api/auth/me`       | `200` with the saved own-name profile; requires a session cookie or Bearer token |
+| POST   | `/api/auth/logout`   | `204`; revokes the current session                                               |
 
 Start the API and database with `docker compose up --build -d backend`, then
 register a new account:

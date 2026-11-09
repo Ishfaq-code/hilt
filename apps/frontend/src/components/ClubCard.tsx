@@ -1,30 +1,30 @@
-import { signInUrl } from '../navigation'
-import type { Club } from '../types'
-import type { ClubWorkspace } from '../hooks/useClubWorkspace'
+import { signInUrl } from "../navigation";
+import type { Club } from "../types";
+import type { ClubWorkspace } from "../hooks/useClubWorkspace";
 
 type Props = {
-  club: Club
-  workspace: ClubWorkspace
-  detail?: boolean
-}
+  club: Club;
+  workspace: ClubWorkspace;
+  detail?: boolean;
+};
 
 export default function ClubCard({ club, workspace, detail = false }: Props) {
-  const { data, userId, pending, mutate, openModal, setNotice } = workspace
-  const membership = data?.mine.find((entry) => entry.id === club.id)
+  const { data, userId, pending, mutate, openModal, setNotice } = workspace;
+  const membership = data?.mine.find((entry) => entry.id === club.id);
 
   async function joinClub() {
-    const saved = await mutate(`/clubs/${club.id}/membership`, 'PUT')
+    const saved = await mutate(`/clubs/${club.id}/membership`, "PUT");
 
     if (saved) {
-      setNotice(`Joined ${club.name}.`)
+      setNotice(`Joined ${club.name}.`);
     }
   }
 
   function changeMembership() {
     if (membership) {
-      openModal({ kind: 'leave', club })
+      openModal({ kind: "leave", club });
     } else {
-      void joinClub()
+      void joinClub();
     }
   }
 
@@ -42,7 +42,7 @@ export default function ClubCard({ club, workspace, detail = false }: Props) {
 
       <p className="club-description">{club.description}</p>
       <p className="secondary">
-        {club.memberCount} {club.memberCount === 1 ? 'member' : 'members'}
+        {club.memberCount} {club.memberCount === 1 ? "member" : "members"}
       </p>
 
       <div className="club-actions">
@@ -52,7 +52,7 @@ export default function ClubCard({ club, workspace, detail = false }: Props) {
           </a>
         ) : (
           <button disabled={pending} onClick={changeMembership}>
-            {membership ? 'Leave club' : 'Join club'}
+            {membership ? "Leave club" : "Join club"}
           </button>
         )}
 
@@ -61,5 +61,5 @@ export default function ClubCard({ club, workspace, detail = false }: Props) {
         )}
       </div>
     </article>
-  )
+  );
 }

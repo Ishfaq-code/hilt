@@ -1,38 +1,38 @@
-import { useEffect, useId, useRef } from 'react'
-import type { ReactNode, SyntheticEvent } from 'react'
+import { useEffect, useId, useRef } from "react";
+import type { ReactNode, SyntheticEvent } from "react";
 
 type Props = {
-  title: string
-  pending: boolean
-  close: () => void
-  children: ReactNode
-}
+  title: string;
+  pending: boolean;
+  close: () => void;
+  children: ReactNode;
+};
 
 export default function Dialog({ title, pending, close, children }: Props) {
-  const titleId = useId()
-  const dialog = useRef<HTMLDialogElement>(null)
-  const opener = useRef(document.activeElement)
+  const titleId = useId();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const opener = useRef(document.activeElement);
 
   useEffect(() => {
-    const element = dialog.current!
-    const trigger = opener.current
+    const element = dialog.current!;
+    const trigger = opener.current;
 
-    element.showModal()
+    element.showModal();
 
     return () => {
-      element.close()
+      element.close();
 
       if (trigger instanceof HTMLElement && trigger.isConnected) {
-        trigger.focus()
+        trigger.focus();
       }
-    }
-  }, [])
+    };
+  }, []);
 
   function cancel(event: SyntheticEvent<HTMLDialogElement>) {
-    event.preventDefault()
+    event.preventDefault();
 
     if (!pending) {
-      close()
+      close();
     }
   }
 
@@ -58,5 +58,5 @@ export default function Dialog({ title, pending, close, children }: Props) {
 
       {children}
     </dialog>
-  )
+  );
 }

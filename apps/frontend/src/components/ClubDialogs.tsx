@@ -1,11 +1,11 @@
-import type { FormEvent } from 'react'
+import type { FormEvent } from "react";
 
-import Dialog from '../Dialog'
-import type { ClubWorkspace } from '../hooks/useClubWorkspace'
+import Dialog from "../Dialog";
+import type { ClubWorkspace } from "../hooks/useClubWorkspace";
 
 type Props = {
-  workspace: ClubWorkspace
-}
+  workspace: ClubWorkspace;
+};
 
 export default function ClubDialogs({ workspace }: Props) {
   const {
@@ -19,100 +19,104 @@ export default function ClubDialogs({ workspace }: Props) {
     closeModal,
     setNotice,
     reviewUrl,
-  } = workspace
+  } = workspace;
 
   if (!modal) {
-    return null
+    return null;
   }
 
   async function saveReview(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+    event.preventDefault();
 
-    if (modal?.kind !== 'review') {
-      return
+    if (modal?.kind !== "review") {
+      return;
     }
 
-    const form = new FormData(event.currentTarget)
+    const form = new FormData(event.currentTarget);
     const saved = await mutate(
       `/admin/club-applications/${modal.application.id}/review`,
-      'POST',
+      "POST",
       {
-        decision: form.get('decision'),
-        message: form.get('message'),
+        decision: form.get("decision"),
+        message: form.get("message"),
         revision: modal.application.revision,
       },
-    )
+    );
 
     if (!saved) {
-      return
+      return;
     }
 
     if (offset) {
-      location.assign(reviewUrl(0))
+      location.assign(reviewUrl(0));
     }
 
-    closeModal()
-    setNotice('Review saved.')
+    closeModal();
+    setNotice("Review saved.");
   }
 
   async function leaveClub() {
-    if (modal?.kind !== 'leave') {
-      return
+    if (modal?.kind !== "leave") {
+      return;
     }
 
-    const saved = await mutate(`/clubs/${modal.club.id}/membership`, 'DELETE')
+    const saved = await mutate(`/clubs/${modal.club.id}/membership`, "DELETE");
 
     if (saved) {
-      closeModal()
-      setNotice(`Left ${modal.club.name}.`)
+      closeModal();
+      setNotice(`Left ${modal.club.name}.`);
     }
   }
 
   async function changeAdministrator() {
-    if (modal?.kind !== 'administrator') {
-      return
+    if (modal?.kind !== "administrator") {
+      return;
     }
 
-    const { member } = modal
+    const { member } = modal;
     const saved = await mutate(
       `/clubs/${clubId}/administrators/${member.id}`,
-      member.isAdministrator ? 'DELETE' : 'PUT',
-    )
+      member.isAdministrator ? "DELETE" : "PUT",
+    );
 
     if (!saved) {
-      return
+      return;
     }
 
-    closeModal()
+    closeModal();
 
     if (member.id === userId && member.isAdministrator) {
-      location.assign(`/clubs/${clubId}`)
+      location.assign(`/clubs/${clubId}`);
     } else {
       const roleChange = member.isAdministrator
-        ? 'is no longer an administrator.'
-        : 'is now an administrator.'
+        ? "is no longer an administrator."
+        : "is now an administrator.";
 
-      setNotice(`${member.firstName} ${member.lastName} ${roleChange}`)
+      setNotice(`${member.firstName} ${member.lastName} ${roleChange}`);
     }
   }
 
-  let title: string
+  let title: string;
 
-  if (modal.kind === 'review') {
-    title = `Review ${modal.application.name}`
-  } else if (modal.kind === 'leave') {
-    title = `Leave ${modal.club.name}?`
+  if (modal.kind === "review") {
+    title = `Review ${modal.application.name}`;
+  } else if (modal.kind === "leave") {
+    title = `Leave ${modal.club.name}?`;
   } else {
     title = modal.member.isAdministrator
-      ? 'Remove administrator?'
-      : 'Make administrator?'
+      ? "Remove administrator?"
+      : "Make administrator?";
   }
 
   return (
     <Dialog title={title} pending={pending} close={closeModal}>
-      {error && <p role="alert" className="error">{error}</p>}
+      {error && (
+        <p role="alert" className="error">
+          {error}
+        </p>
+      )}
 
-      {modal.kind === 'review' && (
+      {modal.kind === "review" && (
         <form onSubmit={saveReview}>
           <fieldset className="fields" disabled={pending}>
             <label>
@@ -135,57 +139,75 @@ export default function ClubDialogs({ workspace }: Props) {
             </p>
 
             <div className="dialog-actions">
-              <button type="button" className="secondary-button" onClick={closeModal}>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={closeModal}
+              >
                 Cancel
               </button>
-              <button>{pending ? 'Saving…' : 'Save review'}</button>
+              <button>{pending ? "Saving…" : "Save review"}</button>
             </div>
           </fieldset>
         </form>
       )}
 
-      {modal.kind === 'leave' && (
+      {modal.kind === "leave" && (
         <>
           <p>
-            You can join again at any time. A club must keep at least one administrator.
+            You can join again at any time. A club must keep at least one
+            administrator.
           </p>
 
           <div className="dialog-actions">
-            <button className="secondary-button" disabled={pending} onClick={closeModal}>
+            <button
+              className="secondary-button"
+              disabled={pending}
+              onClick={closeModal}
+            >
               Cancel
             </button>
-            <button className="danger-button" disabled={pending} onClick={leaveClub}>
-              {pending ? 'Leaving…' : 'Leave club'}
+            <button
+              className="danger-button"
+              disabled={pending}
+              onClick={leaveClub}
+            >
+              {pending ? "Leaving…" : "Leave club"}
             </button>
           </div>
         </>
       )}
 
-      {modal.kind === 'administrator' && (
+      {modal.kind === "administrator" && (
         <>
           <p>
-            {modal.member.firstName} {modal.member.lastName} will{' '}
-            {modal.member.isAdministrator ? 'lose' : 'gain'} access to manage this club.
+            {modal.member.firstName} {modal.member.lastName} will{" "}
+            {modal.member.isAdministrator ? "lose" : "gain"} access to manage
+            this club.
           </p>
 
           <div className="dialog-actions">
-            <button className="secondary-button" disabled={pending} onClick={closeModal}>
+            <button
+              className="secondary-button"
+              disabled={pending}
+              onClick={closeModal}
+            >
               Cancel
             </button>
             <button
-              className={modal.member.isAdministrator ? 'danger-button' : ''}
+              className={modal.member.isAdministrator ? "danger-button" : ""}
               disabled={pending}
               onClick={changeAdministrator}
             >
               {pending
-                ? 'Saving…'
+                ? "Saving…"
                 : modal.member.isAdministrator
-                  ? 'Remove administrator'
-                  : 'Make administrator'}
+                  ? "Remove administrator"
+                  : "Make administrator"}
             </button>
           </div>
         </>
       )}
     </Dialog>
-  )
+  );
 }

@@ -23,9 +23,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "universities"
-                  ],
+                  "required": ["universities"],
                   "properties": {
                     "universities": {
                       "type": "array",
@@ -53,12 +51,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "clubs",
-                    "total",
-                    "limit",
-                    "offset"
-                  ],
+                  "required": ["clubs", "total", "limit", "offset"],
                   "properties": {
                     "clubs": {
                       "type": "array",
@@ -147,9 +140,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "club"
-                  ],
+                  "required": ["club"],
                   "properties": {
                     "club": {
                       "$ref": "#/components/schemas/Club"
@@ -205,10 +196,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "isSiteAdmin",
-                    "clubs"
-                  ],
+                  "required": ["isSiteAdmin", "clubs"],
                   "properties": {
                     "isSiteAdmin": {
                       "type": "boolean"
@@ -222,9 +210,7 @@
                           },
                           {
                             "type": "object",
-                            "required": [
-                              "canManage"
-                            ],
+                            "required": ["canManage"],
                             "properties": {
                               "canManage": {
                                 "type": "boolean"
@@ -272,9 +258,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "applications"
-                  ],
+                  "required": ["applications"],
                   "properties": {
                     "applications": {
                       "type": "array",
@@ -318,9 +302,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "application"
-                  ],
+                  "required": ["application"],
                   "properties": {
                     "application": {
                       "$ref": "#/components/schemas/Application"
@@ -423,9 +405,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "application"
-                  ],
+                  "required": ["application"],
                   "properties": {
                     "application": {
                       "$ref": "#/components/schemas/Application"
@@ -549,12 +529,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "applications",
-                    "total",
-                    "limit",
-                    "offset"
-                  ],
+                  "required": ["applications", "total", "limit", "offset"],
                   "properties": {
                     "applications": {
                       "type": "array",
@@ -567,9 +542,7 @@
                     },
                     "limit": {
                       "type": "integer",
-                      "enum": [
-                        20
-                      ]
+                      "enum": [20]
                     },
                     "offset": {
                       "type": "integer"
@@ -626,11 +599,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "pending",
-                "approved",
-                "rejected"
-              ],
+              "enum": ["pending", "approved", "rejected"],
               "default": "pending"
             }
           },
@@ -659,9 +628,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "application"
-                  ],
+                  "required": ["application"],
                   "properties": {
                     "application": {
                       "$ref": "#/components/schemas/Application"
@@ -776,21 +743,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "membership"
-                  ],
+                  "required": ["membership"],
                   "properties": {
                     "membership": {
                       "type": "object",
-                      "required": [
-                        "active"
-                      ],
+                      "required": ["active"],
                       "properties": {
                         "active": {
                           "type": "boolean",
-                          "enum": [
-                            true
-                          ]
+                          "enum": [true]
                         }
                       },
                       "additionalProperties": false
@@ -942,9 +903,7 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": [
-                    "members"
-                  ],
+                  "required": ["members"],
                   "properties": {
                     "members": {
                       "type": "array",
@@ -1173,9 +1132,7 @@
     "schemas": {
       "Error": {
         "type": "object",
-        "required": [
-          "error"
-        ],
+        "required": ["error"],
         "properties": {
           "error": {
             "type": "string"
@@ -1185,12 +1142,7 @@
       },
       "University": {
         "type": "object",
-        "required": [
-          "id",
-          "slug",
-          "name",
-          "emailDomains"
-        ],
+        "required": ["id", "slug", "name", "emailDomains"],
         "properties": {
           "id": {
             "type": "string",
@@ -1250,20 +1202,11 @@
       },
       "Review": {
         "type": "object",
-        "required": [
-          "decision",
-          "message",
-          "at",
-          "revision"
-        ],
+        "required": ["decision", "message", "at", "revision"],
         "properties": {
           "decision": {
             "type": "string",
-            "enum": [
-              "approve",
-              "reject",
-              "request_changes"
-            ]
+            "enum": ["approve", "reject", "request_changes"]
           },
           "message": {
             "type": "string"
@@ -1281,12 +1224,7 @@
       },
       "ApplicationInput": {
         "type": "object",
-        "required": [
-          "name",
-          "description",
-          "universityId",
-          "contactEmail"
-        ],
+        "required": ["name", "description", "universityId", "contactEmail"],
         "properties": {
           "name": {
             "type": "string",
@@ -1368,19 +1306,11 @@
       },
       "ReviewInput": {
         "type": "object",
-        "required": [
-          "decision",
-          "message",
-          "revision"
-        ],
+        "required": ["decision", "message", "revision"],
         "properties": {
           "decision": {
             "type": "string",
-            "enum": [
-              "approve",
-              "reject",
-              "request_changes"
-            ]
+            "enum": ["approve", "reject", "request_changes"]
           },
           "message": {
             "type": "string",
@@ -1395,12 +1325,7 @@
       },
       "Member": {
         "type": "object",
-        "required": [
-          "id",
-          "firstName",
-          "lastName",
-          "isAdministrator"
-        ],
+        "required": ["id", "firstName", "lastName", "isAdministrator"],
         "properties": {
           "id": {
             "type": "string",
@@ -1436,11 +1361,7 @@
             "properties": {
               "approvalStatus": {
                 "type": "string",
-                "enum": [
-                  "pending",
-                  "approved",
-                  "rejected"
-                ]
+                "enum": ["pending", "approved", "rejected"]
               },
               "contactEmail": {
                 "type": "string",

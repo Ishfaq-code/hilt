@@ -186,19 +186,19 @@ Open decisions: history retention and storage limits; the timestamp-selection an
 
 The conceptual records below establish ownership and relationships without prescribing a final database schema.
 
-| Record | Purpose |
-| --- | --- |
-| University and email domain | Institution identity and supported account affiliation |
-| User and verified identity | Login methods, verified university email, profile, preferences |
-| Club and application | Club identity, affiliation, approval status and submitted context |
-| Membership | The relationship between a user and a club |
-| Role and role assignment | Club-specific permission sets and their holders |
-| Page and published content | Club navigation, editable layout and published presentation |
-| Event | Timing, location, access, publication status and check-in settings |
-| RSVP | A user's current expression of interest in an event |
-| Attendance | Recorded participation, check-in method, timestamp and corrections |
-| Notification and delivery | Inbox entry, audience, scheduled send and per-channel delivery state |
-| Integration | A club's configured Discord webhook and publishing settings |
+| Record                              | Purpose                                                                                   |
+| ----------------------------------- | ----------------------------------------------------------------------------------------- |
+| University and email domain         | Institution identity and supported account affiliation                                    |
+| User and verified identity          | Login methods, verified university email, profile, preferences                            |
+| Club and application                | Club identity, affiliation, approval status and submitted context                         |
+| Membership                          | The relationship between a user and a club                                                |
+| Role and role assignment            | Club-specific permission sets and their holders                                           |
+| Page and published content          | Club navigation, editable layout and published presentation                               |
+| Event                               | Timing, location, access, publication status and check-in settings                        |
+| RSVP                                | A user's current expression of interest in an event                                       |
+| Attendance                          | Recorded participation, check-in method, timestamp and corrections                        |
+| Notification and delivery           | Inbox entry, audience, scheduled send and per-channel delivery state                      |
+| Integration                         | A club's configured Discord webhook and publishing settings                               |
 | Audit entry and recoverable history | Attributable club changes, retained prior state, and individual or point-in-time recovery |
 
 Membership, RSVP, and attendance must remain independently representable. Every club-owned record is scoped to its club, and access is checked on the server. Event components refer back to one event record regardless of how many pages display them.

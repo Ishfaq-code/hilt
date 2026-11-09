@@ -1,12 +1,12 @@
-import ClubCard from '../components/ClubCard'
-import PageFrame from '../components/PageFrame'
-import Pagination from '../components/Pagination'
-import { useClubWorkspace } from '../hooks/useClubWorkspace'
-import type { PageProps } from '../types'
+import ClubCard from "../components/ClubCard";
+import PageFrame from "../components/PageFrame";
+import Pagination from "../components/Pagination";
+import { useClubWorkspace } from "../hooks/useClubWorkspace";
+import type { PageProps } from "../types";
 
 export default function Discover(props: PageProps) {
-  const workspace = useClubWorkspace('discover', props)
-  const { data, search, universityId, offset, listingUrl } = workspace
+  const workspace = useClubWorkspace("discover", props);
+  const { data, search, universityId, offset, listingUrl } = workspace;
 
   return (
     <PageFrame
@@ -53,9 +53,11 @@ export default function Discover(props: PageProps) {
 
           {!data.clubs.length && (
             <div className="empty-state">
-              <h2>{search ? 'No matching clubs' : 'No clubs published yet'}</h2>
+              <h2>{search ? "No matching clubs" : "No clubs published yet"}</h2>
               <p>
-                {search ? 'Try another name.' : 'Clubs will appear here once they’re approved.'}
+                {search
+                  ? "Try another name."
+                  : "Clubs will appear here once they’re approved."}
               </p>
             </div>
           )}
@@ -64,5 +66,5 @@ export default function Discover(props: PageProps) {
         </>
       )}
     </PageFrame>
-  )
+  );
 }

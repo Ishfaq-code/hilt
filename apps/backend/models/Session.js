@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
 const sessionSchema = new mongoose.Schema({
   tokenHash: {
@@ -9,7 +9,7 @@ const sessionSchema = new mongoose.Schema({
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   expiresAt: {
@@ -17,6 +17,6 @@ const sessionSchema = new mongoose.Schema({
     required: true,
     expires: 0,
   },
-})
+});
 
-module.exports = mongoose.model('Session', sessionSchema)
+module.exports = mongoose.model("Session", sessionSchema);

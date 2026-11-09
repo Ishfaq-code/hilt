@@ -4,11 +4,11 @@ Team 2 is first listed for today's check-in. Upload the finished documents befor
 
 ## Diagrams
 
-| Artifact | Readable output | Editable source |
-| --- | --- | --- |
-| Implemented MongoDB ERD | [SVG](erd.svg), [PNG](erd.png) | [PlantUML](erd.puml) |
-| Proposed PRD relationships | [SVG](planned-erd.svg), [PNG](planned-erd.png) | [PlantUML](planned-erd.puml) |
-| Gantt and presentation delivery plan | [SVG](gantt.svg), [PNG](gantt.png) | [PlantUML](gantt.puml) |
+| Artifact                             | Readable output                                | Editable source              |
+| ------------------------------------ | ---------------------------------------------- | ---------------------------- |
+| Implemented MongoDB ERD              | [SVG](erd.svg), [PNG](erd.png)                 | [PlantUML](erd.puml)         |
+| Proposed PRD relationships           | [SVG](planned-erd.svg), [PNG](planned-erd.png) | [PlantUML](planned-erd.puml) |
+| Gantt and presentation delivery plan | [SVG](gantt.svg), [PNG](gantt.png)             | [PlantUML](gantt.puml)       |
 
 The [combined PDF](hilt-check-in-diagrams.pdf) contains the implemented ERD, Gantt, and proposed ERD appendix on three landscape A3 pages. The SVG files retain scalable text for slides.
 
@@ -18,13 +18,13 @@ This review uses the active `hilt/accounts` checkout at `4d0c821` plus the exist
 
 ## Gantt evidence and assumptions
 
-| Recorded milestone | Evidence |
-| --- | --- |
-| 22 October: scaffold, Docker, models and seed | Commits `e8edcb1`, `df69fa7`, `74b43a5`, `0eb52a7`; author Ishfaq |
-| 24 October: PRD draft | Commit `74cc333`; author Alexander |
-| 29 October: auth checkpoint | Commit `4d0c821`; author Alexander |
-| 6 November: minimal auth UI and disposable-account demo | Existing local source changes; historical result only |
-| 9 November: diagrams and profile workflow | Local tests and approved live rollout; verification results below |
+| Recorded milestone                                          | Evidence                                                                                 |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 22 October: scaffold, Docker, models and seed               | Commits `e8edcb1`, `df69fa7`, `74b43a5`, `0eb52a7`; author Ishfaq                        |
+| 24 October: PRD draft                                       | Commit `74cc333`; author Alexander                                                       |
+| 29 October: auth checkpoint                                 | Commit `4d0c821`; author Alexander                                                       |
+| 6 November: minimal auth UI and disposable-account demo     | Existing local source changes; historical result only                                    |
+| 9 November: diagrams and profile workflow                   | Local tests and approved live rollout; verification results below                        |
 | 9 November: club workflows, URL routing and cookie sessions | Commit `761b784`; local and live verification in [clubs-rollout.md](../clubs-rollout.md) |
 
 Milestones indicate dated evidence, not a claim that work began or occupied the entire day. No historical hours are inferred. Orange bars form a proposed schedule with parallel backend, web, mobile and presentation work; they are planning estimates, not recorded completion or assigned team commitments. Email setup and roles run 9–10 November, events 9–11 November, followed by account recovery/OAuth, attendance, communications, page editing and administrative recovery. React Native work runs 10–15 November. Integration and acceptance testing run 17–18 November alongside final slides; 19 November is reserved for final fixes, release checks and rehearsal. The chart ends at the course's 20 November submission deadline. Email delivery is currently blocked; the plan assumes it is restored by 10 November.

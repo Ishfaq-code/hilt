@@ -1,30 +1,32 @@
 function expectJson(req, res, next) {
-  if (!req.is('application/json')) {
+  if (!req.is("application/json")) {
     return res.status(415).json({
-      error: 'Send the request as application/json.',
-    })
+      error: "Send the request as application/json.",
+    });
   }
 
-  next()
+  next();
 }
 
 function validateClubId(req, res, next, id) {
   if (!/^[a-f0-9]{24}$/i.test(id)) {
-    return res.status(400).json({ error: 'Invalid club ID.' })
+    return res.status(400).json({ error: "Invalid club ID." });
   }
 
-  next()
+  next();
 }
 
 function allowedFields(body, fields) {
-  return body
-    && !Array.isArray(body)
-    && typeof body === 'object'
-    && Object.keys(body).every((key) => fields.includes(key))
+  return (
+    body &&
+    !Array.isArray(body) &&
+    typeof body === "object" &&
+    Object.keys(body).every((key) => fields.includes(key))
+  );
 }
 
 function validRevision(value) {
-  return Number.isSafeInteger(value) && value >= 0
+  return Number.isSafeInteger(value) && value >= 0;
 }
 
 module.exports = {
@@ -32,4 +34,4 @@ module.exports = {
   validateClubId,
   allowedFields,
   validRevision,
-}
+};

@@ -1,4 +1,4 @@
-"""Package the locally rendered PlantUML PNGs for the instructor check-in."""
+"""package the locally rendered plantuml pngs for the instructor check-in"""
 from pathlib import Path
 
 from reportlab.lib.pagesizes import A3, landscape

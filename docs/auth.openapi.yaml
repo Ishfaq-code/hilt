@@ -18,28 +18,28 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Registration'
+              $ref: "#/components/schemas/Registration"
       responses:
-        '201':
+        "201":
           description: Account created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
-        '400':
-          $ref: '#/components/responses/InvalidInput'
-        '409':
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/InvalidInput"
+        "409":
           description: An account with this normalized email already exists
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '413':
-          $ref: '#/components/responses/BodyTooLarge'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '429':
-          $ref: '#/components/responses/RateLimited'
+                $ref: "#/components/schemas/Error"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/auth/login:
     post:
       operationId: login
@@ -61,9 +61,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Credentials'
+              $ref: "#/components/schemas/Credentials"
       responses:
-        '200':
+        "200":
           description: Login succeeded. Use the cookie automatically in browsers, or send the returned Bearer token in Authorization.
           content:
             application/json:
@@ -73,10 +73,10 @@ paths:
                     required: [user, token, tokenType, expiresAt]
                     properties:
                       user:
-                        $ref: '#/components/schemas/User'
+                        $ref: "#/components/schemas/User"
                       token:
                         type: string
-                        pattern: '^[a-f0-9]{64}$'
+                        pattern: "^[a-f0-9]{64}$"
                       tokenType:
                         type: string
                         enum: [Bearer]
@@ -88,22 +88,22 @@ paths:
                     required: [user, expiresAt]
                     properties:
                       user:
-                        $ref: '#/components/schemas/User'
+                        $ref: "#/components/schemas/User"
                       expiresAt:
                         type: string
                         format: date-time
-        '400':
-          $ref: '#/components/responses/InvalidInput'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '413':
-          $ref: '#/components/responses/BodyTooLarge'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '429':
-          $ref: '#/components/responses/RateLimited'
+        "400":
+          $ref: "#/components/responses/InvalidInput"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "429":
+          $ref: "#/components/responses/RateLimited"
   /api/auth/me:
     patch:
       operationId: updateCurrentUser
@@ -132,22 +132,22 @@ paths:
                   maxLength: 100
                   description: Must contain non-whitespace content after trimming.
       responses:
-        '200':
+        "200":
           description: Persisted profile; no credentials or session token are returned
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
-        '400':
-          $ref: '#/components/responses/InvalidInput'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '413':
-          $ref: '#/components/responses/BodyTooLarge'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/InvalidInput"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/BodyTooLarge"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
     get:
       operationId: currentUser
       summary: Read the authenticated user's profile
@@ -155,14 +155,14 @@ paths:
         - bearerAuth: []
         - cookieAuth: []
       responses:
-        '200':
+        "200":
           description: Current user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/auth/logout:
     post:
       operationId: logout
@@ -171,12 +171,12 @@ paths:
         - bearerAuth: []
         - cookieAuth: []
       responses:
-        '204':
+        "204":
           description: Session revoked and the browser cookie cleared when used. There is no response body.
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 components:
   securitySchemes:
     bearerAuth:
@@ -205,7 +205,7 @@ components:
           example: my checkpoint passphrase
     Registration:
       allOf:
-        - $ref: '#/components/schemas/Credentials'
+        - $ref: "#/components/schemas/Credentials"
         - type: object
           required: [firstName, lastName]
           properties:
@@ -230,7 +230,7 @@ components:
       properties:
         id:
           type: string
-          pattern: '^[a-f0-9]{24}$'
+          pattern: "^[a-f0-9]{24}$"
         firstName:
           type: string
         lastName:
@@ -243,7 +243,7 @@ components:
       required: [user]
       properties:
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
     Error:
       type: object
       required: [error]
@@ -256,31 +256,31 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     Unauthorized:
       description: Invalid credentials, or a missing, invalid, or expired session
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     Forbidden:
       description: Cookie login or mutation did not originate from the Hilt website.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     BodyTooLarge:
       description: Request body exceeds 8 KiB
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     UnsupportedMediaType:
       description: Send application/json with a supported encoding
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     RateLimited:
       description: Too many attempts in the 15-minute window
       headers:
@@ -291,4 +291,4 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"

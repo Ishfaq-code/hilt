@@ -9,5 +9,5 @@ export default function NotFound() {
         This page doesn’t exist. <a href="/discover">Explore clubs</a>
       </p>
     </>
-  )
+  );
 }

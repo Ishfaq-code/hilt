@@ -1,20 +1,20 @@
 type Props = {
-  offset: number
-  total: number
-  href: (offset: number) => string
-  previousLabel?: string
-  nextLabel?: string
-}
+  offset: number;
+  total: number;
+  href: (offset: number) => string;
+  previousLabel?: string;
+  nextLabel?: string;
+};
 
 export default function Pagination({
   offset,
   total,
   href,
-  previousLabel = 'Previous',
-  nextLabel = 'Next',
+  previousLabel = "Previous",
+  nextLabel = "Next",
 }: Props) {
   if (total <= 20) {
-    return null
+    return null;
   }
 
   return (
@@ -35,5 +35,5 @@ export default function Pagination({
         <span className="secondary">{nextLabel}</span>
       )}
     </div>
-  )
+  );
 }

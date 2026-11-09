@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
 const universitySchema = new mongoose.Schema(
   {
@@ -14,13 +14,15 @@ const universitySchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    emailDomains: [{
-      type: String,
-      lowercase: true,
-      trim: true,
-    }],
+    emailDomains: [
+      {
+        type: String,
+        lowercase: true,
+        trim: true,
+      },
+    ],
   },
   { timestamps: true },
-)
+);
 
-module.exports = mongoose.model('University', universitySchema)
+module.exports = mongoose.model("University", universitySchema);
