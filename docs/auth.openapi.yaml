@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: Hilt Authentication API
-  version: 1.0.0
-  description: Password registration and login checkpoint. Email verification and recovery are not yet implemented.
+  version: 1.2.0
+  description: Password authentication and own-name profile editing. Browser sessions use an HttpOnly cookie; nonbrowser clients can use Bearer tokens. Cookie-authenticated writes require a matching Origin header. Email verification and recovery are not yet implemented.
 servers:
   - url: http://localhost:3000
     description: Local development API
@@ -44,6 +44,18 @@ paths:
     post:
       operationId: login
       summary: Log in and create a 24-hour session
+      description: Send X-Session-Mode cookie and the matching Origin to receive a host-only hilt_session cookie (HttpOnly, SameSite=Lax, Path=/api, Secure in production). This mode returns user and expiresAt only. Without the header, login returns a Bearer token and does not set a cookie.
+      parameters:
+        - in: header
+          name: X-Session-Mode
+          schema:
+            type: string
+            enum: [cookie]
+        - in: header
+          name: Origin
+          description: Required in cookie mode; must match the public Hilt origin.
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -52,28 +64,40 @@ paths:
               $ref: '#/components/schemas/Credentials'
       responses:
         '200':
-          description: Login succeeded. Send the token as Authorization Bearer on protected requests.
+          description: Login succeeded. Use the cookie automatically in browsers, or send the returned Bearer token in Authorization.
           content:
             application/json:
               schema:
-                type: object
-                required: [user, token, tokenType, expiresAt]
-                properties:
-                  user:
-                    $ref: '#/components/schemas/User'
-                  token:
-                    type: string
-                    pattern: '^[a-f0-9]{64}$'
-                  tokenType:
-                    type: string
-                    enum: [Bearer]
-                  expiresAt:
-                    type: string
-                    format: date-time
+                oneOf:
+                  - type: object
+                    required: [user, token, tokenType, expiresAt]
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      token:
+                        type: string
+                        pattern: '^[a-f0-9]{64}$'
+                      tokenType:
+                        type: string
+                        enum: [Bearer]
+                      expiresAt:
+                        type: string
+                        format: date-time
+                  - type: object
+                    additionalProperties: false
+                    required: [user, expiresAt]
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      expiresAt:
+                        type: string
+                        format: date-time
         '400':
           $ref: '#/components/responses/InvalidInput'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '413':
           $ref: '#/components/responses/BodyTooLarge'
         '415':
@@ -81,11 +105,55 @@ paths:
         '429':
           $ref: '#/components/responses/RateLimited'
   /api/auth/me:
+    patch:
+      operationId: updateCurrentUser
+      summary: Update the authenticated user's first or last name
+      description: Trims names. Accepts only firstName and lastName, with at least one provided. Uses the session owner; IDs, credentials, and email cannot be edited here. Changes persist immediately.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              minProperties: 1
+              properties:
+                firstName:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: Must contain non-whitespace content after trimming.
+                lastName:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: Must contain non-whitespace content after trimming.
+      responses:
+        '200':
+          description: Persisted profile; no credentials or session token are returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '413':
+          $ref: '#/components/responses/BodyTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
     get:
       operationId: currentUser
       summary: Read the authenticated user's profile
       security:
         - bearerAuth: []
+        - cookieAuth: []
       responses:
         '200':
           description: Current user
@@ -101,17 +169,25 @@ paths:
       summary: Revoke the current session
       security:
         - bearerAuth: []
+        - cookieAuth: []
       responses:
         '204':
-          description: Session revoked. There is no response body.
+          description: Session revoked and the browser cookie cleared when used. There is no response body.
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       description: Opaque token returned by login (not a JWT).
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: hilt_session
+      description: Browser session set by cookie-mode login. Unsafe methods require a matching Origin.
   schemas:
     Credentials:
       type: object
@@ -183,6 +259,12 @@ components:
             $ref: '#/components/schemas/Error'
     Unauthorized:
       description: Invalid credentials, or a missing, invalid, or expired session
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Cookie login or mutation did not originate from the Hilt website.
       content:
         application/json:
           schema:

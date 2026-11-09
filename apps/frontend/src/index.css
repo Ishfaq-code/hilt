@@ -1,0 +1,599 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, sans-serif;
+  color: #171717;
+  background: #f7f7f7;
+}
+
+/* Layout and navigation */
+
+.app-header {
+  height: 5rem;
+  padding: 0 max(1.25rem, calc((100% - 74rem) / 2));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #ddd;
+  background: white;
+}
+
+.app-brand {
+  font-size: 1.75rem;
+  font-weight: 750;
+  letter-spacing: -.08rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-brand span {
+  color: #a34b16;
+}
+
+.club-app {
+  max-width: 74rem;
+  min-height: calc(100dvh - 5rem);
+  margin: auto;
+  padding: 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace-nav {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.workspace-links {
+  display: flex;
+  gap: 1.5rem;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.club-app .workspace-nav a {
+  padding: 1.1rem 0;
+  border-bottom: 2px solid transparent;
+  color: #666;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.club-app .workspace-nav a[aria-current="page"] {
+  border-color: #171717;
+  color: #171717;
+}
+
+.account-nav-link {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.club-app .workspace-nav a.login-button {
+  align-self: center;
+  padding: .65rem 1rem;
+  border: 1px solid #171717;
+  border-radius: .35rem;
+  background: #171717;
+  color: white;
+  font-size: .9rem;
+}
+
+.page-back {
+  align-self: start;
+  margin-bottom: 1rem;
+  font-size: .9rem;
+}
+
+.page-heading {
+  display: flex;
+  gap: 1rem;
+  align-items: start;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.page-heading h1 {
+  margin: .5rem 0 1rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -.055em;
+}
+
+.page-heading p {
+  max-width: 42rem;
+  color: #626262;
+}
+
+.app-footer {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding: 3rem 0 2rem;
+  color: #737373;
+  font-size: .85rem;
+}
+
+.club-app .app-footer a {
+  color: #555;
+  text-decoration: underline;
+}
+
+/* Shared controls and feedback */
+
+.club-app button,
+.app-dialog button {
+  padding: .65rem 1rem;
+  border-radius: .35rem;
+  background: #171717;
+  color: white;
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+:is(input, textarea, select, button, a):focus-visible {
+  outline: 2px solid #245bb0;
+  outline-offset: 3px;
+}
+
+.club-app a {
+  color: #17458c;
+  text-decoration: underline;
+}
+
+.club-app .button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .65rem 1rem;
+  border-radius: .35rem;
+  background: #171717;
+  color: white;
+  text-decoration: none;
+  font-size: .9rem;
+}
+
+.club-app .secondary-button,
+.app-dialog .secondary-button {
+  border: 1px solid #bbb;
+  background: white;
+  color: #171717;
+}
+
+.club-app .quiet-button,
+.app-dialog .quiet-button {
+  padding: .4rem .5rem;
+  background: transparent;
+  color: #555;
+}
+
+.club-app .text-button {
+  padding: .25rem 0;
+  background: transparent;
+  color: #17458c;
+  text-decoration: underline;
+}
+
+.hint,
+.secondary,
+.switch {
+  color: #555;
+  font-size: .9rem;
+}
+
+.secondary {
+  overflow-wrap: anywhere;
+}
+
+.hint {
+  margin-top: -.65rem;
+}
+
+.switch {
+  margin-top: 1rem;
+}
+
+.eyebrow {
+  font-size: .8rem;
+  color: #737373;
+  letter-spacing: .035em;
+}
+
+.notice,
+.error {
+  padding: .65rem .8rem;
+  border-radius: .35rem;
+  font-size: .9rem;
+}
+
+.notice {
+  margin-bottom: 1rem;
+  color: #12442b;
+  background: #edf8f0;
+}
+
+.error {
+  color: #891e1e;
+  background: #fff0f0;
+}
+
+.club-app > .notice,
+.club-app > .error {
+  margin-bottom: 1.5rem;
+}
+
+/* Forms and account details */
+
+.fields,
+.names {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.names {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.club-app label,
+.app-dialog label {
+  display: grid;
+  gap: .4rem;
+  font-size: .9rem;
+  font-weight: 550;
+}
+
+.club-app :is(input, textarea, select),
+.app-dialog :is(input, textarea, select) {
+  width: 100%;
+  min-width: 0;
+  padding: .65rem .75rem;
+  border: 1px solid #aaa;
+  border-radius: .35rem;
+  background: white;
+  font: inherit;
+  font-weight: 400;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.search-row {
+  display: flex;
+  gap: .75rem;
+  align-items: end;
+  margin-bottom: 2rem;
+}
+
+.search-field {
+  flex: 1;
+}
+
+.auth-form {
+  width: min(100%, 27rem);
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: .6rem;
+  background: white;
+}
+
+.application-form,
+.account-content {
+  max-width: 42rem;
+}
+
+.application-form > p {
+  margin-bottom: 1.5rem;
+  color: #555;
+}
+
+.profile-details {
+  display: grid;
+  gap: 1rem;
+}
+
+.profile-details dt {
+  margin-bottom: .2rem;
+  color: #666;
+  font-size: .85rem;
+}
+
+.account-actions,
+.dialog-actions {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.account-actions {
+  margin-top: 1rem;
+}
+
+/* Clubs, applications, and members */
+
+.club-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: 1.25rem;
+}
+
+.club-card {
+  display: grid;
+  align-content: start;
+  gap: .85rem;
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: .6rem;
+  background: white;
+  overflow-wrap: anywhere;
+}
+
+.club-card h2 {
+  font-size: 1.4rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.club-card h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.club-card h2 a:hover {
+  text-decoration: underline;
+}
+
+.club-description {
+  color: #454545;
+  white-space: pre-wrap;
+}
+
+.club-grid .club-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.club-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .65rem;
+  margin-top: .35rem;
+}
+
+.club-actions button {
+  flex-grow: 0;
+}
+
+.club-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.club-detail > :only-child {
+  grid-column: 1 / -1;
+}
+
+.club-detail ul {
+  display: grid;
+  gap: .75rem;
+}
+
+.club-links {
+  display: grid;
+  gap: .5rem;
+}
+
+.empty-state {
+  padding: 3rem 1.5rem;
+  border: 1px dashed #ccc;
+  border-radius: .5rem;
+  background: #fafafa;
+  text-align: center;
+}
+
+.empty-state h2 {
+  margin-bottom: .6rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.empty-state p {
+  margin-bottom: .75rem;
+  color: #666;
+}
+
+.applications {
+  margin-top: 3rem;
+}
+
+.applications > h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.application-row {
+  display: grid;
+  gap: .85rem;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #ddd;
+  overflow-wrap: anywhere;
+}
+
+.application-row h2,
+.application-row h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.application-row > button {
+  justify-self: start;
+}
+
+.row-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.application-status {
+  font-size: .8rem;
+  color: #805700;
+}
+
+.application-status.approved {
+  color: #166534;
+}
+
+.application-status.rejected {
+  color: #991b1b;
+}
+
+.review-message {
+  padding-left: .75rem;
+  border-left: 2px solid #aaa;
+  color: #555;
+  white-space: pre-wrap;
+}
+
+.review-filter {
+  display: flex;
+  gap: .75rem;
+  align-items: end;
+  max-width: 24rem;
+  margin-bottom: 1rem;
+}
+
+.review-filter label {
+  flex: 1;
+}
+
+.pagination {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.members-page {
+  max-width: 52rem;
+}
+
+.members-page > p {
+  margin-bottom: 1.25rem;
+}
+
+.member-list {
+  display: grid;
+}
+
+.member-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-top: 1px solid #ddd;
+}
+
+.member-row > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.member-row button {
+  align-self: start;
+}
+
+/* Dialogs */
+
+.app-dialog {
+  position: fixed;
+  width: min(100% - 2rem, 38rem);
+  max-height: 90dvh;
+  margin: auto;
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: .7rem;
+  background: white;
+  color: #171717;
+  overflow-y: auto;
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / .4);
+}
+
+.dialog-heading {
+  display: flex;
+  gap: 1rem;
+  align-items: start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.dialog-heading h2 {
+  font-size: 1.3rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.app-dialog > p {
+  margin-bottom: 1.25rem;
+}
+
+.dialog-actions {
+  padding-top: 1rem;
+}
+
+.app-dialog .danger-button {
+  background: #a32424;
+}
+
+@media (max-width: 640px) {
+  .workspace-nav {
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .workspace-links {
+    gap: 1rem;
+  }
+
+  .search-row {
+    flex-wrap: wrap;
+  }
+
+  .search-field {
+    flex-basis: 100%;
+  }
+
+  .club-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .member-row {
+    flex-direction: column;
+    gap: .5rem;
+  }
+}

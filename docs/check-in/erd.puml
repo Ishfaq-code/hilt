@@ -1,0 +1,69 @@
+@startuml
+title Hilt — implemented MongoDB schema\nCurrent checkout · 9 November 2026
+hide circle
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 15
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam entity {
+  BackgroundColor #F1F5F9
+  BorderColor #334155
+  FontColor #0F172A
+}
+
+entity "User\nusers" as User {
+  * _id : ObjectId <<primary key>>
+  --
+  * firstName : String <<trimmed>>
+  * lastName : String <<trimmed>>
+  * emailAddress : String <<unique, lowercase, trimmed>>
+  passwordHash : String <<Argon2id, excluded by default>>
+  createdAt : Date <<automatic>>
+  updatedAt : Date <<automatic>>
+  __v : Number <<Mongoose version key>>
+}
+
+entity "Session\nsessions" as Session {
+  * _id : ObjectId <<primary key>>
+  --
+  * user : ObjectId <<reference: User>>
+  * tokenHash : String <<unique, SHA-256, excluded by default>>
+  * expiresAt : Date <<TTL index, expireAfterSeconds: 0>>
+  __v : Number <<Mongoose version key>>
+}
+
+entity "Organization\norganizations · model and seed only" as Organization {
+  * _id : ObjectId <<primary key>>
+  --
+  * name : String <<trimmed>>
+  * owner : ObjectId <<reference: User>>
+  members : ObjectId[] <<references: User, default []>>
+  description : String <<trimmed, default empty string>>
+  createdAt : Date <<automatic>>
+  updatedAt : Date <<automatic>>
+  __v : Number <<Mongoose version key>>
+}
+
+User ||--o{ Session : "user"
+User ||--o{ Organization : "owner"
+User }o--o{ Organization : "members[]"
+
+note bottom of Session
+  Raw session tokens are never persisted.
+  Expiry is checked on every authenticated request;
+  MongoDB TTL deletion is asynchronous.
+end note
+note bottom of Organization
+  members[] embeds IDs, not User documents.
+  No separate membership collection exists yet.
+  The owner is not required to appear in members[].
+end note
+legend bottom
+  * Required by the model. Cardinalities describe intended references.
+  MongoDB does not enforce foreign keys, cascades, or unique members[].
+  Legacy/seed users may lack passwordHash and cannot log in.
+  Source: backend/models/{User,Session,Organization}.js
+endlegend
+@enduml

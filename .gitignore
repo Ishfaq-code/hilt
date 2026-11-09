@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 *.env
+
+# Temporary browser verification artifacts
+/.playwright-cli/
+/output/

@@ -1,0 +1,105 @@
+@startuml
+title Hilt — proposed PRD data relationships\nPLANNED · not the implemented database schema
+hide circle
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 14
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam entity {
+  BackgroundColor #FFF7ED
+  BorderColor #9A3412
+}
+
+entity University {
+  exactEmailDomains[]
+}
+entity "User (extend existing)" as User {
+  university : reference
+}
+entity "Club (evolve Organization)" as Club {
+  university : reference
+}
+entity ClubApplication {
+  applicant, university : references
+}
+entity Membership {
+  user, club : references
+}
+entity Role {
+  club : reference
+}
+entity RoleAssignment {
+  membership, role : references
+}
+entity Page {
+  club : reference
+  draft, published : embedded versions
+  sections[].columns[].blocks[] : embedded layout
+}
+entity Asset {
+  club : reference
+}
+entity Event {
+  club : reference
+}
+entity RSVP {
+  event, user : references
+}
+entity Attendance {
+  event, user : references
+}
+entity Announcement {
+  club : reference
+}
+entity Notification {
+  recipient : reference
+}
+entity Delivery {
+  notification : reference
+}
+entity Integration {
+  club : reference
+}
+entity AuditEntry {
+  club, actor : references
+}
+entity "Verification / reset token" as AccountToken {
+  user : reference
+}
+
+University ||--o{ User
+University ||--o{ Club
+University ||--o{ ClubApplication
+User ||--o{ ClubApplication : submits
+ClubApplication |o--o| Club : approval creates
+Club ||--o{ Membership
+User ||--o{ Membership
+Club ||--o{ Role
+Membership ||--o{ RoleAssignment
+Role ||--o{ RoleAssignment
+Club ||--o{ Page
+Club ||--o{ Asset
+Club ||--o{ Event
+Event ||--o{ RSVP
+User ||--o{ RSVP
+Event ||--o{ Attendance
+User ||--o{ Attendance
+Club ||--o{ Announcement
+User ||--o{ Notification
+Notification ||--o{ Delivery
+Club ||--o{ Integration
+Club ||--o{ AuditEntry
+User |o--o{ AuditEntry : actor / system
+User ||--o{ AccountToken
+
+legend bottom
+  Proposed logical relationships from docs/prd.md; fields and indexes remain to be designed.
+  References use IDs; only Page layout/version content is proposed as embedded here.
+  Membership, RSVP, and Attendance remain independent records.
+  Event blocks reference Event; using a block never duplicates RSVP/Attendance.
+  Audits must retain recoverable prior state; delivery history survives recovery.
+  Not a migration or a claim that these collections or APIs exist.
+endlegend
+@enduml
