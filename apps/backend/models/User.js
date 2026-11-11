@@ -12,12 +12,27 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    emailAddress: {
+    email: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
       trim: true,
+    },
+    phoneNumber: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    appRole: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+      required: true,
+    },
+    passwordHash: {
+      type: String,
+      select: false,
     },
   },
   { timestamps: true },
