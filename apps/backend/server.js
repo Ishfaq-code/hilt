@@ -4,19 +4,16 @@ const express = require('express')
 const mongoose = require('mongoose')
 const User = require('./models/User')
 const Membership = require('./models/Membership')
+const authRoutes = require('./routes/authRoutes')
+const healthRoutes = require('./routes/healthRoutes')
 
 const app = express()
 const port = process.env.PORT || 3000
 const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/HiltDB'
-
 app.disable('x-powered-by')
-
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-  })
-})
+app.use(express.json())
+app.use('/api/auth', authRoutes)
+app.use('/api', healthRoutes)
 
 app.use((error, req, res, next) => {
   if (res.headersSent) return next(error)
