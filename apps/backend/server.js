@@ -3,6 +3,7 @@ require('dotenv').config()
 const express = require('express')
 const mongoose = require('mongoose')
 const User = require('./models/User')
+const Membership = require('./models/Membership')
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -35,7 +36,7 @@ app.use((error, req, res, next) => {
 
 async function start() {
   await mongoose.connect(mongoUri)
-  await User.init()
+  await Promise.all([User.init(), Membership.init()])
   console.log('Connected to MongoDB')
 
   app.listen(port, '0.0.0.0', () => {
