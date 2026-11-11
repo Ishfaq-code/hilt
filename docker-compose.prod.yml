@@ -1,22 +1,9 @@
 services:
-  web:
-    build:
-      context: ./apps/frontend
-      dockerfile: Dockerfile.prod
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - backend
-
   backend:
     build: ./apps/backend
     restart: unless-stopped
+    ports:
+      - "3000:3000"
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -51,6 +38,4 @@ services:
       retries: 10
 
 volumes:
-  caddy_data:
-  caddy_config:
   mongodb_data:
