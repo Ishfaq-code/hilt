@@ -1,7 +1,7 @@
 services:
   web:
     build:
-      context: ./frontend
+      context: ./apps/frontend
       dockerfile: Dockerfile.prod
     restart: unless-stopped
     ports:
@@ -15,7 +15,7 @@ services:
       - backend
 
   backend:
-    build: ./backend
+    build: ./apps/backend
     restart: unless-stopped
     environment:
       NODE_ENV: production
