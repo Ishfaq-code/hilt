@@ -8,6 +8,7 @@ services:
       NODE_ENV: production
       PORT: 3000
       MONGODB_URI: ${MONGODB_URI:?Set MONGODB_URI in the deployment environment}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the deployment environment}
     depends_on:
       mongodb:
         condition: service_healthy
