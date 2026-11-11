@@ -2,16 +2,13 @@ require('dotenv').config()
 
 const express = require('express')
 const mongoose = require('mongoose')
-const { router: authRouter } = require('./auth')
 const User = require('./models/User')
-const Session = require('./models/Session')
 
 const app = express()
 const port = process.env.PORT || 3000
 const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/HiltDB'
 
 app.disable('x-powered-by')
-app.use('/api/auth', authRouter)
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -38,8 +35,7 @@ app.use((error, req, res, next) => {
 
 async function start() {
   await mongoose.connect(mongoUri)
-  // Registration must not accept requests before the unique email index exists.
-  await Promise.all([User.init(), Session.init()])
+  await User.init()
   console.log('Connected to MongoDB')
 
   app.listen(port, '0.0.0.0', () => {

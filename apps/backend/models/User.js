@@ -19,11 +19,6 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    // Existing seed users have no password and cannot sign in until one is set.
-    passwordHash: {
-      type: String,
-      select: false,
-    },
   },
   { timestamps: true },
 )
