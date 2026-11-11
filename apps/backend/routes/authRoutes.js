@@ -7,6 +7,33 @@ const passwordValidationService = require('../services/passwordValidationService
 const router = express.Router()
 const tokenLifetime = '1h'
 
+router.post('/login', async (req, res, next) => {
+  try {
+    const { email, password } = req.body ?? {}
+    const requiredFields = [email, password]
+    if (requiredFields.some((value) => typeof value !== 'string' || !value.trim())) {
+      return res.status(409).json({ error: 'Email and password are required.' })
+    }
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ error: 'Authentication is not configured.' })
+    }
+
+    const normalizedEmail = email.trim().toLowerCase()
+    const user = await User.findOne({ email: normalizedEmail }).select('+passwordHash')
+    if (!user || !(await passwordService.verifyPassword(password, user.passwordHash))) {
+      return res.status(401).json({ error: 'Invalid email or password.' })
+    }
+
+    const role = user.appRole
+    const token = jwt.sign({ sub: user.id, role }, process.env.JWT_SECRET, { expiresIn: tokenLifetime })
+
+    return res.status(200).json({ firstName: user.firstName, lastName: user.lastName, role, token })
+  } catch (error) {
+    return next(error)
+  }
+})
+
 router.post('/register', async (req, res, next) => {
   try {
     const { firstName, lastName, email, password } = req.body ?? {}
