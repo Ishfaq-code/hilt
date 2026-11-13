@@ -4,6 +4,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const User = require('./models/User')
 const Membership = require('./models/Membership')
+const PendingRegistration = require('./models/PendingRegistration')
 const authRoutes = require('./routes/authRoutes')
 const healthRoutes = require('./routes/healthRoutes')
 
@@ -27,13 +28,14 @@ app.use((error, req, res, next) => {
     return res.status(415).json({ error: 'The request encoding is not supported.' })
   }
   // Do not log request bodies or database errors containing credential material.
+  console.log(error)
   console.error('Request failed:', error.name)
   res.status(500).json({ error: 'An unexpected server error occurred.' })
 })
 
 async function start() {
   await mongoose.connect(mongoUri)
-  await Promise.all([User.init(), Membership.init()])
+  await Promise.all([User.init(), Membership.init(), PendingRegistration.init()])
   console.log('Connected to MongoDB')
 
   app.listen(port, '0.0.0.0', () => {
