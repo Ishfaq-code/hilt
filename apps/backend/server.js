@@ -6,6 +6,7 @@ const User = require('./models/User')
 const Membership = require('./models/Membership')
 const PendingRegistration = require('./models/PendingRegistration')
 const authRoutes = require('./routes/authRoutes')
+const userRoutes = require('./routes/userRoutes')
 const healthRoutes = require('./routes/healthRoutes')
 
 const app = express()
@@ -14,6 +15,7 @@ const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/HiltDB'
 app.disable('x-powered-by')
 app.use(express.json())
 app.use('/api/auth', authRoutes)
+app.use('/api/users', userRoutes)
 app.use('/api', healthRoutes)
 
 app.use((error, req, res, next) => {
