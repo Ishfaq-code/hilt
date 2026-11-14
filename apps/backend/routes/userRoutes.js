@@ -6,6 +6,16 @@ const passwordValidationService = require('../services/passwordValidationService
 const router = express.Router()
 const editableFields = new Set(['firstName', 'lastName', 'email', 'phoneNumber', 'password'])
 
+router.get('/me', requireAuth, (req, res) => {
+  return res.status(200).json({
+    id: req.user.id,
+    firstName: req.user.firstName,
+    lastName: req.user.lastName,
+    email: req.user.email,
+    role: req.user.appRole,
+  })
+})
+
 router.patch('/me', requireAuth, async (req, res, next) => {
   try {
     const updates = req.body

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { saveAuthSession } from '../auth'
 import type { ApiResponse } from '../types'
 
 type AuthPageProps = { initialMode: 'login' | 'signup' }
@@ -38,7 +39,7 @@ function AuthPage({ initialMode }: AuthPageProps) {
     try {
       if (initialMode === 'login') {
         const result = await request('login', { email, password })
-        if (result.token) sessionStorage.setItem('authToken', result.token)
+        saveAuthSession(result)
         const state = location.state as AuthLocationState | null
         navigate(state?.from || '/application', { replace: true, state: state?.joinOrganizationId ? { joinOrganizationId: state.joinOrganizationId } : null })
       } else {
@@ -59,7 +60,7 @@ function AuthPage({ initialMode }: AuthPageProps) {
     setError('')
     try {
       const result = await request('verify-email', { email, code })
-      if (result.token) sessionStorage.setItem('authToken', result.token)
+      saveAuthSession(result)
       setMessage(`Welcome${result.firstName ? `, ${result.firstName}` : ''}! Your email is verified.`)
       setStage('complete')
     } catch (cause) {
