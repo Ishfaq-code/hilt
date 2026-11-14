@@ -37,6 +37,21 @@ const applicationSchema = new mongoose.Schema(
       type: [documentSchema],
       default: [],
     },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'denied'],
+      default: 'pending',
+      required: true,
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    reviewedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } },
 )

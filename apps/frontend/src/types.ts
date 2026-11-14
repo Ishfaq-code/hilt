@@ -22,3 +22,14 @@ export type AuthUser = {
   email?: string
   role?: string
 }
+
+export type Application = {
+  _id: string
+  userId: AuthUser | string
+  organizationName: string
+  organizationDescription?: string | null
+  additionalDocuments: { _id?: string; name: string; link: string }[]
+  status: 'pending' | 'approved' | 'denied'
+  reviewedAt?: string | null
+  createdAt: string
+}

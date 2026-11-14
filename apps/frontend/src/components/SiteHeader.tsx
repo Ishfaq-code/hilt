@@ -7,6 +7,12 @@ function SiteHeader() {
   const navigate = useNavigate()
   const [user, setUser] = useState<AuthUser | null>(() => sessionStorage.getItem('authToken') ? getStoredUser() : null)
 
+  function logout() {
+    clearAuthSession()
+    setUser(null)
+    navigate('/')
+  }
+
   useEffect(() => {
     const token = sessionStorage.getItem('authToken')
     if (!token) return
@@ -38,7 +44,7 @@ function SiteHeader() {
       </Link>
       <div className="header-actions">
         {user
-          ? <span className="user-greeting">{user.firstName} {user.lastName}</span>
+          ? <><span className="user-greeting">{user.firstName} {user.lastName}</span><button className="button button-secondary" onClick={logout}>Log out</button></>
           : <button className="button button-secondary" onClick={() => navigate('/login')}>Log in / Register</button>}
         <button
           className="button button-primary"
