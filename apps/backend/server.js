@@ -10,6 +10,7 @@ const userRoutes = require('./routes/userRoutes')
 const healthRoutes = require('./routes/healthRoutes')
 const organizationRoutes = require('./routes/organizationRoutes')
 const membershipRoutes = require('./routes/membershipRoutes')
+const applicationRoutes = require('./routes/applicationRoutes')
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -20,6 +21,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/organizations', organizationRoutes)
 app.use('/api/memberships', membershipRoutes)
+app.use('/api/applications', applicationRoutes)
 app.use('/api', healthRoutes)
 
 app.use((error, req, res, next) => {
