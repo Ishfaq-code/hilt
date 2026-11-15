@@ -16,6 +16,13 @@ const {
 } = require('../services/clubRoles')
 const optionalAuth = require('../middleware/optionalAuth')
 const eventDetails = require('../services/eventDetails')
+const { uploads } = require('../middleware/uploads')
+const {
+  saveWithUploads,
+  saveClubImages,
+  deleteMedia,
+  deleteUnusedClubImages,
+} = require('../services/media')
 
 const router = express.Router()
 const editableFields = new Set([
@@ -23,7 +30,6 @@ const editableFields = new Set([
   'description',
   'tags',
   'profile',
-  'assets',
   'membershipFee',
 ])
 
@@ -175,14 +181,25 @@ router.post(
   '/:organizationId/events',
   requireAuth,
   requireClubPermission('events'),
+  uploads('banner'),
   async (req, res, next) => {
     try {
       const organization = await Organization.findById(
         req.params.organizationId,
       )
-      organization.events.push(eventDetails(req.body))
-      await organization.save()
-      return res.status(201).json(organization.events.at(-1))
+      if (!organization)
+        return res.status(404).json({ error: 'Club not found.' })
+      const event = organization.events.create(eventDetails(req.body))
+      await saveWithUploads(
+        `clubs/${organization.id}/events/${event.id}`,
+        req.uploads,
+        async ({ banner }) => {
+          if (banner) event.banner = banner
+          organization.events.push(event)
+          await organization.save()
+        },
+      )
+      return res.status(201).json(event)
     } catch (error) {
       if (error.status === 400)
         return res.status(400).json({ error: error.message })
@@ -197,15 +214,29 @@ router.patch(
   '/:organizationId/events/:eventId',
   requireAuth,
   requireClubPermission('events'),
+  uploads('banner'),
   async (req, res, next) => {
     try {
       const organization = await Organization.findById(
         req.params.organizationId,
       )
-      const event = organization.events.id(req.params.eventId)
+      const event = organization?.events.id(req.params.eventId)
       if (!event) return res.status(404).json({ error: 'Event not found.' })
-      event.set(eventDetails(req.body, event))
-      await organization.save()
+      const previousBanner = event.banner
+      const details = eventDetails(
+        req.uploads.banner && (!req.body || !Object.keys(req.body).length)
+          ? { status: event.status }
+          : req.body,
+        event,
+      )
+      const prefix = `clubs/${organization.id}/events/${event.id}`
+      await saveWithUploads(prefix, req.uploads, async ({ banner }) => {
+        event.set(details)
+        if (banner) event.banner = banner
+        await organization.save()
+      })
+      if (previousBanner !== event.banner)
+        await deleteMedia(prefix, [previousBanner])
       return res.status(200).json(event)
     } catch (error) {
       if (error.status === 400)
@@ -226,10 +257,13 @@ router.delete(
       const organization = await Organization.findById(
         req.params.organizationId,
       )
-      const event = organization.events.id(req.params.eventId)
+      const event = organization?.events.id(req.params.eventId)
       if (!event) return res.status(404).json({ error: 'Event not found.' })
       event.deleteOne()
       await organization.save()
+      await deleteMedia(`clubs/${organization.id}/events/${event.id}`, [
+        event.banner,
+      ])
       return res.status(204).end()
     } catch (error) {
       return next(error)
@@ -237,64 +271,77 @@ router.delete(
   },
 )
 
-router.post('/', requireAuth, requireAppAdmin, async (req, res, next) => {
-  try {
-    const body = req.body
-    if (!body || typeof body !== 'object' || Array.isArray(body)) {
-      return res
-        .status(400)
-        .json({ error: 'Organization details are required.' })
+router.post(
+  '/',
+  requireAuth,
+  requireAppAdmin,
+  uploads('icon', 'banner'),
+  async (req, res, next) => {
+    try {
+      const body = req.body
+      if (!body || typeof body !== 'object' || Array.isArray(body)) {
+        return res
+          .status(400)
+          .json({ error: 'Organization details are required.' })
+      }
+      const initialUserId = body.initialMemberUserId ?? body.ownerUserId
+      if (
+        !mongoose.isObjectIdOrHexString(initialUserId) ||
+        !(await User.exists({ _id: initialUserId }))
+      ) {
+        return res
+          .status(400)
+          .json({ error: 'Choose an existing user as the initial member.' })
+      }
+      const fields = Object.keys(body).filter(
+        (field) =>
+          !['initialMemberUserId', 'ownerUserId', 'roleSetup'].includes(field),
+      )
+      if (fields.some((field) => !editableFields.has(field))) {
+        return res
+          .status(400)
+          .json({ error: 'One or more club fields cannot be set.' })
+      }
+      const details = Object.fromEntries(
+        fields.map((field) => [field, body[field]]),
+      )
+      if (Object.hasOwn(details, 'tags')) {
+        details.tags = parseTags(details.tags)
+        if (!details.tags)
+          return res
+            .status(400)
+            .json({ error: 'Tags must be a list of names.' })
+      }
+      if (!req.uploads.icon || !req.uploads.banner)
+        return res.status(400).json({ error: 'Upload a club icon and banner.' })
+
+      const organization = new Organization(details)
+      const roleSetup = parseApplicationRoles(body.roleSetup)
+      await organization.validate()
+      await saveClubImages(organization.id, req.uploads, [], (assets) => {
+        organization.assets = assets
+        return createClub(organization, initialUserId, roleSetup)
+      })
+      return res.status(201).json(organization)
+    } catch (error) {
+      if (error.name === 'ValidationError' || error.name === 'CastError') {
+        return res
+          .status(400)
+          .json({ error: 'Organization details are invalid.' })
+      }
+      return next(error)
     }
-    const initialUserId = body.initialMemberUserId ?? body.ownerUserId
-    if (
-      !mongoose.isObjectIdOrHexString(initialUserId) ||
-      !(await User.exists({ _id: initialUserId }))
-    ) {
-      return res
-        .status(400)
-        .json({ error: 'Choose an existing user as the initial member.' })
-    }
-    const fields = Object.keys(body).filter(
-      (field) =>
-        !['initialMemberUserId', 'ownerUserId', 'roleSetup'].includes(field),
-    )
-    if (fields.some((field) => !editableFields.has(field))) {
-      return res
-        .status(400)
-        .json({ error: 'One or more club fields cannot be set.' })
-    }
-    const details = Object.fromEntries(
-      fields.map((field) => [field, body[field]]),
-    )
-    if (Object.hasOwn(details, 'tags')) {
-      details.tags = parseTags(details.tags)
-      if (!details.tags)
-        return res.status(400).json({ error: 'Tags must be a list of names.' })
-    }
-    const organization = new Organization(details)
-    await createClub(
-      organization,
-      initialUserId,
-      parseApplicationRoles(body.roleSetup),
-    )
-    return res.status(201).json(organization)
-  } catch (error) {
-    if (error.name === 'ValidationError' || error.name === 'CastError') {
-      return res
-        .status(400)
-        .json({ error: 'Organization details are invalid.' })
-    }
-    return next(error)
-  }
-})
+  },
+)
 
 router.patch(
   '/:organizationId',
   requireAuth,
   requireClubPermission('settings'),
+  uploads('icon', 'banner'),
   async (req, res, next) => {
     try {
-      const updates = req.body
+      const updates = req.body ?? {}
       if (!updates || typeof updates !== 'object' || Array.isArray(updates)) {
         return res
           .status(400)
@@ -302,7 +349,7 @@ router.patch(
       }
 
       const fields = Object.keys(updates)
-      if (fields.length === 0) {
+      if (fields.length === 0 && !Object.keys(req.uploads).length) {
         return res
           .status(400)
           .json({ error: 'At least one organization field must be provided.' })
@@ -346,7 +393,19 @@ router.patch(
       }
 
       for (const field of fields) organization.set(field, updates[field])
-      await organization.save()
+      if (Object.keys(req.uploads).length) {
+        await saveClubImages(
+          organization.id,
+          req.uploads,
+          organization.assets,
+          (assets) => {
+            organization.assets = assets
+            return organization.save()
+          },
+        )
+      } else {
+        await organization.save()
+      }
       return res.status(200).json(organization)
     } catch (error) {
       if (error.name === 'ValidationError' || error.name === 'CastError') {
@@ -377,6 +436,14 @@ router.delete(
       }
       await Membership.deleteMany({ organizationId: organization._id })
       await ClubAccess.deleteOne({ _id: organization._id })
+      await deleteUnusedClubImages(
+        organization.id,
+        organization.assets.map((asset) => asset.link),
+      )
+      await deleteMedia(
+        `clubs/${organization.id}`,
+        organization.events.map((event) => event.banner),
+      )
       return res.status(204).end()
     } catch (error) {
       return next(error)

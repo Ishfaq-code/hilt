@@ -1,3 +1,7 @@
+import { apiFile } from '../../lib/api'
+import { useMediaUrl } from '../../hooks/useMediaUrl'
+import { useToast } from '../../hooks/useToast'
+import { ImageUpload } from '../ui/ImageUpload'
 import { RoleSetupSummary } from '../roles/RoleSetupSummary'
 import { Icon } from '../ui/Icon'
 import {
@@ -33,6 +37,29 @@ export function ApplicationReviews({
   setStatusFilter,
   matchingApplications,
 }: Props) {
+  const { toast } = useToast()
+  const icon = selected?.assets?.find((asset) => asset.type === 'icon')
+  const banner = selected?.assets?.find((asset) => asset.type === 'banner')
+  const iconUrl = useMediaUrl(icon?.link, true)
+  const bannerUrl = useMediaUrl(banner?.link, true)
+
+  async function downloadDocument(name: string, link: string) {
+    try {
+      const url = URL.createObjectURL(await apiFile(link))
+      const download = document.createElement('a')
+      download.href = url
+      download.download = name
+      download.click()
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (cause) {
+      toast({
+        title:
+          cause instanceof Error ? cause.message : 'Unable to open the file.',
+        variant: 'destructive',
+      })
+    }
+  }
+
   return (
     <section>
       <h1 className="text-3xl font-semibold tracking-tight">
@@ -107,17 +134,46 @@ export function ApplicationReviews({
                 </a>
               )}
             </div>
-            {selected.additionalDocuments?.map((document) => (
-              <a
-                key={document._id || document.link}
-                href={document.link}
-                target="_blank"
-                rel="noreferrer"
-                className="block text-sm font-semibold text-accent"
-              >
-                {document.name} ↗
-              </a>
-            ))}
+            {(iconUrl || bannerUrl) && (
+              <div className="flex items-start gap-3 border-t border-line pt-4">
+                {iconUrl && (
+                  <img
+                    src={iconUrl}
+                    alt="Club icon"
+                    className="h-20 w-20 rounded-md object-cover"
+                  />
+                )}
+                {bannerUrl && (
+                  <img
+                    src={bannerUrl}
+                    alt="Club banner"
+                    className="h-20 min-w-0 flex-1 rounded-md object-cover"
+                  />
+                )}
+              </div>
+            )}
+            {selected.additionalDocuments?.map(({ _id, name, link }) =>
+              link.startsWith('/api/media/') ? (
+                <button
+                  key={_id || link}
+                  type="button"
+                  className="block text-sm font-semibold text-accent"
+                  onClick={() => void downloadDocument(name, link)}
+                >
+                  {name}
+                </button>
+              ) : (
+                <a
+                  key={_id || link}
+                  href={link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block text-sm font-semibold text-accent"
+                >
+                  {name} ↗
+                </a>
+              ),
+            )}
             <p className="border-t border-line pt-4 text-xs text-muted">
               Submitted {new Date(selected.createdAt).toLocaleString()}
             </p>
@@ -126,22 +182,42 @@ export function ApplicationReviews({
             <RoleSetupSummary roles={selected.roleSetup} />
           ) : null}
           {selected.status === 'pending' && (
-            <div className="mt-5 flex flex-wrap justify-end gap-2">
-              <button
-                className={secondaryClass}
-                disabled={reviewing}
-                onClick={() => void review('denied')}
-              >
-                Deny application
-              </button>
-              <button
-                className={buttonClass}
-                disabled={reviewing}
-                onClick={() => void review('approved')}
-              >
-                {reviewing ? 'Saving…' : 'Approve club'}
-              </button>
-            </div>
+            <form
+              key={selected._id}
+              className="mt-5 space-y-4"
+              onSubmit={(event) => {
+                event.preventDefault()
+                void review('approved', new FormData(event.currentTarget))
+              }}
+            >
+              {(!icon || !banner) && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {!icon && (
+                    <ImageUpload name="icon" label="Club icon" required />
+                  )}
+                  {!banner && (
+                    <ImageUpload name="banner" label="Club banner" required />
+                  )}
+                </div>
+              )}
+              <div className="flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  className={secondaryClass}
+                  disabled={reviewing}
+                  onClick={() => void review('denied')}
+                >
+                  Deny application
+                </button>
+                <button
+                  type="submit"
+                  className={buttonClass}
+                  disabled={reviewing}
+                >
+                  {reviewing ? 'Saving…' : 'Approve club'}
+                </button>
+              </div>
+            </form>
           )}
         </>
       ) : (

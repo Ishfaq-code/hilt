@@ -13,7 +13,7 @@ const fields = new Set([
   'status',
   'draftSchedule',
 ])
-const textFields = ['name', 'description', 'place', 'banner']
+const textFields = ['name', 'description', 'place']
 const attendanceFields = new Set([
   'enabled',
   'self',
@@ -47,6 +47,9 @@ function eventDetails(body, current) {
     ) {
       invalid('Event details are invalid.')
     }
+  }
+  if (body.banner !== undefined && body.banner !== null) {
+    invalid('Choose an image file for the event banner.')
   }
   if (body.private !== undefined && typeof body.private !== 'boolean') {
     invalid('Choose a valid event visibility.')

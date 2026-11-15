@@ -52,6 +52,15 @@ const applicationSchema = new mongoose.Schema(
       ],
       default: undefined,
     },
+    assets: {
+      type: [
+        {
+          type: { type: String, required: true },
+          link: { type: String, required: true },
+        },
+      ],
+      default: [],
+    },
     additionalDocuments: {
       type: [documentSchema],
       default: [],

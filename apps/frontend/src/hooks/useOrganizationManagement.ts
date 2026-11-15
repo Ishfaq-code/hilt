@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { api } from '../lib/api'
+import { uploadBody } from '../lib/uploads'
 import type { Organization } from '../types'
 import type { ClubPermission, ClubRole, RoleChange } from '../types/clubRoles'
 import type { EditableEvent, Member } from '../types/management'
@@ -84,27 +85,28 @@ export function useOrganizationManagement(
   async function saveOrganization(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     setSaving(true)
-    const form = new FormData(event.currentTarget)
-    const preservedAssets = (data?.organization.assets ?? []).filter(
-      (asset) => !['logo', 'banner'].includes(asset.type.toLowerCase()),
-    )
-    const updatedAssets = (['logo', 'banner'] as const).flatMap((type) => {
-      const link = String(form.get(type) ?? '').trim()
-      return link ? [{ type, link }] : []
-    })
+    const element = event.currentTarget
+    const form = new FormData(element)
+    const details = {
+      name: form.get('name'),
+      description: form.get('description'),
+      tags: form.getAll('tags'),
+      profile: form.get('profile'),
+      membershipFee: Number(form.get('membershipFee')),
+    }
 
     try {
       await api(path, {
         method: 'PATCH',
-        body: JSON.stringify({
-          name: form.get('name'),
-          description: form.get('description'),
-          tags: form.getAll('tags'),
-          profile: form.get('profile'),
-          membershipFee: Number(form.get('membershipFee')),
-          assets: [...preservedAssets, ...updatedAssets],
+        body: uploadBody(details, {
+          icon: form.get('icon'),
+          banner: form.get('banner'),
         }),
       })
+      for (const name of ['icon', 'banner']) {
+        const input = element.elements.namedItem(name)
+        if (input instanceof HTMLInputElement) input.value = ''
+      }
       await saved('Changes saved')
     } catch (cause) {
       showError(cause)

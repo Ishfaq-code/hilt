@@ -1,6 +1,9 @@
 import type { SubmitEvent } from 'react'
 import { useState } from 'react'
 import { api } from '../../lib/api'
+import { uploadBody } from '../../lib/uploads'
+import { EventBanner } from './EventBanner'
+import { ImageUpload } from '../ui/ImageUpload'
 import type { EditableEvent } from '../../types/management'
 import { TagPicker } from '../organizations/TagPicker'
 import { buttonClass, inputClass, secondaryClass } from '../ui/styles'
@@ -20,6 +23,7 @@ export function EventEditor({
 }) {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [removeBanner, setRemoveBanner] = useState(false)
   const [tags, setTags] = useState(event?.tags ?? [])
   const [trackAttendance, setTrackAttendance] = useState(
     event?.attendance?.enabled ?? false,
@@ -62,7 +66,7 @@ export function EventEditor({
       place: data.get('place'),
       tags,
       private: data.get('visibility') === 'members',
-      banner: data.get('banner') || null,
+      ...(removeBanner ? { banner: null } : {}),
       attendance: {
         enabled: trackAttendance,
         self: data.has('self'),
@@ -74,7 +78,10 @@ export function EventEditor({
     try {
       await api(
         `/api/organizations/${organizationId}/events${event ? `/${event._id}` : ''}`,
-        { method: event ? 'PATCH' : 'POST', body: JSON.stringify(payload) },
+        {
+          method: event ? 'PATCH' : 'POST',
+          body: uploadBody(payload, { banner: data.get('banner') }),
+        },
       )
       await onSaved(status)
     } catch (cause) {
@@ -109,16 +116,41 @@ export function EventEditor({
           required
         />
       </label>
-      <label className="block text-sm font-medium">
-        Banner <span className="font-normal text-muted">(optional)</span>
-        <input
+      <div className="space-y-2">
+        <ImageUpload
           name="banner"
-          type="url"
-          className={`${inputClass} mt-2`}
-          defaultValue={event?.banner || ''}
-          placeholder="https://"
+          label="Banner"
+          optional
+          onChange={(file) => {
+            if (file) setRemoveBanner(false)
+          }}
         />
-      </label>
+        {event?.banner && (
+          <>
+            {!removeBanner && (
+              <EventBanner
+                src={event.banner}
+                className="h-24 w-full rounded-md"
+              />
+            )}
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={removeBanner}
+                onChange={(change) => {
+                  if (change.target.checked) {
+                    const banner =
+                      change.target.form?.elements.namedItem('banner')
+                    if (banner instanceof HTMLInputElement) banner.value = ''
+                  }
+                  setRemoveBanner(change.target.checked)
+                }}
+              />
+              Remove current banner
+            </label>
+          </>
+        )}
+      </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <label className="block text-sm font-medium">
           Date

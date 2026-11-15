@@ -6,6 +6,8 @@ import type { ApplicationRole } from '../../types/clubRoles'
 import { RoleFields } from '../roles/RoleFields'
 import { RoleSetupSummary } from '../roles/RoleSetupSummary'
 import { api } from '../../lib/api'
+import { uploadBody } from '../../lib/uploads'
+import { ImageUpload } from '../ui/ImageUpload'
 import { clubTagOptions } from '../../lib/clubTags'
 import type { Application } from '../../types'
 import { TagPicker } from '../organizations/TagPicker'
@@ -51,6 +53,8 @@ export function NewApplication({
   const { toast } = useToast()
   const [roles, setRoles] = useState<RoleEntry[]>([initialRole])
   const [step, setStep] = useState(0)
+  const [icon, setIcon] = useState<File | null>(null)
+  const [banner, setBanner] = useState<File | null>(null)
   const [details, setDetails] = useState<Details>(emptyDetails)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -64,6 +68,10 @@ export function NewApplication({
     event.preventDefault()
     if (step === 0 && !details.tags.length) {
       setError('Choose at least one tag.')
+      return
+    }
+    if ((!icon || !banner) && (step === 0 || step === 3)) {
+      setError('Upload a club icon and banner.')
       return
     }
     if (step === 2) {
@@ -92,17 +100,20 @@ export function NewApplication({
     try {
       const result = await api<Application>('/api/applications', {
         method: 'POST',
-        body: JSON.stringify({
-          ...details,
-          roleSetup: roles.map(
-            ({ name, maxMembers, permissions, assignApplicant }) => ({
-              name,
-              maxMembers,
-              permissions,
-              assignApplicant,
-            }),
-          ),
-        }),
+        body: uploadBody(
+          {
+            ...details,
+            roleSetup: roles.map(
+              ({ name, maxMembers, permissions, assignApplicant }) => ({
+                name,
+                maxMembers,
+                permissions,
+                assignApplicant,
+              }),
+            ),
+          },
+          { icon, banner },
+        ),
       })
       toast({ title: 'Application submitted' })
       onSubmitted(result)
@@ -173,6 +184,25 @@ export function NewApplication({
                 }
               />
             </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <ImageUpload
+                name="icon"
+                label="Club icon"
+                file={icon}
+                required
+                onChange={setIcon}
+              />
+              <ImageUpload
+                name="banner"
+                label="Club banner"
+                file={banner}
+                required
+                onChange={setBanner}
+              />
+            </div>
+            <p className="text-xs text-muted">
+              JPEG, PNG, or WebP up to 5 MB each.
+            </p>
           </div>
         )}
         {step === 1 && (

@@ -1,3 +1,5 @@
+import { useMediaUrl } from '../../hooks/useMediaUrl'
+
 export function EventBanner({
   src,
   className,
@@ -7,11 +9,12 @@ export function EventBanner({
   className: string
   loading?: 'eager' | 'lazy'
 }) {
-  if (!src) return null
+  const url = useMediaUrl(src, true)
+  if (!url) return null
 
   return (
     <img
-      src={src}
+      src={url}
       alt=""
       loading={loading}
       decoding="async"

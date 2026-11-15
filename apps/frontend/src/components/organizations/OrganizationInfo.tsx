@@ -3,6 +3,7 @@ import { clubTagOptions } from '../../lib/clubTags'
 import type { Organization } from '../../types'
 import { buttonClass, inputClass, panelClass } from '../ui/styles'
 import { TagPicker } from './TagPicker'
+import { ImageUpload } from '../ui/ImageUpload'
 
 import type { OrganizationManagement } from '../../hooks/useOrganizationManagement'
 
@@ -62,38 +63,31 @@ export function OrganizationInfo({
         <fieldset className="border-t border-line pt-4">
           <legend className="pr-2 text-sm font-semibold">Images</legend>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm font-medium">
-              Icon URL
-              <input
-                name="logo"
-                type="url"
-                className={`${inputClass} mt-2`}
-                defaultValue={
-                  organization.assets?.find(
-                    (asset) => asset.type.toLowerCase() === 'logo',
-                  )?.link || ''
-                }
-                placeholder="https://"
-              />
-            </label>
-            <label className="block text-sm font-medium">
-              Banner URL
-              <input
-                name="banner"
-                type="url"
-                className={`${inputClass} mt-2`}
-                defaultValue={
-                  organization.assets?.find(
-                    (asset) => asset.type.toLowerCase() === 'banner',
-                  )?.link || ''
-                }
-                placeholder="https://"
-              />
-            </label>
+            {(
+              [
+                ['icon', 'Icon', /logo|icon/i, 'h-16 w-16'],
+                ['banner', 'Banner', /banner|cover/i, 'h-16 w-full'],
+              ] as const
+            ).map(([name, label, type, size]) => {
+              const asset = organization.assets?.find((asset) =>
+                type.test(asset.type),
+              )
+              return (
+                <div key={name} className="space-y-2">
+                  <ImageUpload name={name} label={label} />
+                  {asset && (
+                    <img
+                      src={asset.link}
+                      alt={`Current club ${name}`}
+                      className={`${size} rounded-md object-cover`}
+                    />
+                  )}
+                </div>
+              )
+            })}
           </div>
           <p className="mt-2 text-xs text-muted">
-            Use a public image link. Images appear in organization discovery and
-            details.
+            JPEG, PNG, or WebP up to 5 MB each.
           </p>
         </fieldset>
         <label className="block text-sm font-medium">

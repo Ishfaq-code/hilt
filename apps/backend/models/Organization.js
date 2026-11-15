@@ -98,6 +98,7 @@ const organizationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    optimisticConcurrency: true,
     toJSON: {
       virtuals: true,
       transform: (_document, club) => withClubTags(club),

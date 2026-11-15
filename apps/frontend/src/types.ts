@@ -59,6 +59,7 @@ export type Application = {
   roleSetup?: ApplicationRole[]
   contactEmail?: string | null
   link?: string | null
+  assets?: { type: string; link: string }[]
   additionalDocuments: { _id?: string; name: string; link: string }[]
   status: 'pending' | 'approved' | 'denied'
   reviewedAt?: string | null

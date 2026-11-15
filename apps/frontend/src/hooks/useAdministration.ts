@@ -2,6 +2,7 @@ import { useToast } from './useToast'
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
+import { uploadBody } from '../lib/uploads'
 import type { Application } from '../types'
 import type {
   AdminOrganization,
@@ -72,14 +73,22 @@ export function useAdministration() {
     }
   }, [load])
 
-  async function review(status: 'approved' | 'denied') {
+  async function review(status: 'approved' | 'denied', form?: FormData) {
     if (!selected) return
     setReviewing(true)
     setError('')
     try {
       const result = await api<Application>(
         `/api/applications/${selected._id}`,
-        { method: 'PATCH', body: JSON.stringify({ status }) },
+        {
+          method: 'PATCH',
+          body: form
+            ? uploadBody(
+                { status },
+                { icon: form.get('icon'), banner: form.get('banner') },
+              )
+            : JSON.stringify({ status }),
+        },
       )
       const updated = { ...result, userId: selected.userId }
       setApplications((items) =>

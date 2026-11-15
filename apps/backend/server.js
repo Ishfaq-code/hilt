@@ -17,6 +17,7 @@ const adminRoutes = require('./routes/adminRoutes')
 const eventRoutes = require('./routes/eventRoutes')
 const clubRoleRoutes = require('./routes/clubRoleRoutes')
 const calendarRoutes = require('./routes/calendarRoutes')
+const mediaRoutes = require('./routes/mediaRoutes')
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -32,12 +33,18 @@ app.use('/api/memberships', membershipRoutes)
 app.use('/api/calendar', calendarRoutes)
 app.use('/api/applications', applicationRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/media', mediaRoutes)
 app.use('/api', healthRoutes)
 
 app.use((error, req, res, next) => {
   if (res.headersSent) return next(error)
-  if (error.name === 'ClubRoleError')
+  if (['ClubRoleError', 'UploadError', 'StorageError'].includes(error.name))
     return res.status(error.status).json({ error: error.message })
+  if (error.name === 'VersionError') {
+    return res
+      .status(409)
+      .json({ error: 'The club changed. Reload and try again.' })
+  }
   if (error.type === 'entity.parse.failed') {
     return res
       .status(400)

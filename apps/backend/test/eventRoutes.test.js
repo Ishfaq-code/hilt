@@ -12,6 +12,8 @@ const Membership = require('../models/Membership')
 const Organization = require('../models/Organization')
 const User = require('../models/User')
 const app = require('../server')
+const storage = require('../services/s3Service')
+const { clubApplicationForm } = require('../test-support/clubApplicationForm')
 
 const mongoUri = process.env.HILT_TEST_MONGODB_URI
 
@@ -137,11 +139,12 @@ test(
           bearer || jwt.sign({}, process.env.JWT_SECRET, { subject: user.id })
         headers.Authorization = 'Bearer ' + token
       }
-      if (body !== undefined) headers['Content-Type'] = 'application/json'
+      if (body !== undefined && !(body instanceof FormData))
+        headers['Content-Type'] = 'application/json'
       const response = await fetch(origin + path, {
         method,
         headers,
-        body: JSON.stringify(body),
+        body: body instanceof FormData ? body : JSON.stringify(body),
       })
       const data = response.status === 204 ? undefined : await response.json()
       return { status: response.status, data }
@@ -574,7 +577,8 @@ test(
 
     await t.test(
       'approval creates the submitted roles and combines permissions across assignments',
-      async () => {
+      async (t) => {
+        t.mock.method(storage, 'putFile', async () => {})
         const admin = await User.create({
           firstName: 'Site',
           lastName: 'Admin',
@@ -610,7 +614,10 @@ test(
         const application = await call('/api/applications', {
           user: student,
           method: 'POST',
-          body: { organizationName: 'Role test club', roleSetup },
+          body: clubApplicationForm({
+            organizationName: 'Role test club',
+            roleSetup,
+          }),
         })
         assert.equal(application.status, 201)
         const approved = await call(
