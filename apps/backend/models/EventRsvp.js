@@ -10,5 +10,6 @@ const rsvpSchema = new Schema(
 )
 
 rsvpSchema.index({ organizationId: 1, eventId: 1, userId: 1 }, { unique: true })
+rsvpSchema.index({ userId: 1 })
 
 module.exports = model('EventRsvp', rsvpSchema)

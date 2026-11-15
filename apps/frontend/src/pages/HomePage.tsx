@@ -1,3 +1,4 @@
+import { EventCalendar } from '../components/events/EventCalendar'
 import { ClubPreviewFromUrl } from '../components/organizations/ClubPreviewFromUrl'
 import { ClubSearchForm } from '../components/organizations/ClubSearchForm'
 import { OrganizationRow } from '../components/organizations/OrganizationRow'
@@ -49,6 +50,9 @@ export default function HomePage() {
           })}
         </>
       )}
+      <div className="mt-10">
+        <EventCalendar scope="discover" clubs={clubs} />
+      </div>
       <ClubPreviewFromUrl clubs={clubs} />
     </section>
   )

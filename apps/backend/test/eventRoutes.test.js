@@ -150,6 +150,86 @@ test(
     })
 
     await t.test(
+      'calendar uses the requested date range and keeps memberships and RSVPs scoped to the viewer',
+      async () => {
+        const start = new Date(now - 900_000)
+        const end = new Date(now + 1_200_000)
+        const otherClub = await Organization.create({
+          name: 'Calendar test club',
+          events: [
+            {
+              name: 'Saved public event',
+              startDatetime: now + 500_000,
+              endDatetime: end,
+            },
+            {
+              name: 'Unsaved public event',
+              startDatetime: now + 500_000,
+              endDatetime: end,
+            },
+            {
+              name: 'Saved private event',
+              startDatetime: now + 500_000,
+              endDatetime: end,
+              private: true,
+            },
+            {
+              name: 'Next range',
+              startDatetime: end,
+              endDatetime: now + 1_800_000,
+            },
+          ],
+        })
+        const [saved, unsaved, formerMemberEvent, nextRange] = otherClub.events
+        await Rsvp.create(
+          [saved, formerMemberEvent].map((event) => ({
+            organizationId: otherClub._id,
+            eventId: event._id,
+            userId: student._id,
+          })),
+        )
+
+        const query =
+          '/api/calendar?' +
+          new URLSearchParams({
+            start: start.toISOString(),
+            end: end.toISOString(),
+          })
+        const anonymous = await call(query)
+        assert.equal(anonymous.status, 200)
+        assert.ok(
+          anonymous.data.every(
+            ({ kind, event }) => kind === 'other' && !event.private,
+          ),
+        )
+        assert.equal(
+          await call(query + '&scope=mine').then(({ status }) => status),
+          401,
+        )
+        assert.equal(
+          await call('/api/calendar?start=invalid').then(
+            ({ status }) => status,
+          ),
+          400,
+        )
+
+        const discover = await call(query, { user: student })
+        const mine = await call(query + '&scope=mine', { user: student })
+        const kind = (response, event) =>
+          response.data.find((entry) => entry.event._id === event.id)?.kind
+        assert.equal(kind(discover, saved), 'rsvp')
+        assert.equal(kind(discover, unsaved), 'other')
+        assert.equal(kind(discover, privateEvent), 'joined')
+        assert.equal(kind(discover, past), undefined)
+        assert.equal(kind(mine, saved), 'rsvp')
+        assert.equal(kind(mine, unsaved), undefined)
+        assert.equal(kind(mine, formerMemberEvent), undefined)
+        assert.equal(kind(mine, nextRange), undefined)
+        assert.equal(kind(mine, past), 'joined')
+      },
+    )
+
+    await t.test(
       'RSVP is unique, withdrawable, and closes when the event starts',
       async () => {
         const route = eventPath(future, '/rsvp')

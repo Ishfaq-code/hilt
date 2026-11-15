@@ -4,7 +4,7 @@ import { api } from '../../lib/api'
 import { downloadEvent } from '../../lib/calendar'
 import { checkIn, readEventQr } from '../../lib/checkIn'
 import type { CheckIn } from '../../lib/checkIn'
-import { eventApi, eventPath } from '../../lib/events'
+import { eventApi, eventPath, rsvpChangedEvent } from '../../lib/events'
 import type { Organization } from '../../types'
 import type { ManagedEvent } from '../../types/management'
 import { Dialog } from '../ui/Dialog'
@@ -125,6 +125,7 @@ export function EventDialog({
         checkIn: current?.checkIn ?? null,
         rsvped: result.rsvped,
       }))
+      window.dispatchEvent(new Event(rsvpChangedEvent))
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Couldn’t update your RSVP.',

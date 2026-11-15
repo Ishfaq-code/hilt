@@ -1,6 +1,8 @@
 import type { ManagedEvent } from '../types/management'
 import { clubPreviewPath } from './clubs'
 
+export const rsvpChangedEvent = 'hilt:rsvp-changed'
+
 export function clubPath(clubId: string) {
   return '/organizations/' + encodeURIComponent(clubId)
 }

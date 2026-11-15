@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { EventCalendar } from '../components/events/EventCalendar'
 import { JoinedOrganizationDetails } from '../components/organizations/JoinedOrganizationDetails'
 import { OrganizationSidebar } from '../components/organizations/OrganizationSidebar'
-import { panelClass } from '../components/ui/styles'
 import { api } from '../lib/api'
 import type { Organization } from '../types'
 
@@ -57,7 +57,7 @@ export default function MyOrganizationsPage() {
       ...membership.organizationId,
       _membershipRole: membership.organizationRole,
     }))
-  const selectedId = requested ?? organizations[0]?._id ?? ''
+  const selectedId = requested ?? ''
   const selected = organizations.find(
     (organization) => organization._id === selectedId,
   )
@@ -83,7 +83,7 @@ export default function MyOrganizationsPage() {
             organizations={organizations}
             selectedId={selectedId}
             hasSelected={Boolean(selected)}
-            onHome={() => setParams({ club: '' })}
+            onHome={() => setParams({})}
             onSelect={(id) => {
               setParams({ club: id })
               setTab('Home')
@@ -97,22 +97,7 @@ export default function MyOrganizationsPage() {
                 setTab={setTab}
               />
             ) : (
-              <div className={`${panelClass} p-6 sm:p-8`}>
-                <h2 className="text-2xl font-semibold tracking-tight">
-                  Your organization home
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-muted">
-                  Clubs you join will appear here. Find a community that
-                  interests you and stay up to date with its information and
-                  events.
-                </p>
-                <Link
-                  className="mt-5 inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-ink bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-active"
-                  to="/"
-                >
-                  Find organizations
-                </Link>
-              </div>
+              <EventCalendar scope="mine" />
             )}
           </section>
         </div>
