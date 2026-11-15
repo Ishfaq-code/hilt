@@ -91,9 +91,9 @@ export function OrganizationModeration({
                   <span className="flex flex-wrap gap-2">
                     <Link
                       to={
-                        '/organizations/' +
+                        '/admin/organizations/' +
                         organization._id +
-                        '/manage?tab=roles&from=admin'
+                        '/manage?tab=roles'
                       }
                       className={secondaryClass}
                     >

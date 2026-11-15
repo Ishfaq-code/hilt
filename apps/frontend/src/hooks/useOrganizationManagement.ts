@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { api } from '../lib/api'
-import type { AuthUser, Organization } from '../types'
+import type { Organization } from '../types'
 import type { ClubPermission, ClubRole, RoleChange } from '../types/clubRoles'
 import type { EditableEvent, Member } from '../types/management'
 import { useToast } from './useToast'
 
-async function getWorkspace(path: string, signal?: AbortSignal) {
+async function getWorkspace(
+  path: string,
+  admin: boolean,
+  signal?: AbortSignal,
+) {
   const options = { signal }
   const permissions = await api<ClubPermission[]>(
     path + '/manage/permissions',
@@ -14,7 +18,7 @@ async function getWorkspace(path: string, signal?: AbortSignal) {
   )
   const canReadRoster =
     permissions.includes('members') || permissions.includes('roles')
-  const [organization, members, events, roles, account] = await Promise.all([
+  const [organization, members, events, roles, history] = await Promise.all([
     api<Organization>(path, options),
     canReadRoster ? api<Member[]>(path + '/members', options) : [],
     permissions.includes('events') || permissions.includes('attendance')
@@ -23,18 +27,17 @@ async function getWorkspace(path: string, signal?: AbortSignal) {
     permissions.includes('roles')
       ? api<ClubRole[]>(path + '/roles', options)
       : [],
-    api<AuthUser>('/api/users/me', options),
+    admin ? api<RoleChange[]>(path + '/roles/history', options) : undefined,
   ])
-  const history =
-    account.role === 'admin'
-      ? await api<RoleChange[]>(path + '/roles/history', options)
-      : undefined
   return { organization, members, events, roles, permissions, history }
 }
 
 type Workspace = Awaited<ReturnType<typeof getWorkspace>>
 
-export function useOrganizationManagement(organizationId: string) {
+export function useOrganizationManagement(
+  organizationId: string,
+  admin: boolean,
+) {
   const { toast } = useToast()
   const [state, setState] = useState<{
     path: string
@@ -47,7 +50,7 @@ export function useOrganizationManagement(organizationId: string) {
 
   useEffect(() => {
     const request = new AbortController()
-    void getWorkspace(path, request.signal)
+    void getWorkspace(path, admin, request.signal)
       .then((data) => {
         if (!request.signal.aborted) setState({ path, data })
       })
@@ -56,7 +59,7 @@ export function useOrganizationManagement(organizationId: string) {
           setState({ path, error: errorMessage(cause) })
       })
     return () => request.abort()
-  }, [path])
+  }, [path, admin])
 
   const current = state?.path === path ? state : undefined
   const data = current?.data
@@ -64,7 +67,7 @@ export function useOrganizationManagement(organizationId: string) {
   async function saved(message: string) {
     toast({ title: message })
     try {
-      setState({ path, data: await getWorkspace(path) })
+      setState({ path, data: await getWorkspace(path, admin) })
     } catch (cause) {
       toast({
         title: 'Couldn’t refresh the workspace',

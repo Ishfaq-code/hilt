@@ -33,6 +33,10 @@ function App() {
           element={<OrganizationManagePage />}
         />
         <Route path="/admin" element={<AdminDashboardPage />} />
+        <Route
+          path="/admin/organizations/:organizationId/manage"
+          element={<OrganizationManagePage admin />}
+        />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

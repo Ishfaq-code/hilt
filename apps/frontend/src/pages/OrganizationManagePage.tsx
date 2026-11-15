@@ -1,12 +1,19 @@
 import { useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import {
+  Navigate,
+  useLocation,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom'
 import { Workspace } from '../components/layout/Workspace'
 import { ClubPreviewDialog } from '../components/organizations/ClubPreviewDialog'
 import { OrganizationEvents } from '../components/organizations/OrganizationEvents'
 import { OrganizationInfo } from '../components/organizations/OrganizationInfo'
 import { OrganizationMembers } from '../components/organizations/OrganizationMembers'
 import { ClubRoles } from '../components/roles/ClubRoles'
+import { useSiteSession } from '../hooks/useCurrentUser'
 import { useOrganizationManagement } from '../hooks/useOrganizationManagement'
+import { authEntry, authPath } from '../lib/authDialog'
 import type { ClubPermission } from '../types/clubRoles'
 
 const tabs = [
@@ -22,11 +29,52 @@ const tabs = [
   },
 ] satisfies { key: string; label: string; permissions: ClubPermission[] }[]
 
-export default function OrganizationManagePage() {
+export default function OrganizationManagePage({
+  admin = false,
+}: {
+  admin?: boolean
+}) {
   const { organizationId = '' } = useParams()
+  const location = useLocation()
+  const { user, token } = useSiteSession()
+
+  if (!token)
+    return <Navigate {...authEntry('login', { from: authPath(location) })} />
+  if (!user?.role)
+    return (
+      <p className="mx-auto max-w-6xl px-4 pt-10 text-sm text-muted">
+        Loading account…
+      </p>
+    )
+  if (user.role === 'admin' && !admin)
+    return <Navigate to="/admin?tab=organizations" replace />
+  if (user.role !== 'admin' && admin)
+    return (
+      <Navigate
+        to={'/organizations/' + organizationId + '/manage' + location.search}
+        replace
+      />
+    )
+
+  return (
+    <OrganizationManagementWorkspace
+      key={organizationId}
+      organizationId={organizationId}
+      admin={admin}
+    />
+  )
+}
+
+function OrganizationManagementWorkspace({
+  organizationId,
+  admin,
+}: {
+  organizationId: string
+  admin: boolean
+}) {
   const [searchParams, setSearchParams] = useSearchParams()
   const [previewOpen, setPreviewOpen] = useState(false)
-  const management = useOrganizationManagement(organizationId)
+  const management = useOrganizationManagement(organizationId, admin)
   const { organization, loading, error, permissions } = management
 
   if (loading) {
@@ -52,10 +100,9 @@ export default function OrganizationManagePage() {
   )
   const active =
     visible.find((tab) => tab.key === searchParams.get('tab')) ?? visible[0]
-  const back =
-    searchParams.get('from') === 'admin'
-      ? { title: 'Back to organizations', to: '/admin?tab=organizations' }
-      : { title: 'Back to my clubs', to: '/my-organizations' }
+  const back = admin
+    ? { title: 'Back to organizations', to: '/admin?tab=organizations' }
+    : { title: 'Back to my clubs', to: '/my-organizations' }
   const nav = visible.map(({ key, label }) => ({
     title: label,
     onClick: () => {

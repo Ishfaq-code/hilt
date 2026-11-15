@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthDialog } from '../../hooks/useAuthDialog'
-import { useAuthToken } from '../../hooks/useAuthToken'
+import { useSiteSession } from '../../hooks/useCurrentUser'
 import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
 import { authPath, getAuthMode } from '../../lib/authDialog'
@@ -32,11 +32,12 @@ export function ClubPreviewDialog({
 }) {
   const navigate = useNavigate()
   const openLogin = useAuthDialog()
-  const token = useAuthToken()
+  const { user, token } = useSiteSession()
   const { toast } = useToast()
   const location = useLocation()
   const [details, setDetails] = useState<Organization | null>(null)
   const [joined, setJoined] = useState(false)
+  const [managementToken, setManagementToken] = useState<string>()
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -54,11 +55,13 @@ export function ClubPreviewDialog({
     ])
       .then(([club, memberships]) => {
         if (request.signal.aborted) return
+        const membership = memberships.find(
+          (item) => item.organizationId?._id === clubId,
+        )
         setDetails(club)
-        setJoined(
-          memberships.some(
-            (membership) => membership.organizationId?._id === clubId,
-          ),
+        setJoined(Boolean(membership))
+        setManagementToken(
+          membership?.permissions.length ? (token ?? undefined) : undefined,
         )
       })
       .catch((cause: unknown) => {
@@ -75,6 +78,11 @@ export function ClubPreviewDialog({
   }, [clubId, signedIn, token, authOpen])
 
   const myClubs = myClubPath(clubId)
+  const managePath = clubPath(clubId) + '/manage'
+  const canManage =
+    user?.role === 'user' &&
+    token === managementToken &&
+    location.pathname !== managePath
 
   async function join() {
     const from = authPath(location)
@@ -152,6 +160,11 @@ export function ClubPreviewDialog({
             >
               Website
             </a>
+          )}
+          {canManage && (
+            <Link to={managePath} className={secondaryClass}>
+              Manage
+            </Link>
           )}
           {joined ? (
             <Link to={myClubs} className={buttonClass}>

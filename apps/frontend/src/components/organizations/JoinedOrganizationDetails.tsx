@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { upcomingEvent } from '../../lib/events'
+import { useSiteSession } from '../../hooks/useCurrentUser'
+import { clubPath, upcomingEvent } from '../../lib/events'
 import type { JoinedOrganization } from '../../types/management'
 import { OrganizationEventList } from '../events/OrganizationEventList'
 import { Dialog } from '../ui/Dialog'
@@ -30,6 +31,7 @@ export function JoinedOrganizationDetails({
   leaving,
   onLeave,
 }: Props) {
+  const { user } = useSiteSession()
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const events = [...(selected?.events || [])].sort(
     (a, b) => Date.parse(a.startDatetime) - Date.parse(b.startDatetime),
@@ -55,9 +57,9 @@ export function JoinedOrganizationDetails({
             </h2>
           </div>
           <div className="ml-auto flex gap-2">
-            {selected.permissions.length > 0 && (
+            {user?.role === 'user' && selected.permissions.length > 0 && (
               <Link
-                to={`/organizations/${selected._id}/manage`}
+                to={clubPath(selected._id) + '/manage'}
                 className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-ink bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-active"
               >
                 Manage
