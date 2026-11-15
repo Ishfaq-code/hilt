@@ -11,7 +11,7 @@ import type { ManagedEvent } from '../../types/management'
 import { Dialog } from '../ui/Dialog'
 import { Icon } from '../ui/Icon'
 import { buttonClass, secondaryClass } from '../ui/styles'
-import { ScannerDialog } from './ScannerDialog'
+import { QrScanner } from './ScannerDialog'
 
 type Participation = { rsvped: boolean; checkIn: CheckIn | null }
 
@@ -281,14 +281,15 @@ export function EventDialog({
                 <button
                   type="button"
                   className={secondaryClass}
-                  aria-haspopup="dialog"
-                  onClick={() => setDialog('scan')}
+                  aria-expanded={dialog === 'scan'}
+                  onClick={() => setDialog(dialog === 'scan' ? null : 'scan')}
                 >
                   Scan QR
                 </button>
               )}
             </div>
           )}
+        {dialog === 'scan' && <QrScanner inline onScan={scan} />}
         {!previewOnly && (
           <div className="flex justify-end border-t border-line pt-4">
             <button
@@ -312,9 +313,6 @@ export function EventDialog({
             Download calendar file
           </button>
         </Dialog>
-      )}
-      {dialog === 'scan' && (
-        <ScannerDialog onScan={scan} onClose={() => setDialog(null)} />
       )}
     </Dialog>
   )

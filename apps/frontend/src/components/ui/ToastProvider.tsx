@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { ToastContext } from '../../hooks/useToast'
 import type { ToastOptions } from '../../hooks/useToast'
@@ -52,8 +52,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }
   }, [toasts])
 
+  const context = useMemo(() => ({ toast, dismiss }), [toast, dismiss])
+
   return (
-    <ToastContext.Provider value={{ toast, dismiss }}>
+    <ToastContext.Provider value={context}>
       {children}
       <div
         ref={container}

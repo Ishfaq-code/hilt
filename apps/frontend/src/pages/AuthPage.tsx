@@ -1,6 +1,7 @@
 import type { SubmitEvent } from 'react'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useToast } from '../hooks/useToast'
 import { saveAuthSession } from '../lib/auth'
 import { joinClub, myClubPath } from '../lib/clubs'
 import type { ApiResponse } from '../types'
@@ -15,6 +16,7 @@ type AuthLocationState = {
 
 export default function AuthPage({ initialMode }: AuthPageProps) {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const location = useLocation()
   const [stage, setStage] = useState<'form' | 'verify' | 'complete'>('form')
   const [firstName, setFirstName] = useState('')
@@ -37,6 +39,7 @@ export default function AuthPage({ initialMode }: AuthPageProps) {
 
     try {
       await joinClub(clubId)
+      toast({ title: 'Club joined' })
       navigate(state?.afterJoin || myClubPath(clubId), { replace: true })
     } catch (cause) {
       navigate(destination, {

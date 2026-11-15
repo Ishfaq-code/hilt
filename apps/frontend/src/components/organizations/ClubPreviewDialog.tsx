@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
 import { joinClub, myClubPath } from '../../lib/clubs'
 import { clubPath } from '../../lib/events'
@@ -26,6 +27,7 @@ export function ClubPreviewDialog({
   onCloseEvent: () => void
 }) {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const location = useLocation()
   const [details, setDetails] = useState<Organization | null>(null)
   const [joined, setJoined] = useState(false)
@@ -82,6 +84,7 @@ export function ClubPreviewDialog({
     setError('')
     try {
       await joinClub(clubId)
+      toast({ title: 'Club joined' })
       if (eventId) {
         setDetails(await api<Organization>('/api' + clubPath(clubId)))
         setJoined(true)
