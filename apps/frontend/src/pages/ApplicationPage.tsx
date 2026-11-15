@@ -32,7 +32,7 @@ export default function ApplicationPage() {
         setError('')
         setUser(profile)
         if (profile.role === 'admin') {
-          navigate('/admin', { replace: true })
+          navigate('/admin?tab=applications', { replace: true })
           return
         }
         const list = await api<Application[]>('/api/applications/mine')

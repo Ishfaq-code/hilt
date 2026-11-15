@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-export default function SiteFooter() {
+export default function SiteFooter({ showApply }: { showApply: boolean }) {
   return (
     <footer className="relative mt-14 border-t border-line bg-[#eeefe8]">
       <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-5 gap-y-7 px-4 py-9 sm:grid-cols-[1.5fr_repeat(3,minmax(0,1fr))] sm:px-8 sm:py-11">
@@ -28,14 +28,16 @@ export default function SiteFooter() {
         <nav aria-label="For organizations footer links">
           <h2 className="mb-3 text-sm font-semibold">For organizations</h2>
           <ul className="space-y-2.5">
-            <li>
-              <Link
-                to="/application"
-                className="text-sm text-muted hover:text-ink hover:underline"
-              >
-                Apply to create an organization
-              </Link>
-            </li>
+            {showApply && (
+              <li>
+                <Link
+                  to="/application"
+                  className="text-sm text-muted hover:text-ink hover:underline"
+                >
+                  Apply to create an organization
+                </Link>
+              </li>
+            )}
             <li>
               <Link
                 to="/my-organizations"

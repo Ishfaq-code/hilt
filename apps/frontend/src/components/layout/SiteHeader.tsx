@@ -1,68 +1,35 @@
-import { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuthDialog } from '../../hooks/useAuthDialog'
-import { useAuthToken } from '../../hooks/useAuthToken'
-import { clearAuthSession, getStoredUser } from '../../lib/auth'
+import { clearAuthSession } from '../../lib/auth'
 import type { AuthUser } from '../../types'
 import { CheckInCodeDialog } from '../events/CheckInCodeDialog'
 import { EventScanDialog } from '../events/EventScanDialog'
 import { Icon } from '../ui/Icon'
 
-function SiteHeader() {
+function SiteHeader({
+  user,
+  showApply,
+}: {
+  user: AuthUser | null
+  showApply: boolean
+}) {
   const navigate = useNavigate()
-  const location = useLocation()
   const openLogin = useAuthDialog()
-  const token = useAuthToken()
   const [checkInTool, setCheckInTool] = useState<'qr' | 'scan' | null>(null)
-  const [profile, setProfile] = useState<{
-    token: string
-    user: AuthUser
-  } | null>(null)
-  const user = !token
-    ? null
-    : profile?.token === token
-      ? profile.user
-      : getStoredUser()
 
   function logout() {
     clearAuthSession()
-    setProfile(null)
     setCheckInTool(null)
     navigate('/')
   }
-
-  useEffect(() => {
-    if (!token) return
-
-    let active = true
-    fetch('/api/users/me', { headers: { Authorization: `Bearer ${token}` } })
-      .then(async (response) => {
-        if (response.status === 401) {
-          if (active) clearAuthSession()
-          return null
-        }
-        if (!response.ok) return null
-        return response.json() as Promise<AuthUser>
-      })
-      .then((currentUser) => {
-        if (!active || !currentUser) return
-        sessionStorage.setItem('authUser', JSON.stringify(currentUser))
-        setProfile({ token, user: currentUser })
-      })
-      .catch(() => {
-        // keep the cached name if the profile request is temporarily unavailable
-      })
-    return () => {
-      active = false
-    }
-  }, [location.pathname, token])
 
   const nav = [
     { to: '/', label: 'Discover', end: true },
     ...(user
       ? [{ to: '/my-organizations', label: 'My clubs', end: false }]
       : []),
-    { to: '/application', label: 'Apply', end: false },
+    ...(showApply ? [{ to: '/application', label: 'Apply', end: false }] : []),
     ...(user?.role === 'admin'
       ? [{ to: '/admin', label: 'Administration', end: false }]
       : []),
