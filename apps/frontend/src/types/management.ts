@@ -20,5 +20,15 @@ export type Membership = {
 }
 
 export type ManagedEvent = NonNullable<Organization['events']>[number]
+export type DraftEvent = Omit<
+  ManagedEvent,
+  'startDatetime' | 'endDatetime' | 'status'
+> & {
+  status: 'draft'
+  startDatetime: null
+  endDatetime: null
+  draftSchedule?: { date?: string; startTime?: string; endTime?: string }
+}
+export type EditableEvent = DraftEvent | ManagedEvent
 
 export type JoinedOrganization = Organization & { _membershipRole: string }

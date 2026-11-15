@@ -20,8 +20,13 @@ const eventSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      default: '',
       trim: true,
+    },
+    status: {
+      type: String,
+      enum: ['draft', 'published'],
+      default: 'published',
     },
     description: {
       type: String,
@@ -30,16 +35,21 @@ const eventSchema = new mongoose.Schema(
     },
     startDatetime: {
       type: Date,
-      required: true,
+      default: null,
     },
     endDatetime: {
       type: Date,
-      required: true,
+      default: null,
     },
     place: { type: String, default: null, trim: true },
     type: { type: String, default: 'Meeting', trim: true },
     private: { type: Boolean, default: false },
     banner: { type: String, default: null, trim: true },
+    draftSchedule: {
+      date: String,
+      startTime: String,
+      endTime: String,
+    },
     attendance: {
       enabled: { type: Boolean, default: false },
       self: { type: Boolean, default: false },
@@ -78,7 +88,11 @@ const organizationSchema = new mongoose.Schema(
       default: [],
     },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 )
 
 module.exports = mongoose.model('Organization', organizationSchema)

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
 import { downloadEvent } from '../../lib/calendar'
 import { checkIn, readEventQr } from '../../lib/checkIn'
@@ -10,7 +11,6 @@ import type { ManagedEvent } from '../../types/management'
 import { Dialog } from '../ui/Dialog'
 import { Icon } from '../ui/Icon'
 import { buttonClass, secondaryClass } from '../ui/styles'
-import { CheckInConfirmation } from './CheckInConfirmation'
 import { ScannerDialog } from './ScannerDialog'
 
 type Participation = { rsvped: boolean; checkIn: CheckIn | null }
@@ -26,14 +26,12 @@ export function EventDialog({
   onClose: () => void
   previewOnly?: boolean
 }) {
+  const { toast } = useToast()
   const [participation, setParticipation] = useState<Participation | null>(null)
   const [now, setNow] = useState(Date.now)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
-  const [dialog, setDialog] = useState<
-    'calendar' | 'scan' | 'checked-in' | null
-  >(null)
+  const [dialog, setDialog] = useState<'calendar' | 'scan' | null>(null)
 
   const signedIn = Boolean(sessionStorage.getItem('authToken'))
   const endpoint = eventApi(club._id, event._id)
@@ -95,7 +93,6 @@ export function EventDialog({
 
   async function share() {
     setError('')
-    setNotice('')
 
     try {
       if (navigator.share) {
@@ -104,7 +101,7 @@ export function EventDialog({
         )
       } else {
         await navigator.clipboard.writeText(url)
-        setNotice('Link copied.')
+        toast({ title: 'Link copied' })
       }
     } catch (cause) {
       if (cause instanceof DOMException && cause.name === 'AbortError') return
@@ -115,7 +112,6 @@ export function EventDialog({
   async function rsvp(interested: boolean) {
     setBusy(true)
     setError('')
-    setNotice('')
     try {
       const result = await api<{ rsvped: boolean }>(endpoint + '/rsvp', {
         method: 'PUT',
@@ -140,7 +136,8 @@ export function EventDialog({
       rsvped: current?.rsvped ?? false,
       checkIn: record,
     }))
-    setDialog('checked-in')
+    setDialog(null)
+    toast({ title: 'Checked in' })
   }
 
   async function selfCheckIn() {
@@ -214,20 +211,11 @@ export function EventDialog({
           </div>
           {!previewOnly && (
             <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-              {participation?.rsvped && (
-                <span
-                  role="status"
-                  className="text-sm font-semibold text-active"
-                >
-                  Going
-                </span>
-              )}
               {hasStarted ? (
-                !participation?.rsvped && (
-                  <button type="button" className={secondaryClass} disabled>
-                    RSVP closed
-                  </button>
-                )
+                <button type="button" className={secondaryClass} disabled>
+                  {participation?.rsvped && <Icon name="check" size={16} />}
+                  {participation?.rsvped ? 'Going' : 'RSVP closed'}
+                </button>
               ) : signedIn ? (
                 <button
                   type="button"
@@ -235,9 +223,12 @@ export function EventDialog({
                     participation?.rsvped ? secondaryClass : buttonClass
                   }
                   disabled={busy || !participation}
+                  aria-label={participation?.rsvped ? 'Cancel RSVP' : undefined}
+                  title={participation?.rsvped ? 'Cancel RSVP' : undefined}
                   onClick={() => void rsvp(!participation?.rsvped)}
                 >
-                  {participation?.rsvped ? 'Cancel RSVP' : 'RSVP'}
+                  {participation?.rsvped && <Icon name="check" size={16} />}
+                  {participation?.rsvped ? 'Going' : 'RSVP'}
                 </button>
               ) : (
                 <Link
@@ -262,11 +253,6 @@ export function EventDialog({
         {error && (
           <p role="alert" className="text-sm text-red-700">
             {error}
-          </p>
-        )}
-        {notice && (
-          <p role="status" className="text-sm text-active">
-            {notice}
           </p>
         )}
         {!previewOnly && participation?.checkIn && (
@@ -329,9 +315,6 @@ export function EventDialog({
       )}
       {dialog === 'scan' && (
         <ScannerDialog onScan={scan} onClose={() => setDialog(null)} />
-      )}
-      {dialog === 'checked-in' && (
-        <CheckInConfirmation onClose={() => setDialog(null)} />
       )}
     </Dialog>
   )

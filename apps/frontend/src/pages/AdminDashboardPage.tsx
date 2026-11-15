@@ -8,7 +8,7 @@ import { useAdministration } from '../hooks/useAdministration'
 
 export default function AdminDashboardPage() {
   const administration = useAdministration()
-  const { activeTab, activeLabel, workspaceNav, loading, error, notice } =
+  const { activeTab, activeLabel, workspaceNav, loading, error } =
     administration
 
   return (
@@ -20,11 +20,6 @@ export default function AdminDashboardPage() {
       {error && (
         <p role="alert" className="mb-4 text-sm text-red-700">
           {error}
-        </p>
-      )}
-      {notice && (
-        <p role="status" className="mb-4 text-sm text-active">
-          {notice}
         </p>
       )}
       {loading && (

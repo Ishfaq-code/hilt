@@ -23,7 +23,8 @@ async function loadEvent(req, res, next) {
     { 'events.$': 1 },
   )
   const event = organization?.events[0]
-  if (!event) return res.status(404).json({ error: 'Event not found.' })
+  if (!event || event.status === 'draft')
+    return res.status(404).json({ error: 'Event not found.' })
   req.event = event
   req.eventScope = { organizationId: organization._id, eventId: event._id }
   next()
@@ -334,13 +335,11 @@ router.post(
       !isValidObjectId(target) ||
       !(await User.exists({ _id: target }))
     ) {
-      return res
-        .status(400)
-        .json({
-          error: scanned
-            ? 'This attendee QR code is invalid or expired.'
-            : 'Attendee not found.',
-        })
+      return res.status(400).json({
+        error: scanned
+          ? 'This attendee QR code is invalid or expired.'
+          : 'Attendee not found.',
+      })
     }
     if (!(await canAttend(req, target))) {
       return res

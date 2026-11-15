@@ -14,6 +14,10 @@ router.get('/mine', requireAuth, async (req, res, next) => {
     const memberships = await Membership.find({ userId: req.user._id })
       .populate('organizationId', 'name description category profile assets membershipFee events')
       .sort({ createdAt: -1 })
+    for (const membership of memberships) {
+      const club = membership.organizationId
+      if (club) club.events = club.events.filter((event) => event.status !== 'draft')
+    }
     return res.status(200).json(memberships)
   } catch (error) { return next(error) }
 })

@@ -1,4 +1,5 @@
 const paths = {
+  check: 'm5 12 4 4L19 6',
   close: 'm6 6 12 12M18 6 6 18',
   edit: 'm4 16-1 5 5-1L21 7l-4-4L4 16Zm11-11 4 4',
   share: 'M12 15V3m-4 4 4-4 4 4M6 10H4v11h16V10h-2',

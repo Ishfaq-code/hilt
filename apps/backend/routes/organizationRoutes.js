@@ -7,6 +7,7 @@ const requireAppAdmin = require('../middleware/requireAppAdmin')
 const requireAuth = require('../middleware/requireAuth')
 const requireOrganizationAdmin = require('../middleware/requireOrganizationAdmin')
 const optionalAuth = require('../middleware/optionalAuth')
+const eventDetails = require('../services/eventDetails')
 
 const router = express.Router()
 const editableFields = new Set(['name', 'description', 'category', 'profile', 'assets', 'membershipFee', 'events'])
@@ -33,7 +34,7 @@ router.get('/:organizationId', optionalAuth, async (req, res, next) => {
 
     const result = organization.toObject()
     const hasMembership = req.user && (req.user.appRole === 'admin' || await Membership.exists({ userId: req.user._id, organizationId: organization._id }))
-    if (!hasMembership) result.events = result.events.filter((event) => !event.private)
+    result.events = result.events.filter((event) => event.status !== 'draft' && (hasMembership || !event.private))
     return res.status(200).json(result)
   } catch (error) {
     return next(error)
@@ -68,19 +69,19 @@ router.get('/:organizationId/statistics', requireAuth, requireOrganizationAdmin,
   } catch (error) { return next(error) }
 })
 
+router.get('/:organizationId/manage/events', requireAuth, requireOrganizationAdmin, async (req, res) => {
+  const organization = await Organization.findById(req.params.organizationId)
+  res.json(organization.events)
+})
+
 router.post('/:organizationId/events', requireAuth, requireOrganizationAdmin, async (req, res, next) => {
   try {
-    const { name, description, startDatetime, endDatetime, place, type, private: isPrivate, banner, attendance } = req.body || {}
-    if (typeof name !== 'string' || !name.trim() || !startDatetime || !endDatetime ||
-      !Number.isFinite(Date.parse(startDatetime)) || !Number.isFinite(Date.parse(endDatetime)) ||
-      Date.parse(endDatetime) <= Date.parse(startDatetime)) {
-      return res.status(400).json({ error: 'Provide an event name and a valid end time after the start time.' })
-    }
     const organization = await Organization.findById(req.params.organizationId)
-    organization.events.push({ name: name.trim(), description, startDatetime, endDatetime, place, type, private: Boolean(isPrivate), banner, attendance })
+    organization.events.push(eventDetails(req.body))
     await organization.save()
     return res.status(201).json(organization.events.at(-1))
   } catch (error) {
+    if (error.status === 400) return res.status(400).json({ error: error.message })
     if (error.name === 'ValidationError' || error.name === 'CastError') return res.status(400).json({ error: 'Event details are invalid.' })
     return next(error)
   }
@@ -88,18 +89,14 @@ router.post('/:organizationId/events', requireAuth, requireOrganizationAdmin, as
 
 router.patch('/:organizationId/events/:eventId', requireAuth, requireOrganizationAdmin, async (req, res, next) => {
   try {
-    const fields = Object.keys(req.body || {})
-    if (!fields.length || fields.some((field) => !['name', 'description', 'startDatetime', 'endDatetime', 'place', 'type', 'private', 'banner', 'attendance'].includes(field))) {
-      return res.status(400).json({ error: 'Provide valid event fields to update.' })
-    }
     const organization = await Organization.findById(req.params.organizationId)
     const event = organization.events.id(req.params.eventId)
     if (!event) return res.status(404).json({ error: 'Event not found.' })
-    for (const field of fields) event.set(field, req.body[field])
-    if (event.endDatetime <= event.startDatetime) return res.status(400).json({ error: 'Event end time must be after its start time.' })
+    event.set(eventDetails(req.body, event))
     await organization.save()
     return res.status(200).json(event)
   } catch (error) {
+    if (error.status === 400) return res.status(400).json({ error: error.message })
     if (error.name === 'ValidationError' || error.name === 'CastError') return res.status(400).json({ error: 'Event details are invalid.' })
     return next(error)
   }

@@ -1,37 +1,35 @@
+import { useToast } from './useToast'
 import type { SubmitEvent } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import type { AuthUser, Organization } from '../types'
-import type {
-  ManagedEvent,
-  Member,
-  Membership,
-  Stats,
-} from '../types/management'
+import type { EditableEvent, Member, Membership } from '../types/management'
 
 export function useOrganizationManagement(organizationId: string) {
+  const { toast } = useToast()
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [members, setMembers] = useState<Member[]>([])
-  const [stats, setStats] = useState<Stats | null>(null)
+  const [events, setEvents] = useState<EditableEvent[]>([])
   const [actorRole, setActorRole] = useState<
     Membership['organizationRole'] | 'admin'
   >('student')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
   const [query, setQuery] = useState('')
 
   const load = useCallback(async () => {
-    const [org, people, metrics, myMemberships, user] = await Promise.all([
+    const [org, people, eventList, myMemberships, user] = await Promise.all([
       api<Organization>(`/api/organizations/${organizationId}`),
       api<Member[]>(`/api/organizations/${organizationId}/members`),
-      api<Stats>(`/api/organizations/${organizationId}/statistics`),
+      api<EditableEvent[]>(
+        `/api/organizations/${organizationId}/manage/events`,
+      ),
       api<Membership[]>('/api/memberships/mine'),
       api<AuthUser>('/api/users/me'),
     ])
     setOrganization(org)
     setMembers(people)
-    setStats(metrics)
+    setEvents(eventList)
     setActorRole(
       user.role === 'admin'
         ? 'admin'
@@ -62,7 +60,7 @@ export function useOrganizationManagement(organizationId: string) {
   }, [load])
 
   async function saved(message: string) {
-    setNotice(message)
+    toast({ title: message })
     setError('')
 
     try {
@@ -77,7 +75,6 @@ export function useOrganizationManagement(organizationId: string) {
   async function saveOrganization(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
-    setNotice('')
 
     const data = new FormData(event.currentTarget)
     const preservedAssets = (organization?.assets || []).filter(
@@ -117,14 +114,13 @@ export function useOrganizationManagement(organizationId: string) {
     update: { organizationRole?: 'student' | 'officer'; isPaid?: boolean },
   ) {
     setError('')
-    setNotice('')
     try {
       await api(`/api/memberships/${member._id}`, {
         method: 'PATCH',
         body: JSON.stringify(update),
       })
       await load()
-      setNotice('Member updated.')
+      toast({ title: 'Member updated.' })
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Unable to update member.',
@@ -142,7 +138,7 @@ export function useOrganizationManagement(organizationId: string) {
     try {
       await api(`/api/memberships/${member._id}`, { method: 'DELETE' })
       await load()
-      setNotice('Member removed.')
+      toast({ title: 'Member removed.' })
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Unable to remove member.',
@@ -150,14 +146,14 @@ export function useOrganizationManagement(organizationId: string) {
     }
   }
 
-  async function deleteEvent(event: ManagedEvent) {
-    if (!window.confirm(`Delete “${event.name}”?`)) return
+  async function deleteEvent(event: EditableEvent) {
+    if (!window.confirm(`Delete “${event.name || 'Untitled event'}”?`)) return
     try {
       await api(`/api/organizations/${organizationId}/events/${event._id}`, {
         method: 'DELETE',
       })
       await load()
-      setNotice('Event deleted.')
+      toast({ title: 'Event deleted.' })
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Unable to delete the event.',
@@ -165,9 +161,6 @@ export function useOrganizationManagement(organizationId: string) {
     }
   }
 
-  const events = [...(organization?.events || [])].sort(
-    (a, b) => Date.parse(a.startDatetime) - Date.parse(b.startDatetime),
-  )
   const matchingMembers = members.filter((member) =>
     `${member.userId.firstName} ${member.userId.lastName} ${member.userId.email} ${member.organizationRole}`
       .toLowerCase()
@@ -178,9 +171,12 @@ export function useOrganizationManagement(organizationId: string) {
     organization,
     loading,
     error,
-    notice,
     saveOrganization,
-    events,
+    events: [...events].sort(
+      (a, b) =>
+        (a.startDatetime ? Date.parse(a.startDatetime) : Infinity) -
+        (b.startDatetime ? Date.parse(b.startDatetime) : Infinity),
+    ),
     saved,
     deleteEvent,
     matchingMembers,
@@ -189,7 +185,6 @@ export function useOrganizationManagement(organizationId: string) {
     updateMember,
     removeMember,
     actorRole,
-    stats,
     members,
   }
 }

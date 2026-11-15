@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useEffectEvent, useState } from 'react'
+import { useToast } from '../../hooks/useToast'
 import { checkIn, eventCheckInParameters, readEventQr } from '../../lib/checkIn'
 import { Dialog } from '../ui/Dialog'
 import { secondaryClass } from '../ui/styles'
-import { CheckInConfirmation } from './CheckInConfirmation'
 import { ScannerDialog } from './ScannerDialog'
 
 export function EventScanDialog({
@@ -12,6 +12,11 @@ export function EventScanDialog({
   onClose: () => void
   linkQuery?: string
 }) {
+  const { toast } = useToast()
+  const complete = useEffectEvent(() => {
+    onClose()
+    toast({ title: 'Checked in' })
+  })
   const [stage, setStage] = useState(linkQuery ? 'checking' : 'scan')
   const [error, setError] = useState('')
 
@@ -24,7 +29,7 @@ export function EventScanDialog({
           new URLSearchParams(linkQuery),
         )
         await checkIn(clubId, eventId, code)
-        if (active) setStage('done')
+        if (active) complete()
       } catch (cause) {
         if (!active) return
         setError(cause instanceof Error ? cause.message : 'Couldn’t check in.')
@@ -40,10 +45,10 @@ export function EventScanDialog({
   async function scan(value: string) {
     const { clubId, eventId, code } = readEventQr(value)
     await checkIn(clubId, eventId, code)
-    setStage('done')
+    onClose()
+    toast({ title: 'Checked in' })
   }
 
-  if (stage === 'done') return <CheckInConfirmation onClose={onClose} />
   if (stage === 'scan') return <ScannerDialog onScan={scan} onClose={onClose} />
 
   return (

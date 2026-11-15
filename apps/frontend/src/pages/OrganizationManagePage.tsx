@@ -3,7 +3,6 @@ import { Workspace } from '../components/layout/Workspace'
 import { OrganizationEvents } from '../components/organizations/OrganizationEvents'
 import { OrganizationInfo } from '../components/organizations/OrganizationInfo'
 import { OrganizationMembers } from '../components/organizations/OrganizationMembers'
-import { OrganizationStatistics } from '../components/organizations/OrganizationStatistics'
 import { useOrganizationManagement } from '../hooks/useOrganizationManagement'
 
 const tabs = [
@@ -11,6 +10,7 @@ const tabs = [
   { key: 'events', label: 'Events' },
   { key: 'members', label: 'Members' },
   { key: 'statistics', label: 'Statistics' },
+  { key: 'pages', label: 'Pages' },
 ] as const
 
 type TabKey = (typeof tabs)[number]['key']
@@ -24,7 +24,7 @@ export default function OrganizationManagePage() {
     ? (rawTab as TabKey)
     : 'info'
   const management = useOrganizationManagement(organizationId)
-  const { organization, loading, error, notice } = management
+  const { organization, loading, error } = management
 
   if (loading)
     return (
@@ -68,11 +68,6 @@ export default function OrganizationManagePage() {
           {error}
         </p>
       )}
-      {notice && (
-        <p role="status" className="mb-4 text-sm text-active">
-          {notice}
-        </p>
-      )}
       {activeTab === 'info' && (
         <OrganizationInfo
           organization={organization}
@@ -97,12 +92,13 @@ export default function OrganizationManagePage() {
           actorRole={management.actorRole}
         />
       )}
-      {activeTab === 'statistics' && (
-        <OrganizationStatistics
-          stats={management.stats}
-          members={management.members}
-          events={management.events}
-        />
+      {(activeTab === 'statistics' || activeTab === 'pages') && (
+        <section>
+          <h1 className="mb-3 text-3xl font-semibold tracking-tight">
+            {activeTab === 'statistics' ? 'Statistics' : 'Pages'}
+          </h1>
+          <p className="text-sm text-muted">Under construction</p>
+        </section>
       )}
     </Workspace>
   )

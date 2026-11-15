@@ -150,6 +150,56 @@ test(
     })
 
     await t.test(
+      'saves partial drafts and only reveals the event once published',
+      async () => {
+        const path = '/api/organizations/' + club.id
+        const draft = await call(path + '/events', {
+          user: officer,
+          method: 'POST',
+          body: { status: 'draft', draftSchedule: { startTime: '18:00' } },
+        })
+        assert.equal(draft.status, 201)
+        assert.equal(draft.data.draftSchedule.startTime, '18:00')
+        const route = path + '/events/' + draft.data._id
+        assert.equal((await call(route, { user: officer })).status, 404)
+        assert.ok(
+          !(await call(path, { user: student })).data.events.some(
+            (event) => event._id === draft.data._id,
+          ),
+        )
+        assert.ok(
+          (await call(path + '/manage/events', { user: officer })).data.some(
+            (event) => event._id === draft.data._id,
+          ),
+        )
+        assert.equal(
+          (
+            await call(route, {
+              user: officer,
+              method: 'PATCH',
+              body: { status: 'published' },
+            })
+          ).status,
+          400,
+        )
+        const published = await call(route, {
+          user: officer,
+          method: 'PATCH',
+          body: {
+            status: 'published',
+            name: 'Draft test event',
+            description: 'Description',
+            place: 'Campus',
+            startDatetime: new Date(now + 900_000).toISOString(),
+            endDatetime: new Date(now + 1_200_000).toISOString(),
+          },
+        })
+        assert.equal(published.status, 200)
+        assert.equal((await call(route)).data.event.name, 'Draft test event')
+      },
+    )
+
+    await t.test(
       'calendar uses the requested date range and keeps memberships and RSVPs scoped to the viewer',
       async () => {
         const start = new Date(now - 900_000)

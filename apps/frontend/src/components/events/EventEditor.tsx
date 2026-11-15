@@ -1,7 +1,7 @@
 import type { SubmitEvent } from 'react'
 import { useState } from 'react'
 import { api } from '../../lib/api'
-import type { ManagedEvent } from '../../types/management'
+import type { EditableEvent } from '../../types/management'
 import { buttonClass, inputClass, secondaryClass } from '../ui/styles'
 
 export function EventEditor({
@@ -11,8 +11,8 @@ export function EventEditor({
   onCancel,
 }: {
   organizationId: string
-  event?: ManagedEvent
-  onSaved: () => Promise<void>
+  event?: EditableEvent
+  onSaved: (status: 'draft' | 'published') => Promise<void>
   onCancel?: () => void
 }) {
   const [error, setError] = useState('')
@@ -26,10 +26,21 @@ export function EventEditor({
     setError('')
     setBusy(true)
 
+    const submitter = formEvent.nativeEvent.submitter
+    const status =
+      submitter?.getAttribute('value') === 'draft' ? 'draft' : 'published'
     const data = new FormData(formEvent.currentTarget)
-    const start = new Date(`${data.get('date')}T${data.get('startTime')}`)
-    const end = new Date(`${data.get('date')}T${data.get('endTime')}`)
-    if (end <= start) {
+    const schedule = {
+      date: String(data.get('date') ?? ''),
+      startTime: String(data.get('startTime') ?? ''),
+      endTime: String(data.get('endTime') ?? ''),
+    }
+    const start = new Date(schedule.date + 'T' + schedule.startTime)
+    const end = new Date(schedule.date + 'T' + schedule.endTime)
+    if (
+      status === 'published' &&
+      (!Number.isFinite(+start) || !Number.isFinite(+end) || end <= start)
+    ) {
       setError('The end time must be after the start time.')
       setBusy(false)
       return
@@ -37,8 +48,13 @@ export function EventEditor({
     const payload = {
       name: String(data.get('name')).trim(),
       description: data.get('description'),
-      startDatetime: start.toISOString(),
-      endDatetime: end.toISOString(),
+      status,
+      ...(status === 'draft'
+        ? { draftSchedule: schedule }
+        : {
+            startDatetime: start.toISOString(),
+            endDatetime: end.toISOString(),
+          }),
       place: data.get('place'),
       type: data.get('type'),
       private: data.get('visibility') === 'members',
@@ -56,7 +72,7 @@ export function EventEditor({
         `/api/organizations/${organizationId}/events${event ? `/${event._id}` : ''}`,
         { method: event ? 'PATCH' : 'POST', body: JSON.stringify(payload) },
       )
-      await onSaved()
+      await onSaved(status)
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Unable to save the event.',
@@ -65,8 +81,11 @@ export function EventEditor({
       setBusy(false)
     }
   }
-  const localStart = event ? new Date(event.startDatetime) : undefined
-  const localEnd = event ? new Date(event.endDatetime) : undefined
+  const draft = event?.status === 'draft' ? event.draftSchedule : undefined
+  const localStart = event?.startDatetime
+    ? new Date(event.startDatetime)
+    : undefined
+  const localEnd = event?.endDatetime ? new Date(event.endDatetime) : undefined
   const date = localStart
     ? `${localStart.getFullYear()}-${String(localStart.getMonth() + 1).padStart(2, '0')}-${String(localStart.getDate()).padStart(2, '0')}`
     : ''
@@ -103,7 +122,7 @@ export function EventEditor({
             name="date"
             type="date"
             className={`${inputClass} mt-2`}
-            defaultValue={date}
+            defaultValue={draft?.date ?? date}
             required
           />
         </label>
@@ -113,7 +132,7 @@ export function EventEditor({
             name="startTime"
             type="time"
             className={`${inputClass} mt-2`}
-            defaultValue={timeValue(localStart) || '18:00'}
+            defaultValue={draft?.startTime ?? timeValue(localStart)}
             required
           />
         </label>
@@ -123,7 +142,7 @@ export function EventEditor({
             name="endTime"
             type="time"
             className={`${inputClass} mt-2`}
-            defaultValue={timeValue(localEnd) || '19:00'}
+            defaultValue={draft?.endTime ?? timeValue(localEnd)}
             required
           />
         </label>
@@ -134,6 +153,7 @@ export function EventEditor({
           name="place"
           className={`${inputClass} mt-2`}
           defaultValue={event?.place || ''}
+          required={!event || event.status === 'draft'}
           placeholder="Building and room"
         />
       </label>
@@ -170,6 +190,7 @@ export function EventEditor({
           className={`${inputClass} mt-2`}
           rows={4}
           defaultValue={event?.description || ''}
+          required={!event || event.status === 'draft'}
         />
       </label>
       <fieldset className="space-y-2 border-t border-line pt-4">
@@ -211,8 +232,28 @@ export function EventEditor({
         <button type="button" className={secondaryClass} onClick={onCancel}>
           Cancel
         </button>
-        <button className={buttonClass} disabled={busy}>
-          {busy ? 'Saving…' : event ? 'Save' : 'Publish'}
+        {(!event || event.status === 'draft') && (
+          <button
+            type="submit"
+            value="draft"
+            formNoValidate
+            className={secondaryClass}
+            disabled={busy}
+          >
+            Save draft
+          </button>
+        )}
+        <button
+          type="submit"
+          value="published"
+          className={buttonClass}
+          disabled={busy}
+        >
+          {busy
+            ? 'Saving…'
+            : event && event.status !== 'draft'
+              ? 'Save'
+              : 'Publish'}
         </button>
       </div>
     </form>

@@ -2,12 +2,12 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Dialog } from '../ui/Dialog'
 import { secondaryClass } from '../ui/styles'
 
-export function ScannerDialog({
+export function QrScanner({
   onScan,
-  onClose,
+  inline = false,
 }: {
   onScan: (value: string) => Promise<void>
-  onClose: () => void
+  inline?: boolean
 }) {
   const video = useRef<HTMLVideoElement>(null)
   const [error, setError] = useState('')
@@ -89,10 +89,15 @@ export function ScannerDialog({
   }, [attempt])
 
   return (
-    <Dialog title="Scan QR" fullScreen onClose={onClose}>
+    <>
       <video
         ref={video}
-        className="mx-auto max-h-[calc(100dvh-8rem)] w-full max-w-3xl rounded-lg bg-ink object-contain"
+        className={
+          'mx-auto w-full rounded-lg bg-ink object-contain ' +
+          (inline
+            ? 'aspect-video max-h-60'
+            : 'max-h-[calc(100dvh-8rem)] max-w-3xl')
+        }
         aria-label="Camera"
         playsInline
         muted
@@ -115,6 +120,20 @@ export function ScannerDialog({
           </button>
         </div>
       )}
+    </>
+  )
+}
+
+export function ScannerDialog({
+  onScan,
+  onClose,
+}: {
+  onScan: (value: string) => Promise<void>
+  onClose: () => void
+}) {
+  return (
+    <Dialog title="Scan QR" fullScreen onClose={onClose}>
+      <QrScanner onScan={onScan} />
     </Dialog>
   )
 }

@@ -79,7 +79,7 @@ router.get('/', optionalAuth, async (req, res) => {
   for (const { _id, name, category, events: clubEvents } of events) {
     const member = joined.has(String(_id))
     for (const event of clubEvents) {
-      if (event.private && !member) continue
+      if (event.status === 'draft' || (event.private && !member)) continue
       if (window.endDatetime && event.endDatetime <= window.endDatetime.$gt)
         continue
 

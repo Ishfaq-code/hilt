@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { OrganizationManagement } from '../../hooks/useOrganizationManagement'
 import type { Organization } from '../../types'
-import type { ManagedEvent } from '../../types/management'
+import type { EditableEvent, ManagedEvent } from '../../types/management'
 import { AttendanceDialog } from '../events/AttendanceDialog'
 import { EventEditor } from '../events/EventEditor'
 import { EventPreviewButton } from '../events/EventPreviewButton'
@@ -17,7 +17,9 @@ type Props = Pick<
 }
 
 type EventAction =
-  { kind: 'new' } | { kind: 'edit' | 'attendance'; event: ManagedEvent }
+  | { kind: 'new' }
+  | { kind: 'edit'; event: EditableEvent }
+  | { kind: 'attendance'; event: ManagedEvent }
 
 export function OrganizationEvents({
   club,
@@ -57,13 +59,28 @@ export function OrganizationEvents({
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="font-semibold">
-                    <EventPreviewButton
-                      club={club}
-                      event={event}
-                      previewOnly
-                      className="text-left hover:underline"
-                    />
+                    {event.status === 'draft' ? (
+                      <button
+                        type="button"
+                        className="text-left hover:underline"
+                        onClick={() => setAction({ kind: 'edit', event })}
+                      >
+                        {event.name || 'Untitled event'}
+                      </button>
+                    ) : (
+                      <EventPreviewButton
+                        club={club}
+                        event={event}
+                        previewOnly
+                        className="text-left hover:underline"
+                      />
+                    )}
                   </h2>
+                  {event.status === 'draft' && (
+                    <span className="rounded bg-soft px-2 py-0.5 text-xs font-semibold text-accent">
+                      Draft
+                    </span>
+                  )}
                   {event.private && (
                     <span className="rounded bg-paper px-2 py-0.5 text-xs font-semibold text-muted">
                       Members only
@@ -71,27 +88,30 @@ export function OrganizationEvents({
                   )}
                 </div>
                 <p className="mt-1 text-sm text-muted">
-                  {new Date(event.startDatetime).toLocaleString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                  })}
+                  {event.startDatetime &&
+                    new Date(event.startDatetime).toLocaleString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
                   {event.place && ' · ' + event.place}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  className={rowButton}
-                  aria-label="Attendance"
-                  title="Attendance"
-                  aria-haspopup="dialog"
-                  onClick={() => setAction({ kind: 'attendance', event })}
-                >
-                  <Icon name="people" size={17} />
-                </button>
+                {event.status !== 'draft' && (
+                  <button
+                    type="button"
+                    className={rowButton}
+                    aria-label="Attendance"
+                    title="Attendance"
+                    aria-haspopup="dialog"
+                    onClick={() => setAction({ kind: 'attendance', event })}
+                  >
+                    <Icon name="people" size={17} />
+                  </button>
+                )}
                 <button
                   type="button"
                   className={rowButton}
@@ -119,11 +139,7 @@ export function OrganizationEvents({
         </p>
       )}
       {action?.kind === 'attendance' && (
-        <AttendanceDialog
-          clubId={club._id}
-          event={action.event}
-          onClose={close}
-        />
+        <AttendanceDialog club={club} event={action.event} onClose={close} />
       )}
       {(action?.kind === 'new' || action?.kind === 'edit') && (
         <Dialog
@@ -133,9 +149,13 @@ export function OrganizationEvents({
           <EventEditor
             organizationId={club._id}
             event={action.kind === 'edit' ? action.event : undefined}
-            onSaved={() =>
+            onSaved={(status) =>
               save(
-                action.kind === 'new' ? 'Event published.' : 'Changes saved.',
+                status === 'draft'
+                  ? 'Draft saved'
+                  : action.kind === 'new' || action.event.status === 'draft'
+                    ? 'Event published'
+                    : 'Changes saved',
               )
             }
             onCancel={close}

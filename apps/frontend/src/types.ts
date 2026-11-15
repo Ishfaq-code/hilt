@@ -9,6 +9,7 @@ export type Organization = {
   events?: {
     _id: string
     name: string
+    status?: 'published'
     description?: string
     startDatetime: string
     endDatetime: string

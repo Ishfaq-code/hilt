@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
 import { readAttendeeQr } from '../../lib/checkIn'
 import type { CheckIn } from '../../lib/checkIn'
@@ -7,7 +8,7 @@ import type { ManagedEvent } from '../../types/management'
 import { Dialog } from '../ui/Dialog'
 import { inputClass, secondaryClass } from '../ui/styles'
 import { CheckInCodeDialog } from './CheckInCodeDialog'
-import { ScannerDialog } from './ScannerDialog'
+import { QrScanner } from './ScannerDialog'
 
 type Person = {
   _id: string
@@ -31,24 +32,24 @@ const methods: Record<CheckIn['method'], string> = {
 }
 
 export function AttendanceDialog({
-  clubId,
+  club,
   event,
   onClose,
 }: {
-  clubId: string
+  club: { _id: string; name: string }
   event: ManagedEvent
   onClose: () => void
 }) {
+  const { toast } = useToast()
   const [query, setQuery] = useState('')
   const [attendance, setAttendance] = useState<Attendance | null>(null)
   const [loadedQuery, setLoadedQuery] = useState('')
   const [loadError, setLoadError] = useState('')
   const [actionError, setActionError] = useState('')
-  const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
   const [revision, setRevision] = useState(0)
   const [tool, setTool] = useState<'event-qr' | 'scan' | null>(null)
-  const endpoint = eventApi(clubId, event._id) + '/attendance'
+  const endpoint = eventApi(club._id, event._id) + '/attendance'
   const search = query.trim()
 
   useEffect(() => {
@@ -89,14 +90,13 @@ export function AttendanceDialog({
   }, [endpoint, search, revision])
 
   function changed(message: string) {
-    setNotice(message)
+    toast({ title: message })
     setRevision((current) => current + 1)
   }
 
   async function update(person: Person) {
     setBusy(true)
     setActionError('')
-    setNotice('')
     try {
       if (person.checkIn) {
         await api(endpoint + '/' + person._id, { method: 'DELETE' })
@@ -164,14 +164,15 @@ export function AttendanceDialog({
               <button
                 type="button"
                 className={secondaryClass}
-                aria-haspopup="dialog"
-                onClick={() => setTool('scan')}
+                aria-expanded={tool === 'scan'}
+                onClick={() => setTool(tool === 'scan' ? null : 'scan')}
               >
                 Scan QR
               </button>
             )}
           </div>
         )}
+        {tool === 'scan' && <QrScanner inline onScan={scan} />}
         <input
           type="search"
           aria-label="Find an attendee"
@@ -189,11 +190,6 @@ export function AttendanceDialog({
         {actionError && (
           <p role="alert" className="text-sm text-red-700">
             {actionError}
-          </p>
-        )}
-        {notice && (
-          <p role="status" className="text-sm text-active">
-            {notice}
           </p>
         )}
         {!attendance && !loadError && (
@@ -251,12 +247,14 @@ export function AttendanceDialog({
       </div>
       {tool === 'event-qr' && (
         <CheckInCodeDialog
-          target={{ clubId, eventId: event._id, name: event.name }}
+          target={{
+            clubId: club._id,
+            eventId: event._id,
+            name: event.name,
+            clubName: club.name,
+          }}
           onClose={() => setTool(null)}
         />
-      )}
-      {tool === 'scan' && (
-        <ScannerDialog onScan={scan} onClose={() => setTool(null)} />
       )}
     </Dialog>
   )

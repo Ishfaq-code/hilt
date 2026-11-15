@@ -1,3 +1,4 @@
+import { useToast } from './useToast'
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
@@ -18,6 +19,7 @@ const nav = [
 type Tab = (typeof nav)[number]['key']
 
 export function useAdministration() {
+  const { toast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const requested = searchParams.get('tab') || 'overview'
   const activeTab: Tab = nav.some((item) => item.key === requested)
@@ -27,7 +29,6 @@ export function useAdministration() {
   const [organizations, setOrganizations] = useState<AdminOrganization[]>([])
   const [applications, setApplications] = useState<Application[]>([])
   const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -74,7 +75,6 @@ export function useAdministration() {
     if (!selected) return
     setReviewing(true)
     setError('')
-    setNotice('')
     try {
       const result = await api<Application>(
         `/api/applications/${selected._id}`,
@@ -86,11 +86,12 @@ export function useAdministration() {
       )
       setSelected(updated)
       await load()
-      setNotice(
-        status === 'approved'
-          ? `${updated.organizationName} was approved and created.`
-          : `${updated.organizationName} was denied.`,
-      )
+      toast({
+        title:
+          status === 'approved'
+            ? `${updated.organizationName} was approved.`
+            : `${updated.organizationName} was denied.`,
+      })
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -106,14 +107,13 @@ export function useAdministration() {
     if (!window.confirm(`Remove ${organization.name} and its memberships?`))
       return
     setError('')
-    setNotice('')
     try {
       await api(`/api/organizations/${organization._id}`, { method: 'DELETE' })
       setOrganizations((items) =>
         items.filter((item) => item._id !== organization._id),
       )
       await load()
-      setNotice(`${organization.name} was removed.`)
+      toast({ title: `${organization.name} was removed.` })
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -173,7 +173,6 @@ export function useAdministration() {
     workspaceNav,
     loading,
     error,
-    notice,
     stats,
     setSearchParams,
     selected,

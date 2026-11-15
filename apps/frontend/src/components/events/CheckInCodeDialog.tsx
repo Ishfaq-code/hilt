@@ -6,7 +6,12 @@ import { eventApi } from '../../lib/events'
 import { Dialog } from '../ui/Dialog'
 import { secondaryClass } from '../ui/styles'
 
-type Target = { clubId: string; eventId: string; name: string }
+type Target = {
+  clubId: string
+  eventId: string
+  name: string
+  clubName: string
+}
 type Code = {
   code: string
   expiresAt: number
@@ -95,7 +100,7 @@ export function CheckInCodeDialog({
   return (
     <Dialog
       title={target?.name ?? qr?.attendee?.name ?? 'My QR'}
-      subtitle={qr?.attendee?.email}
+      subtitle={target?.clubName ?? qr?.attendee?.email}
       fullScreen
       onClose={onClose}
     >
