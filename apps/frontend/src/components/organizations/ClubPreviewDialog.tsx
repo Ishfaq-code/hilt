@@ -13,6 +13,7 @@ import { OrganizationEventList } from '../events/OrganizationEventList'
 import { SharedEventDialog } from '../events/SharedEventDialog'
 import { Dialog } from '../ui/Dialog'
 import { buttonClass, secondaryClass } from '../ui/styles'
+import { ClubReportButton } from './ClubReportButton'
 import { Cover } from './Cover'
 import { OrganizationAvatar } from './OrganizationAvatar'
 
@@ -173,6 +174,11 @@ export function ClubPreviewDialog({
           <h3 className="font-semibold">Events</h3>
           <OrganizationEventList club={details} events={events} />
         </section>
+      )}
+      {club && (
+        <div className="flex justify-end border-t border-line pt-3">
+          <ClubReportButton clubId={clubId} />
+        </div>
       )}
       {details && eventId && (
         <SharedEventDialog

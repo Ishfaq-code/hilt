@@ -1,11 +1,17 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { clubPath, upcomingEvent } from '../../lib/events'
+import { upcomingEvent } from '../../lib/events'
 import type { JoinedOrganization } from '../../types/management'
 import { OrganizationEventList } from '../events/OrganizationEventList'
-import { ReportDialog } from '../reports/ReportDialog'
+import { Dialog } from '../ui/Dialog'
 import { OrganizationSummary } from './OrganizationSummary'
-import { panelClass, textActionClass } from '../ui/styles'
+import {
+  buttonClass,
+  panelClass,
+  secondaryClass,
+  textActionClass,
+} from '../ui/styles'
+import { ClubReportButton } from './ClubReportButton'
 import { Cover } from './Cover'
 import { OrganizationAvatar } from './OrganizationAvatar'
 
@@ -24,7 +30,7 @@ export function JoinedOrganizationDetails({
   leaving,
   onLeave,
 }: Props) {
-  const [reportOpen, setReportOpen] = useState(false)
+  const [confirmingLeave, setConfirmingLeave] = useState(false)
   const events = [...(selected?.events || [])].sort(
     (a, b) => Date.parse(a.startDatetime) - Date.parse(b.startDatetime),
   )
@@ -92,28 +98,43 @@ export function JoinedOrganizationDetails({
             <button
               type="button"
               className={textActionClass + ' disabled:opacity-50'}
+              aria-haspopup="dialog"
               disabled={leaving}
-              onClick={onLeave}
+              onClick={() => setConfirmingLeave(true)}
             >
               Not interested anymore
             </button>
           )}
-          <button
-            type="button"
-            className={textActionClass}
-            aria-haspopup="dialog"
-            onClick={() => setReportOpen(true)}
-          >
-            Report club
-          </button>
+          <ClubReportButton clubId={selected._id} />
         </div>
       </div>
-      {reportOpen && (
-        <ReportDialog
-          title="Report club"
-          endpoint={'/api' + clubPath(selected._id) + '/reports'}
-          onClose={() => setReportOpen(false)}
-        />
+      {confirmingLeave && (
+        <Dialog
+          title="Are you sure?"
+          onClose={() => setConfirmingLeave(false)}
+          compact
+        >
+          <p className="text-sm text-muted">Leave {selected.name}?</p>
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              className={secondaryClass}
+              onClick={() => setConfirmingLeave(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className={buttonClass}
+              onClick={() => {
+                setConfirmingLeave(false)
+                onLeave()
+              }}
+            >
+              Leave club
+            </button>
+          </div>
+        </Dialog>
       )}
     </article>
   )
