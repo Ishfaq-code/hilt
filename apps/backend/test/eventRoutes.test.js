@@ -39,7 +39,7 @@ test(
     t.after(() => new Promise((resolve) => server.close(resolve)))
     const origin = 'http://127.0.0.1:' + server.address().port
 
-    const [officer, student, visitor] = await User.create([
+    const [officer, student, visitor, admin] = await User.create([
       { firstName: 'Club', lastName: 'Officer', email: 'officer@example.edu' },
       {
         firstName: 'Student',
@@ -50,6 +50,12 @@ test(
         firstName: 'Campus',
         lastName: 'Visitor',
         email: 'visitor@example.edu',
+      },
+      {
+        firstName: 'Site',
+        lastName: 'Admin',
+        email: 'report-reviewer@example.edu',
+        appRole: 'admin',
       },
     ])
 
@@ -156,6 +162,38 @@ test(
       })
       assert.equal(denied.status, 403)
     })
+
+    await t.test(
+      'accepts event reports and restricts the inbox to site admins',
+      async () => {
+        const path = eventPath(privateEvent, '/reports')
+        const method = 'POST'
+        const body = { reason: '  The event details need review.  ' }
+        assert.equal((await call(path, { method, body })).status, 401)
+        assert.equal(
+          (await call(path, { user: visitor, method, body })).status,
+          403,
+        )
+        assert.equal(
+          (await call(path, { user: student, method, body: { reason: ' ' } }))
+            .status,
+          400,
+        )
+        assert.equal(
+          (await call(path, { user: student, method, body })).status,
+          201,
+        )
+
+        const inbox = '/api/admin/event-reports'
+        assert.equal((await call(inbox, { user: officer })).status, 403)
+        const reports = await call(inbox, { user: admin })
+        assert.equal(reports.status, 200)
+        assert.equal(reports.data.length, 1)
+        assert.equal(reports.data[0].eventName, 'Private event')
+        assert.equal(reports.data[0].clubName, 'Test club')
+        assert.equal(reports.data[0].reason, 'The event details need review.')
+      },
+    )
 
     await t.test(
       'saves partial drafts and only reveals the event once published',

@@ -1,6 +1,7 @@
 const express = require('express')
 const { isValidObjectId } = require('mongoose')
 const Attendance = require('../models/EventAttendance')
+const EventReport = require('../models/EventReport')
 const Rsvp = require('../models/EventRsvp')
 const Membership = require('../models/Membership')
 const Organization = require('../models/Organization')
@@ -20,12 +21,13 @@ async function loadEvent(req, res, next) {
 
   const organization = await Organization.findOne(
     { _id: organizationId, 'events._id': eventId },
-    { 'events.$': 1 },
+    { name: 1, 'events.$': 1 },
   )
   const event = organization?.events[0]
   if (!event || event.status === 'draft')
     return res.status(404).json({ error: 'Event not found.' })
   req.event = event
+  req.eventClubName = organization.name
   req.eventScope = { organizationId: organization._id, eventId: event._id }
   next()
 }
@@ -37,6 +39,10 @@ function canAttend(req, userId) {
     organizationId: req.params.organizationId,
     userId,
   })
+}
+
+function canViewEvent(req) {
+  return req.user?.appRole === 'admin' || canAttend(req, req.user?._id)
 }
 
 async function requireEventAccess(req, res, next) {
@@ -98,10 +104,35 @@ async function recordCheckIn(req, res, userId, method) {
 }
 
 router.get('/', optionalAuth, loadEvent, async (req, res) => {
-  if (req.user?.appRole !== 'admin' && !(await canAttend(req, req.user?._id))) {
+  if (!(await canViewEvent(req))) {
     return res.json({ membersOnly: true })
   }
   res.json({ event: req.event })
+})
+
+router.post('/reports', requireAuth, loadEvent, async (req, res) => {
+  if (!(await canViewEvent(req))) {
+    return res
+      .status(403)
+      .json({ error: 'Join the club to access this event.' })
+  }
+
+  const reason =
+    typeof req.body?.reason === 'string' ? req.body.reason.trim() : ''
+  if (!reason || reason.length > 2000) {
+    return res
+      .status(400)
+      .json({ error: 'Enter a reason of up to 2,000 characters.' })
+  }
+
+  await EventReport.create({
+    ...req.eventScope,
+    reporterId: req.user._id,
+    clubName: req.eventClubName,
+    eventName: req.event.name,
+    reason,
+  })
+  return res.status(201).json({ message: 'Report sent.' })
 })
 
 router.get(

@@ -12,9 +12,13 @@ import type { ManagedEvent } from '../../types/management'
 import { Dialog } from '../ui/Dialog'
 import { Icon } from '../ui/Icon'
 import { buttonClass, secondaryClass } from '../ui/styles'
+import { EventReportDialog } from './EventReportDialog'
+import { RsvpButton } from './RsvpButton'
 import { QrScanner } from './ScannerDialog'
 
 type Participation = { rsvped: boolean; checkIn: CheckIn | null }
+const actionClass =
+  'inline-flex min-h-10 items-center text-sm text-muted underline underline-offset-4 hover:text-ink'
 
 export function EventDialog({
   club,
@@ -34,7 +38,9 @@ export function EventDialog({
   const [now, setNow] = useState(Date.now)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [dialog, setDialog] = useState<'calendar' | 'scan' | null>(null)
+  const [dialog, setDialog] = useState<'calendar' | 'report' | 'scan' | null>(
+    null,
+  )
 
   const signedIn = Boolean(token)
   const endpoint = eventApi(club._id, event._id)
@@ -221,19 +227,11 @@ export function EventDialog({
                   {participation?.rsvped ? 'Going' : 'RSVP closed'}
                 </button>
               ) : signedIn ? (
-                <button
-                  type="button"
-                  className={
-                    participation?.rsvped ? secondaryClass : buttonClass
-                  }
+                <RsvpButton
+                  going={Boolean(participation?.rsvped)}
                   disabled={busy || !participation}
-                  aria-label={participation?.rsvped ? 'Cancel RSVP' : undefined}
-                  title={participation?.rsvped ? 'Cancel RSVP' : undefined}
                   onClick={() => void rsvp(!participation?.rsvped)}
-                >
-                  {participation?.rsvped && <Icon name="check" size={16} />}
-                  {participation?.rsvped ? 'Going' : 'RSVP'}
-                </button>
+                />
               ) : (
                 <button
                   type="button"
@@ -288,14 +286,22 @@ export function EventDialog({
           )}
         {dialog === 'scan' && <QrScanner inline onScan={scan} />}
         {!previewOnly && (
-          <div className="flex justify-end border-t border-line pt-4">
+          <div className="flex flex-wrap justify-end gap-x-4 border-t border-line pt-3">
             <button
               type="button"
-              className={secondaryClass}
+              className={actionClass}
               aria-haspopup="dialog"
               onClick={() => setDialog('calendar')}
             >
               Add to calendar
+            </button>
+            <button
+              type="button"
+              className={actionClass}
+              aria-haspopup="dialog"
+              onClick={() => setDialog('report')}
+            >
+              Report event
             </button>
           </div>
         )}
@@ -310,6 +316,12 @@ export function EventDialog({
             Download calendar file
           </button>
         </Dialog>
+      )}
+      {dialog === 'report' && (
+        <EventReportDialog
+          endpoint={endpoint}
+          onClose={() => setDialog(null)}
+        />
       )}
     </Dialog>
   )

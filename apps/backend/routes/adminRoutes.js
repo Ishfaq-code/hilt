@@ -1,5 +1,6 @@
 const express = require('express')
 const Application = require('../models/Application')
+const EventReport = require('../models/EventReport')
 const { withTags } = require('../services/clubTags')
 const Membership = require('../models/Membership')
 const Organization = require('../models/Organization')
@@ -10,6 +11,13 @@ const requireAppAdmin = require('../middleware/requireAppAdmin')
 const router = express.Router()
 
 router.use(requireAuth, requireAppAdmin)
+
+router.get('/event-reports', async (req, res) => {
+  const reports = await EventReport.find({}, 'clubName eventName reason createdAt')
+    .sort({ createdAt: -1 })
+    .lean()
+  res.json(reports)
+})
 
 router.get('/statistics', async (req, res, next) => {
   try {

@@ -13,6 +13,7 @@ const nav = [
   { key: 'overview', label: 'Overview' },
   { key: 'applications', label: 'Applications' },
   { key: 'organizations', label: 'Organizations' },
+  { key: 'reports', label: 'Event reports' },
   { key: 'statistics', label: 'Statistics' },
 ] as const
 
