@@ -8,11 +8,13 @@ export function EventPreviewButton({
   event,
   className,
   previewOnly,
+  onOpenClub,
 }: {
   club: Pick<Organization, '_id' | 'name'>
   event: ManagedEvent
   className?: string
   previewOnly?: boolean
+  onOpenClub?: () => void
 }) {
   const [open, setOpen] = useState(false)
 
@@ -32,6 +34,10 @@ export function EventPreviewButton({
           event={event}
           previewOnly={previewOnly}
           onClose={() => setOpen(false)}
+          onOpenClub={() => {
+            setOpen(false)
+            onOpenClub?.()
+          }}
         />
       )}
     </>

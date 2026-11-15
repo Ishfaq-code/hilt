@@ -16,6 +16,7 @@ type Props = Pick<
   club: Pick<Organization, '_id' | 'name'>
   canEdit: boolean
   canCheckIn: boolean
+  onOpenClub: () => void
 }
 
 type EventAction =
@@ -28,6 +29,7 @@ export function OrganizationEvents({
   events,
   canEdit,
   canCheckIn,
+  onOpenClub,
   saved,
   deleteEvent,
 }: Props) {
@@ -78,6 +80,7 @@ export function OrganizationEvents({
                         club={club}
                         event={event}
                         previewOnly
+                        onOpenClub={onOpenClub}
                         className="text-left hover:underline"
                       />
                     )}

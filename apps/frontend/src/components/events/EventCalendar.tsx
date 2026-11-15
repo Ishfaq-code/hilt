@@ -4,6 +4,7 @@ import { api } from '../../lib/api'
 import { hasAnyTag } from '../../lib/clubTags'
 import { rsvpChangedEvent } from '../../lib/events'
 import type { Organization } from '../../types'
+import { ClubPreviewDialog } from '../organizations/ClubPreviewDialog'
 import { TagPicker } from '../organizations/TagPicker'
 import { inputClass, panelClass } from '../ui/styles'
 import { CalendarMonth } from './CalendarMonth'
@@ -12,6 +13,10 @@ import { dateKey, entriesByDay, eventKinds } from './calendarEntries'
 import type { CalendarEntry } from './calendarEntries'
 
 type Scope = 'discover' | 'mine'
+type CalendarDialog = {
+  entry: CalendarEntry
+  view: 'event' | 'club'
+}
 type MonthResult = {
   month: Date
   token: string | null
@@ -41,7 +46,7 @@ export function EventCalendar({
     return new Date(today.getFullYear(), today.getMonth(), 1)
   })
   const [selected, setSelected] = useState('')
-  const [opened, setOpened] = useState<CalendarEntry | null>(null)
+  const [opened, setOpened] = useState<CalendarDialog | null>(null)
   const [filters, setFilters] = useState(emptyFilters)
   const [onlyRsvps, setOnlyRsvps] = useState(false)
   const [result, setResult] = useState<MonthResult>()
@@ -127,7 +132,7 @@ export function EventCalendar({
 
   function openEvent(entry: CalendarEntry) {
     setSelected(dateKey(new Date(entry.event.startDatetime)))
-    setOpened(entry)
+    setOpened({ entry, view: 'event' })
   }
 
   const hasFilters = Boolean(
@@ -305,10 +310,21 @@ export function EventCalendar({
           </section>
         </div>
       </div>
-      {opened && (
+      {opened?.view === 'event' && (
         <EventDialog
-          club={opened.club}
-          event={opened.event}
+          club={opened.entry.club}
+          event={opened.entry.event}
+          onClose={() => setOpened(null)}
+          onOpenClub={() => setOpened({ entry: opened.entry, view: 'club' })}
+        />
+      )}
+      {opened?.view === 'club' && (
+        <ClubPreviewDialog
+          clubId={opened.entry.club._id}
+          initialClub={
+            clubs.find(({ _id }) => _id === opened.entry.club._id) ??
+            opened.entry.club
+          }
           onClose={() => setOpened(null)}
         />
       )}

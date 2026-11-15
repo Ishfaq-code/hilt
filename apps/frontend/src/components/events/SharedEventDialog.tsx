@@ -51,14 +51,29 @@ export function SharedEventDialog({
   const event =
     localEvent ?? (result && 'event' in result ? result.event : null)
   if (event) {
-    return <EventDialog club={club} event={event} onClose={onClose} />
+    return (
+      <EventDialog
+        club={club}
+        event={event}
+        onClose={onClose}
+        onOpenClub={onClose}
+      />
+    )
   }
 
   if (result && 'membersOnly' in result) {
     return (
       <Dialog title="Members only" onClose={onClose}>
         <p className="text-sm text-muted">
-          Join {club.name} to see this event.
+          Join{' '}
+          <button
+            type="button"
+            className="cursor-pointer font-medium text-accent underline underline-offset-4 hover:text-ink"
+            onClick={onClose}
+          >
+            {club.name}
+          </button>{' '}
+          to see this event.
         </p>
         {message && (
           <p role="alert" className="mt-3 text-sm text-red-700">

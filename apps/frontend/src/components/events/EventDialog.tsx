@@ -24,11 +24,13 @@ export function EventDialog({
   club,
   event,
   onClose,
+  onOpenClub,
   previewOnly = false,
 }: {
   club: Pick<Organization, '_id' | 'name'>
   event: ManagedEvent
   onClose: () => void
+  onOpenClub: () => void
   previewOnly?: boolean
 }) {
   const { toast } = useToast()
@@ -177,7 +179,13 @@ export function EventDialog({
         <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-accent">{club.name}</p>
+              <button
+                type="button"
+                className="cursor-pointer text-left text-sm font-semibold text-accent underline underline-offset-4 hover:text-ink"
+                onClick={onOpenClub}
+              >
+                {club.name}
+              </button>
               {event.private && (
                 <span className="rounded bg-paper px-2 py-0.5 text-xs font-semibold text-muted">
                   Members only

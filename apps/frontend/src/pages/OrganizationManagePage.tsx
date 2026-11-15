@@ -100,6 +100,7 @@ export default function OrganizationManagePage() {
           events={management.events}
           canEdit={permissions.includes('events')}
           canCheckIn={permissions.includes('attendance')}
+          onOpenClub={() => setPreviewOpen(true)}
           saved={management.saved}
           deleteEvent={management.deleteEvent}
         />
