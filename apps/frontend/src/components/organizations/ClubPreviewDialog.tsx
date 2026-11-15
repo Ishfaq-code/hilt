@@ -81,6 +81,7 @@ export function ClubPreviewDialog({
       openLogin({
         from,
         joinOrganizationId: clubId,
+        joinOrganizationName: club?.name,
         afterJoin: eventId ? from : undefined,
       })
       return
@@ -89,8 +90,8 @@ export function ClubPreviewDialog({
     setBusy(true)
     setError('')
     try {
-      await joinClub(clubId)
-      toast({ title: 'Club joined' })
+      const added = await joinClub(clubId)
+      if (added) toast({ title: 'Club joined', description: club?.name })
       if (eventId) {
         setDetails(await api<Organization>('/api' + clubPath(clubId)))
         setJoined(true)

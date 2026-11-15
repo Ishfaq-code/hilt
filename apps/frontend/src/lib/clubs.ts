@@ -17,6 +17,7 @@ export async function joinClub(clubId: string) {
       method: 'POST',
       body: JSON.stringify({ organizationId: clubId }),
     })
+    return true
   } catch (cause) {
     const memberships = await api<Membership[]>('/api/memberships/mine').catch(
       () => [],
@@ -28,5 +29,6 @@ export async function joinClub(clubId: string) {
     ) {
       throw cause
     }
+    return false
   }
 }

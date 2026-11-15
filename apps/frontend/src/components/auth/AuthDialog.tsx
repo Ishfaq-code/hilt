@@ -67,9 +67,13 @@ export function AuthDialog({
     }
 
     try {
-      await joinClub(clubId)
+      const added = await joinClub(clubId)
       if (!signal.aborted) {
-        toast({ title: 'Club joined' })
+        if (added)
+          toast({
+            title: 'Club joined',
+            description: intent?.joinOrganizationName,
+          })
         onFinish(intent?.afterJoin || myClubPath(clubId))
       }
     } catch (cause) {
