@@ -93,7 +93,7 @@ export function OrganizationModeration({
                       to={
                         '/organizations/' +
                         organization._id +
-                        '/manage?tab=roles'
+                        '/manage?tab=roles&from=admin'
                       }
                       className={secondaryClass}
                     >

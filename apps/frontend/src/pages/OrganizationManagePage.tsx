@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Workspace } from '../components/layout/Workspace'
 import { OrganizationEvents } from '../components/organizations/OrganizationEvents'
 import { OrganizationInfo } from '../components/organizations/OrganizationInfo'
@@ -22,7 +22,6 @@ const tabs = [
 
 export default function OrganizationManagePage() {
   const { organizationId = '' } = useParams()
-  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const management = useOrganizationManagement(organizationId)
   const { organization, loading, error, permissions } = management
@@ -50,9 +49,17 @@ export default function OrganizationManagePage() {
   )
   const active =
     visible.find((tab) => tab.key === searchParams.get('tab')) ?? visible[0]
+  const back =
+    searchParams.get('from') === 'admin'
+      ? { title: 'Back to organizations', to: '/admin?tab=organizations' }
+      : { title: 'Back to my clubs', to: '/my-organizations' }
   const nav = visible.map(({ key, label }) => ({
     title: label,
-    onClick: () => setSearchParams({ tab: key }),
+    onClick: () => {
+      const next = new URLSearchParams(searchParams)
+      next.set('tab', key)
+      setSearchParams(next)
+    },
   }))
 
   return (
@@ -60,10 +67,7 @@ export default function OrganizationManagePage() {
       title={organization.name}
       nav={nav}
       active={active?.label ?? ''}
-      back={{
-        title: 'Back to my clubs',
-        onClick: () => navigate('/my-organizations'),
-      }}
+      back={back}
       action={
         <Link
           to={'/organizations/' + organizationId}

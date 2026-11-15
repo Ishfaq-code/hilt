@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 
 export function Workspace({
@@ -12,21 +13,20 @@ export function Workspace({
   title: string
   nav: { title: string; onClick: () => void }[]
   active: string
-  back?: { title: string; onClick: () => void }
+  back?: { title: string; to: string }
   action?: ReactNode
   children: ReactNode
 }) {
   return (
     <div className="mx-auto max-w-6xl px-4 pt-7 sm:px-8 md:pt-10">
       {back && (
-        <button
-          type="button"
-          onClick={back.onClick}
+        <Link
+          to={back.to}
           className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted hover:text-ink"
         >
           <Icon name="back" size={15} />
           {back.title}
-        </button>
+        </Link>
       )}
       <div className="grid gap-6 md:grid-cols-[12rem_minmax(0,1fr)]">
         <aside className="border-line md:border-r md:pr-5">
