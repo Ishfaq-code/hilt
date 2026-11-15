@@ -5,6 +5,8 @@ const mongoose = require('mongoose')
 const User = require('./models/User')
 const Membership = require('./models/Membership')
 const PendingRegistration = require('./models/PendingRegistration')
+const EventRsvp = require('./models/EventRsvp')
+const EventAttendance = require('./models/EventAttendance')
 const authRoutes = require('./routes/authRoutes')
 const userRoutes = require('./routes/userRoutes')
 const healthRoutes = require('./routes/healthRoutes')
@@ -12,6 +14,7 @@ const organizationRoutes = require('./routes/organizationRoutes')
 const membershipRoutes = require('./routes/membershipRoutes')
 const applicationRoutes = require('./routes/applicationRoutes')
 const adminRoutes = require('./routes/adminRoutes')
+const eventRoutes = require('./routes/eventRoutes')
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -20,6 +23,7 @@ app.disable('x-powered-by')
 app.use(express.json())
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/organizations/:organizationId/events/:eventId', eventRoutes)
 app.use('/api/organizations', organizationRoutes)
 app.use('/api/memberships', membershipRoutes)
 app.use('/api/applications', applicationRoutes)
@@ -45,7 +49,13 @@ app.use((error, req, res, next) => {
 
 async function start() {
   await mongoose.connect(mongoUri)
-  await Promise.all([User.init(), Membership.init(), PendingRegistration.init()])
+  await Promise.all([
+    User.init(),
+    Membership.init(),
+    PendingRegistration.init(),
+    EventRsvp.init(),
+    EventAttendance.init(),
+  ])
   console.log('Connected to MongoDB')
 
   app.listen(port, '0.0.0.0', () => {

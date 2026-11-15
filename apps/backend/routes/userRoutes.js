@@ -2,6 +2,7 @@ const express = require('express')
 const requireAuth = require('../middleware/requireAuth')
 const passwordService = require('../services/passwordService')
 const passwordValidationService = require('../services/passwordValidationService')
+const { issueCode } = require('../services/checkInCodes')
 
 const router = express.Router()
 const editableFields = new Set(['firstName', 'lastName', 'email', 'phoneNumber', 'password'])
@@ -13,6 +14,15 @@ router.get('/me', requireAuth, (req, res) => {
     lastName: req.user.lastName,
     email: req.user.email,
     role: req.user.appRole,
+  })
+})
+
+router.get('/me/check-in-code', requireAuth, (req, res) => {
+  const { firstName, lastName, email } = req.user
+  const qr = issueCode({ kind: 'attendee', userId: req.user.id })
+  res.set('Cache-Control', 'no-store').json({
+    ...qr,
+    attendee: { name: firstName + ' ' + lastName, email },
   })
 })
 

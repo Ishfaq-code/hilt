@@ -70,14 +70,14 @@ router.get('/:organizationId/statistics', requireAuth, requireOrganizationAdmin,
 
 router.post('/:organizationId/events', requireAuth, requireOrganizationAdmin, async (req, res, next) => {
   try {
-    const { name, description, startDatetime, endDatetime, place, type, private: isPrivate, banner } = req.body || {}
+    const { name, description, startDatetime, endDatetime, place, type, private: isPrivate, banner, attendance } = req.body || {}
     if (typeof name !== 'string' || !name.trim() || !startDatetime || !endDatetime ||
       !Number.isFinite(Date.parse(startDatetime)) || !Number.isFinite(Date.parse(endDatetime)) ||
       Date.parse(endDatetime) <= Date.parse(startDatetime)) {
       return res.status(400).json({ error: 'Provide an event name and a valid end time after the start time.' })
     }
     const organization = await Organization.findById(req.params.organizationId)
-    organization.events.push({ name: name.trim(), description, startDatetime, endDatetime, place, type, private: Boolean(isPrivate), banner })
+    organization.events.push({ name: name.trim(), description, startDatetime, endDatetime, place, type, private: Boolean(isPrivate), banner, attendance })
     await organization.save()
     return res.status(201).json(organization.events.at(-1))
   } catch (error) {
@@ -89,7 +89,7 @@ router.post('/:organizationId/events', requireAuth, requireOrganizationAdmin, as
 router.patch('/:organizationId/events/:eventId', requireAuth, requireOrganizationAdmin, async (req, res, next) => {
   try {
     const fields = Object.keys(req.body || {})
-    if (!fields.length || fields.some((field) => !['name', 'description', 'startDatetime', 'endDatetime', 'place', 'type', 'private', 'banner'].includes(field))) {
+    if (!fields.length || fields.some((field) => !['name', 'description', 'startDatetime', 'endDatetime', 'place', 'type', 'private', 'banner', 'attendance'].includes(field))) {
       return res.status(400).json({ error: 'Provide valid event fields to update.' })
     }
     const organization = await Organization.findById(req.params.organizationId)
