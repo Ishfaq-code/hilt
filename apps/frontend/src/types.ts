@@ -6,7 +6,17 @@ export type Organization = {
   profile?: string | null
   membershipFee?: number
   assets?: { _id?: string; type: string; link: string }[]
-  events?: { _id: string; name: string; description?: string; startDatetime: string; endDatetime: string; place?: string; type?: string; private?: boolean; banner?: string | null }[]
+  events?: {
+    _id: string
+    name: string
+    description?: string
+    startDatetime: string
+    endDatetime: string
+    place?: string
+    type?: string
+    private?: boolean
+    banner?: string | null
+  }[]
 }
 
 export type ApiResponse = {

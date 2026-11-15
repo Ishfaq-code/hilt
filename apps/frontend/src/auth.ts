@@ -17,12 +17,15 @@ export function getStoredUser(): AuthUser | null {
 export function saveAuthSession(result: ApiResponse) {
   if (result.token) sessionStorage.setItem(authTokenKey, result.token)
   if (result.firstName && result.lastName) {
-    sessionStorage.setItem(authUserKey, JSON.stringify({
-      firstName: result.firstName,
-      lastName: result.lastName,
-      email: result.email,
-      role: result.role,
-    } satisfies AuthUser))
+    sessionStorage.setItem(
+      authUserKey,
+      JSON.stringify({
+        firstName: result.firstName,
+        lastName: result.lastName,
+        email: result.email,
+        role: result.role,
+      } satisfies AuthUser),
+    )
   }
 }
 

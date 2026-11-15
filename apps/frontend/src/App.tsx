@@ -10,7 +10,15 @@ import SiteFooter from './components/SiteFooter'
 import SiteHeader from './components/SiteHeader'
 
 function SiteLayout() {
-  return <div className="site-shell"><SiteHeader /><main className="site-content"><Outlet /></main><SiteFooter /></div>
+  return (
+    <div className="site-shell">
+      <SiteHeader />
+      <main className="site-content">
+        <Outlet />
+      </main>
+      <SiteFooter />
+    </div>
+  )
 }
 
 function App() {
@@ -22,8 +30,14 @@ function App() {
         <Route path="/register" element={<AuthPage initialMode="signup" />} />
         <Route path="/application" element={<ApplicationPage />} />
         <Route path="/my-organizations" element={<MyOrganizationsPage />} />
-        <Route path="/organizations/:organizationId" element={<OrganizationPage />} />
-        <Route path="/organizations/:organizationId/manage" element={<OrganizationManagePage />} />
+        <Route
+          path="/organizations/:organizationId"
+          element={<OrganizationPage />}
+        />
+        <Route
+          path="/organizations/:organizationId/manage"
+          element={<OrganizationManagePage />}
+        />
         <Route path="/admin" element={<AdminDashboardPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
