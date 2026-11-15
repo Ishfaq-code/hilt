@@ -1,192 +1,228 @@
-import { useToast } from './useToast'
+import { useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
-import { useCallback, useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import type { AuthUser, Organization } from '../types'
-import type { EditableEvent, Member, Membership } from '../types/management'
+import type { ClubPermission, ClubRole, RoleChange } from '../types/clubRoles'
+import type { EditableEvent, Member } from '../types/management'
+import { useToast } from './useToast'
+
+async function getWorkspace(path: string, signal?: AbortSignal) {
+  const options = { signal }
+  const permissions = await api<ClubPermission[]>(
+    path + '/manage/permissions',
+    options,
+  )
+  const canReadRoster =
+    permissions.includes('members') || permissions.includes('roles')
+  const [organization, members, events, roles, account] = await Promise.all([
+    api<Organization>(path, options),
+    canReadRoster ? api<Member[]>(path + '/members', options) : [],
+    permissions.includes('events') || permissions.includes('attendance')
+      ? api<EditableEvent[]>(path + '/manage/events', options)
+      : [],
+    permissions.includes('roles')
+      ? api<ClubRole[]>(path + '/roles', options)
+      : [],
+    api<AuthUser>('/api/users/me', options),
+  ])
+  const history =
+    account.role === 'admin'
+      ? await api<RoleChange[]>(path + '/roles/history', options)
+      : undefined
+  return { organization, members, events, roles, permissions, history }
+}
+
+type Workspace = Awaited<ReturnType<typeof getWorkspace>>
 
 export function useOrganizationManagement(organizationId: string) {
   const { toast } = useToast()
-  const [organization, setOrganization] = useState<Organization | null>(null)
-  const [members, setMembers] = useState<Member[]>([])
-  const [events, setEvents] = useState<EditableEvent[]>([])
-  const [actorRole, setActorRole] = useState<
-    Membership['organizationRole'] | 'admin'
-  >('student')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [state, setState] = useState<{
+    path: string
+    data?: Workspace
+    error?: string
+  }>()
   const [query, setQuery] = useState('')
-
-  const load = useCallback(async () => {
-    const [org, people, eventList, myMemberships, user] = await Promise.all([
-      api<Organization>(`/api/organizations/${organizationId}`),
-      api<Member[]>(`/api/organizations/${organizationId}/members`),
-      api<EditableEvent[]>(
-        `/api/organizations/${organizationId}/manage/events`,
-      ),
-      api<Membership[]>('/api/memberships/mine'),
-      api<AuthUser>('/api/users/me'),
-    ])
-    setOrganization(org)
-    setMembers(people)
-    setEvents(eventList)
-    setActorRole(
-      user.role === 'admin'
-        ? 'admin'
-        : myMemberships.find(
-            (item) => item.organizationId?._id === organizationId,
-          )?.organizationRole || 'student',
-    )
-  }, [organizationId])
+  const [saving, setSaving] = useState(false)
+  const path = '/api/organizations/' + organizationId
 
   useEffect(() => {
-    let active = true
-    Promise.resolve()
-      .then(load)
+    const request = new AbortController()
+    void getWorkspace(path, request.signal)
+      .then((data) => {
+        if (!request.signal.aborted) setState({ path, data })
+      })
       .catch((cause: unknown) => {
-        if (active)
-          setError(
-            cause instanceof Error
-              ? cause.message
-              : 'Unable to load organization management.',
-          )
+        if (!request.signal.aborted)
+          setState({ path, error: errorMessage(cause) })
       })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [load])
+    return () => request.abort()
+  }, [path])
+
+  const current = state?.path === path ? state : undefined
+  const data = current?.data
 
   async function saved(message: string) {
     toast({ title: message })
-    setError('')
-
     try {
-      await load()
-    } catch {
-      setError(
-        'Saved, but the workspace could not be refreshed. Reload the page to see your changes.',
-      )
+      setState({ path, data: await getWorkspace(path) })
+    } catch (cause) {
+      toast({
+        title: 'Couldn’t refresh the workspace',
+        description: errorMessage(cause),
+        variant: 'destructive',
+      })
     }
+  }
+
+  function showError(cause: unknown) {
+    toast({ title: errorMessage(cause), variant: 'destructive' })
   }
 
   async function saveOrganization(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError('')
-
-    const data = new FormData(event.currentTarget)
-    const preservedAssets = (organization?.assets || []).filter(
+    setSaving(true)
+    const form = new FormData(event.currentTarget)
+    const preservedAssets = (data?.organization.assets ?? []).filter(
       (asset) => !['logo', 'banner'].includes(asset.type.toLowerCase()),
     )
-    const assets = [
-      ...preservedAssets,
-      ...(['logo', 'banner'] as const).flatMap((type) => {
-        const link = String(data.get(type) || '').trim()
-        return link ? [{ type, link }] : []
-      }),
-    ]
+    const updatedAssets = (['logo', 'banner'] as const).flatMap((type) => {
+      const link = String(form.get(type) ?? '').trim()
+      return link ? [{ type, link }] : []
+    })
+
     try {
-      await api(`/api/organizations/${organizationId}`, {
+      await api(path, {
         method: 'PATCH',
         body: JSON.stringify({
-          name: data.get('name'),
-          description: data.get('description'),
-          category: data.get('category'),
-          profile: data.get('profile'),
-          membershipFee: Number(data.get('membershipFee')),
-          assets,
+          name: form.get('name'),
+          description: form.get('description'),
+          category: form.get('category'),
+          profile: form.get('profile'),
+          membershipFee: Number(form.get('membershipFee')),
+          assets: [...preservedAssets, ...updatedAssets],
         }),
       })
-      await saved('Changes saved.')
+      await saved('Changes saved')
     } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : 'Unable to save organization information.',
-      )
+      showError(cause)
+    } finally {
+      setSaving(false)
     }
   }
 
-  async function updateMember(
-    member: Member,
-    update: { organizationRole?: 'student' | 'officer'; isPaid?: boolean },
-  ) {
-    setError('')
+  async function updateMember(member: Member, isPaid: boolean) {
     try {
-      await api(`/api/memberships/${member._id}`, {
+      await api('/api/memberships/' + member._id, {
         method: 'PATCH',
-        body: JSON.stringify(update),
+        body: JSON.stringify({ isPaid }),
       })
-      await load()
-      toast({ title: 'Member updated.' })
+      await saved('Member updated')
     } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : 'Unable to update member.',
-      )
+      showError(cause)
     }
   }
 
   async function removeMember(member: Member) {
     if (
       !window.confirm(
-        `Remove ${member.userId.firstName} ${member.userId.lastName} from this organization?`,
+        'Remove ' +
+          member.userId.firstName +
+          ' ' +
+          member.userId.lastName +
+          ' from this club?',
       )
     )
       return
     try {
-      await api(`/api/memberships/${member._id}`, { method: 'DELETE' })
-      await load()
-      toast({ title: 'Member removed.' })
+      await api('/api/memberships/' + member._id, { method: 'DELETE' })
+      await saved('Member removed')
     } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : 'Unable to remove member.',
-      )
+      showError(cause)
     }
   }
 
   async function deleteEvent(event: EditableEvent) {
-    if (!window.confirm(`Delete “${event.name || 'Untitled event'}”?`)) return
+    if (!window.confirm('Delete “' + (event.name || 'Untitled event') + '”?'))
+      return
     try {
-      await api(`/api/organizations/${organizationId}/events/${event._id}`, {
-        method: 'DELETE',
-      })
-      await load()
-      toast({ title: 'Event deleted.' })
+      await api(path + '/events/' + event._id, { method: 'DELETE' })
+      await saved('Event deleted')
     } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : 'Unable to delete the event.',
-      )
+      showError(cause)
     }
   }
 
-  const matchingMembers = members.filter((member) =>
-    `${member.userId.firstName} ${member.userId.lastName} ${member.userId.email} ${member.organizationRole}`
+  async function saveRole({ _id, ...role }: ClubRole) {
+    await api(path + '/roles' + (_id ? '/' + _id : ''), {
+      method: _id ? 'PUT' : 'POST',
+      body: JSON.stringify(role),
+    })
+    await saved('Role saved')
+  }
+
+  async function deleteRole(role: ClubRole) {
+    if (!window.confirm('Delete “' + role.name + '”?')) return
+    try {
+      await api(path + '/roles/' + role._id, { method: 'DELETE' })
+      await saved('Role deleted')
+    } catch (cause) {
+      showError(cause)
+    }
+  }
+
+  async function undoRole(id: string) {
+    if (!window.confirm('Undo this role change?')) return
+    try {
+      await api(path + '/roles/history/' + id + '/undo', { method: 'POST' })
+      await saved('Role change undone')
+    } catch (cause) {
+      showError(cause)
+    }
+  }
+
+  const events = [...(data?.events ?? [])].sort((a, b) => {
+    const first = a.startDatetime ? Date.parse(a.startDatetime) : Infinity
+    const second = b.startDatetime ? Date.parse(b.startDatetime) : Infinity
+    return first === second ? 0 : first - second
+  })
+  const matchingMembers = (data?.members ?? []).filter(({ userId, roles }) =>
+    [
+      userId.firstName,
+      userId.lastName,
+      userId.email,
+      ...roles.map((role) => role.name),
+    ]
+      .join(' ')
       .toLowerCase()
       .includes(query.trim().toLowerCase()),
   )
 
   return {
-    organization,
-    loading,
-    error,
-    saveOrganization,
-    events: [...events].sort(
-      (a, b) =>
-        (a.startDatetime ? Date.parse(a.startDatetime) : Infinity) -
-        (b.startDatetime ? Date.parse(b.startDatetime) : Infinity),
-    ),
+    organization: data?.organization,
+    permissions: data?.permissions ?? [],
+    roles: data?.roles ?? [],
+    history: data?.history,
+    members: data?.members ?? [],
+    loading: !current,
+    error: current?.error,
+    query,
+    setQuery,
+    events,
     saved,
     deleteEvent,
     matchingMembers,
-    query,
-    setQuery,
     updateMember,
     removeMember,
-    actorRole,
-    members,
+    saving,
+    saveOrganization,
+    saveRole,
+    deleteRole,
+    undoRole,
   }
+}
+
+function errorMessage(cause: unknown) {
+  return cause instanceof Error ? cause.message : 'Something went wrong.'
 }
 
 export type OrganizationManagement = ReturnType<

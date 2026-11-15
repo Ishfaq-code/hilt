@@ -3,11 +3,15 @@ import { buttonClass, inputClass, panelClass } from '../ui/styles'
 
 import type { OrganizationManagement } from '../../hooks/useOrganizationManagement'
 
-type Props = Pick<OrganizationManagement, 'saveOrganization'> & {
+type Props = Pick<OrganizationManagement, 'saveOrganization' | 'saving'> & {
   organization: Organization
 }
 
-export function OrganizationInfo({ organization, saveOrganization }: Props) {
+export function OrganizationInfo({
+  organization,
+  saveOrganization,
+  saving,
+}: Props) {
   return (
     <section>
       <h1 className="mb-5 text-3xl font-semibold tracking-tight">Info</h1>
@@ -114,7 +118,9 @@ export function OrganizationInfo({ organization, saveOrganization }: Props) {
           />
         </label>
         <div className="flex justify-end border-t border-line pt-4">
-          <button className={buttonClass}>Save</button>
+          <button className={buttonClass} disabled={saving}>
+            Save
+          </button>
         </div>
       </form>
     </section>

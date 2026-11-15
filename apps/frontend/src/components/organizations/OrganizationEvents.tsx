@@ -14,6 +14,8 @@ type Props = Pick<
   'events' | 'saved' | 'deleteEvent'
 > & {
   club: Pick<Organization, '_id' | 'name'>
+  canEdit: boolean
+  canCheckIn: boolean
 }
 
 type EventAction =
@@ -24,6 +26,8 @@ type EventAction =
 export function OrganizationEvents({
   club,
   events,
+  canEdit,
+  canCheckIn,
   saved,
   deleteEvent,
 }: Props) {
@@ -40,14 +44,16 @@ export function OrganizationEvents({
     <section>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold tracking-tight">Events</h1>
-        <button
-          type="button"
-          className={buttonClass}
-          aria-haspopup="dialog"
-          onClick={() => setAction({ kind: 'new' })}
-        >
-          + New event
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            className={buttonClass}
+            aria-haspopup="dialog"
+            onClick={() => setAction({ kind: 'new' })}
+          >
+            + New event
+          </button>
+        )}
       </div>
       {events.length ? (
         <ul className={panelClass + ' mt-4 divide-y divide-line'}>
@@ -100,7 +106,7 @@ export function OrganizationEvents({
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {event.status !== 'draft' && (
+                {canCheckIn && event.status !== 'draft' && (
                   <button
                     type="button"
                     className={rowButton}
@@ -112,23 +118,27 @@ export function OrganizationEvents({
                     <Icon name="people" size={17} />
                   </button>
                 )}
-                <button
-                  type="button"
-                  className={rowButton}
-                  aria-label="Edit"
-                  title="Edit"
-                  aria-haspopup="dialog"
-                  onClick={() => setAction({ kind: 'edit', event })}
-                >
-                  <Icon name="edit" size={17} />
-                </button>
-                <button
-                  type="button"
-                  className={secondaryClass + ' text-red-700'}
-                  onClick={() => void deleteEvent(event)}
-                >
-                  Delete
-                </button>
+                {canEdit && (
+                  <>
+                    <button
+                      type="button"
+                      className={rowButton}
+                      aria-label="Edit"
+                      title="Edit"
+                      aria-haspopup="dialog"
+                      onClick={() => setAction({ kind: 'edit', event })}
+                    >
+                      <Icon name="edit" size={17} />
+                    </button>
+                    <button
+                      type="button"
+                      className={secondaryClass + ' text-red-700'}
+                      onClick={() => void deleteEvent(event)}
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
               </div>
             </li>
           ))}

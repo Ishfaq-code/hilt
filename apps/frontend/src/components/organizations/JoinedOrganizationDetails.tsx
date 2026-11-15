@@ -36,7 +36,7 @@ export function JoinedOrganizationDetails({ selected, tab, setTab }: Props) {
             </h2>
           </div>
           <div className="ml-auto flex gap-2">
-            {['owner', 'officer'].includes(selected._membershipRole) && (
+            {selected.permissions.length > 0 && (
               <Link
                 to={`/organizations/${selected._id}/manage`}
                 className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-ink bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-active"

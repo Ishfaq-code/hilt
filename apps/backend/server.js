@@ -15,6 +15,7 @@ const membershipRoutes = require('./routes/membershipRoutes')
 const applicationRoutes = require('./routes/applicationRoutes')
 const adminRoutes = require('./routes/adminRoutes')
 const eventRoutes = require('./routes/eventRoutes')
+const clubRoleRoutes = require('./routes/clubRoleRoutes')
 const calendarRoutes = require('./routes/calendarRoutes')
 
 const app = express()
@@ -25,6 +26,7 @@ app.use(express.json())
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/organizations/:organizationId/events/:eventId', eventRoutes)
+app.use('/api/organizations/:organizationId', clubRoleRoutes)
 app.use('/api/organizations', organizationRoutes)
 app.use('/api/memberships', membershipRoutes)
 app.use('/api/calendar', calendarRoutes)
@@ -34,14 +36,20 @@ app.use('/api', healthRoutes)
 
 app.use((error, req, res, next) => {
   if (res.headersSent) return next(error)
+  if (error.name === 'ClubRoleError')
+    return res.status(error.status).json({ error: error.message })
   if (error.type === 'entity.parse.failed') {
-    return res.status(400).json({ error: 'The request body must be valid JSON.' })
+    return res
+      .status(400)
+      .json({ error: 'The request body must be valid JSON.' })
   }
   if (error.type === 'entity.too.large') {
     return res.status(413).json({ error: 'The request body is too large.' })
   }
   if (error.status === 415) {
-    return res.status(415).json({ error: 'The request encoding is not supported.' })
+    return res
+      .status(415)
+      .json({ error: 'The request encoding is not supported.' })
   }
   // Do not log request bodies or database errors containing credential material.
   console.log(error)

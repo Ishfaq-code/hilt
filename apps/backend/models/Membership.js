@@ -12,19 +12,17 @@ const membershipSchema = new mongoose.Schema(
       ref: 'Organization',
       required: true,
     },
-    organizationRole: {
-      type: String,
-      enum: ['student', 'officer', 'owner'],
-      default: 'student',
-      required: true,
-    },
     isPaid: {
       type: Boolean,
       default: false,
       required: true,
     },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 )
 
 membershipSchema.index({ userId: 1, organizationId: 1 }, { unique: true })

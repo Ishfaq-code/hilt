@@ -1,3 +1,5 @@
+import type { ApplicationRole } from './types/clubRoles'
+
 export type Organization = {
   _id: string
   name: string
@@ -53,6 +55,7 @@ export type Application = {
   organizationName: string
   organizationDescription?: string | null
   category?: string
+  roleSetup?: ApplicationRole[]
   contactEmail?: string | null
   link?: string | null
   additionalDocuments: { _id?: string; name: string; link: string }[]

@@ -7,7 +7,7 @@ const Organization = require('../models/Organization')
 const User = require('../models/User')
 const optionalAuth = require('../middleware/optionalAuth')
 const requireAuth = require('../middleware/requireAuth')
-const requireOrganizationAdmin = require('../middleware/requireOrganizationAdmin')
+const requireClubPermission = require('../middleware/requireClubPermission')
 const { issueCode, readCode } = require('../services/checkInCodes')
 
 const router = express.Router({ mergeParams: true })
@@ -187,7 +187,7 @@ router.post(
 router.get(
   '/check-in-code',
   requireAuth,
-  requireOrganizationAdmin,
+  requireClubPermission('attendance'),
   loadEvent,
   requireTracking,
   (req, res) => {
@@ -265,7 +265,7 @@ async function findAttendees(event, organizationId, search) {
 router.get(
   '/attendance',
   requireAuth,
-  requireOrganizationAdmin,
+  requireClubPermission('attendance'),
   loadEvent,
   async (req, res) => {
     const { event } = req
@@ -318,7 +318,7 @@ router.get(
 router.post(
   '/attendance',
   requireAuth,
-  requireOrganizationAdmin,
+  requireClubPermission('attendance'),
   loadEvent,
   requireTracking,
   async (req, res) => {
@@ -358,7 +358,7 @@ router.post(
 router.delete(
   '/attendance/:userId',
   requireAuth,
-  requireOrganizationAdmin,
+  requireClubPermission('attendance'),
   loadEvent,
   async (req, res) => {
     const { userId } = req.params

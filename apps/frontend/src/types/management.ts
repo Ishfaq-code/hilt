@@ -1,22 +1,18 @@
 import type { Organization } from '../types'
+import type { ClubPermission, RoleSummary } from './clubRoles'
 
 export type Member = {
   _id: string
-  organizationRole: 'student' | 'officer' | 'owner'
+  roles: RoleSummary[]
+  permissions: ClubPermission[]
   isPaid: boolean
   userId: { _id?: string; firstName: string; lastName: string; email: string }
 }
 
-export type Stats = {
-  totalMembers: number
-  paidMembers: number
-  events: number
-  roles: Record<string, number>
-}
-
 export type Membership = {
-  organizationRole: 'student' | 'officer' | 'owner'
   organizationId: { _id: string }
+  roles: RoleSummary[]
+  permissions: ClubPermission[]
 }
 
 export type ManagedEvent = NonNullable<Organization['events']>[number]
@@ -31,4 +27,7 @@ export type DraftEvent = Omit<
 }
 export type EditableEvent = DraftEvent | ManagedEvent
 
-export type JoinedOrganization = Organization & { _membershipRole: string }
+export type JoinedOrganization = Organization & {
+  roles: RoleSummary[]
+  permissions: ClubPermission[]
+}

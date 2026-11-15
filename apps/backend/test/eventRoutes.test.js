@@ -5,6 +5,8 @@ const test = require('node:test')
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const Attendance = require('../models/EventAttendance')
+const ClubAccess = require('../models/ClubAccess')
+const { permissions } = require('../services/clubRoles')
 const Rsvp = require('../models/EventRsvp')
 const Membership = require('../models/Membership')
 const Organization = require('../models/Organization')
@@ -102,14 +104,20 @@ test(
     })
     const [open, future, privateEvent, untracked, past, restricted] =
       club.events
-    await Membership.create([
+    const [staffMembership] = await Membership.create([
       {
         userId: officer._id,
         organizationId: club._id,
-        organizationRole: 'officer',
       },
       { userId: student._id, organizationId: club._id },
     ])
+
+    await ClubAccess.create({
+      _id: club._id,
+      roles: [
+        { name: 'Coordinator', permissions, memberIds: [staffMembership._id] },
+      ],
+    })
 
     function eventPath(event, suffix = '') {
       return '/api/organizations/' + club.id + '/events/' + event.id + suffix
@@ -420,10 +428,15 @@ test(
           name: 'Other club',
           events: [open.toObject()],
         })
-        await Membership.create({
+        const membership = await Membership.create({
           userId: visitor._id,
           organizationId: otherClub._id,
-          organizationRole: 'officer',
+        })
+        await ClubAccess.create({
+          _id: otherClub._id,
+          roles: [
+            { name: 'Coordinator', permissions, memberIds: [membership._id] },
+          ],
         })
         const otherEvent =
           '/api/organizations/' + otherClub.id + '/events/' + open.id
@@ -439,6 +452,232 @@ test(
           body: { method: 'event-qr', code },
         })
         assert.equal(scanned.status, 400)
+      },
+    )
+
+    await t.test(
+      'approval creates the submitted roles and combines permissions across assignments',
+      async () => {
+        const admin = await User.create({
+          firstName: 'Site',
+          lastName: 'Admin',
+          email: 'admin@example.edu',
+          appRole: 'admin',
+        })
+        const roleSetup = [
+          {
+            name: 'Co-president',
+            maxMembers: 2,
+            permissions,
+            assignApplicant: true,
+          },
+          {
+            name: 'Events team',
+            maxMembers: null,
+            permissions: ['events'],
+            assignApplicant: false,
+          },
+          {
+            name: 'Door',
+            maxMembers: 1,
+            permissions: ['attendance'],
+            assignApplicant: false,
+          },
+          {
+            name: 'Roles team',
+            maxMembers: null,
+            permissions: ['roles'],
+            assignApplicant: false,
+          },
+        ]
+        const application = await call('/api/applications', {
+          user: student,
+          method: 'POST',
+          body: { organizationName: 'Role test club', roleSetup },
+        })
+        assert.equal(application.status, 201)
+        const approved = await call(
+          '/api/applications/' + application.data._id,
+          {
+            user: admin,
+            method: 'PATCH',
+            body: { status: 'approved' },
+          },
+        )
+        assert.equal(approved.status, 200)
+        const clubs = (await call('/api/organizations')).data
+        const created = clubs.find((item) => item.name === 'Role test club')
+        assert.ok(created)
+        const clubPath = '/api/organizations/' + created._id
+        const permissionPath = clubPath + '/manage/permissions'
+        const rolesPath = clubPath + '/roles'
+        const join = (user) =>
+          call('/api/memberships', {
+            user,
+            method: 'POST',
+            body: { organizationId: created._id },
+          })
+        const visitorMember = (await join(visitor)).data
+        const officerMember = (await join(officer)).data
+        const applicant = (
+          await call('/api/memberships/mine', { user: student })
+        ).data.find((item) => item.organizationId._id === created._id)
+
+        assert.deepEqual(
+          (await call(permissionPath, { user: student })).data,
+          permissions,
+        )
+        assert.deepEqual(
+          (await call(permissionPath, { user: visitor })).data,
+          [],
+        )
+        const [leader, eventsTeam, door, roleTeam] = (
+          await call(rolesPath, { user: student })
+        ).data
+        assert.equal(leader.maxMembers, 2)
+        assert.deepEqual(leader.memberIds, [applicant._id])
+        assert.equal(eventsTeam.maxMembers, null)
+
+        function assign(role, memberIds, user = student, name = role.name) {
+          return call(rolesPath + '/' + role._id, {
+            user,
+            method: 'PUT',
+            body: {
+              name,
+              maxMembers: role.maxMembers,
+              permissions: role.permissions,
+              memberIds,
+            },
+          })
+        }
+
+        assert.equal(
+          (await assign(eventsTeam, [staffMembership.id])).status,
+          400,
+        )
+        assert.equal(
+          (await assign(door, [visitorMember._id, officerMember._id])).status,
+          409,
+        )
+        assert.equal(
+          (await assign(eventsTeam, [visitorMember._id, officerMember._id]))
+            .status,
+          200,
+        )
+        assert.equal((await assign(door, [visitorMember._id])).status, 200)
+        assert.deepEqual(
+          (await call(permissionPath, { user: visitor })).data.sort(),
+          ['attendance', 'events'],
+        )
+        assert.equal(
+          (
+            await call(clubPath, {
+              user: visitor,
+              method: 'PATCH',
+              body: { name: 'Unauthorized' },
+            })
+          ).status,
+          403,
+        )
+        assert.equal((await call(rolesPath, { user: visitor })).status, 403)
+        assert.equal(
+          (await call(clubPath + '/manage/events', { user: visitor })).status,
+          200,
+        )
+
+        assert.equal((await assign(roleTeam, [visitorMember._id])).status, 200)
+        assert.equal(
+          (await assign(leader, [applicant._id, visitorMember._id], visitor))
+            .status,
+          403,
+        )
+        assert.equal(
+          (
+            await assign(
+              eventsTeam,
+              [visitorMember._id],
+              visitor,
+              'Workshops team',
+            )
+          ).status,
+          200,
+        )
+        const history = (await call(rolesPath + '/history', { user: admin }))
+          .data
+        assert.equal(history[0].after.name, 'Workshops team')
+        assert.equal(
+          (
+            await call(rolesPath + '/history/' + history[0]._id + '/undo', {
+              user: admin,
+              method: 'POST',
+            })
+          ).status,
+          204,
+        )
+        assert.ok(
+          (await call(rolesPath, { user: admin })).data.some(
+            (item) => item.name === 'Events team',
+          ),
+        )
+
+        assert.equal(
+          (
+            await call(rolesPath + '/' + leader._id, {
+              user: student,
+              method: 'DELETE',
+            })
+          ).status,
+          409,
+        )
+        assert.equal(
+          (
+            await call('/api/memberships/' + applicant._id, {
+              user: student,
+              method: 'DELETE',
+            })
+          ).status,
+          409,
+        )
+        assert.equal(
+          (await assign(leader, [applicant._id, officerMember._id])).status,
+          200,
+        )
+        const leaving = await Promise.all([
+          call('/api/memberships/' + applicant._id, {
+            user: student,
+            method: 'DELETE',
+          }),
+          call('/api/memberships/' + officerMember._id, {
+            user: officer,
+            method: 'DELETE',
+          }),
+        ])
+        assert.deepEqual(leaving.map(({ status }) => status).sort(), [204, 409])
+        const remaining = (await call(rolesPath, { user: admin })).data.find(
+          (role) => role._id === leader._id,
+        )
+        assert.equal(remaining.memberIds.length, 1)
+      },
+    )
+
+    await t.test(
+      'converts legacy leaders when the club is first accessed',
+      async () => {
+        const legacyClub = await Organization.create({ name: 'Legacy club' })
+        const membership = await Membership.create({
+          organizationId: legacyClub._id,
+          userId: officer._id,
+        })
+        await Membership.collection.updateOne(
+          { _id: membership._id },
+          { $set: { organizationRole: 'owner' } },
+        )
+        const rolesPath = '/api/organizations/' + legacyClub.id + '/roles'
+        const result = await call(rolesPath, { user: officer })
+        assert.equal(result.status, 200)
+        assert.equal(result.data.length, 1)
+        assert.equal(result.data[0].name, 'Club administrator')
+        assert.deepEqual(result.data[0].memberIds, [membership.id])
       },
     )
   },

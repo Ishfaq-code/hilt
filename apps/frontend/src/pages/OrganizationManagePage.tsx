@@ -3,99 +3,123 @@ import { Workspace } from '../components/layout/Workspace'
 import { OrganizationEvents } from '../components/organizations/OrganizationEvents'
 import { OrganizationInfo } from '../components/organizations/OrganizationInfo'
 import { OrganizationMembers } from '../components/organizations/OrganizationMembers'
+import { ClubRoles } from '../components/roles/ClubRoles'
 import { useOrganizationManagement } from '../hooks/useOrganizationManagement'
+import type { ClubPermission } from '../types/clubRoles'
 
 const tabs = [
-  { key: 'info', label: 'Info' },
-  { key: 'events', label: 'Events' },
-  { key: 'members', label: 'Members' },
-  { key: 'statistics', label: 'Statistics' },
-  { key: 'pages', label: 'Pages' },
-] as const
-
-type TabKey = (typeof tabs)[number]['key']
+  { key: 'info', label: 'Info', permissions: ['settings'] },
+  { key: 'events', label: 'Events', permissions: ['events', 'attendance'] },
+  { key: 'pages', label: 'Pages', permissions: ['editPages', 'publishPages'] },
+  { key: 'members', label: 'Members', permissions: ['members'] },
+  { key: 'roles', label: 'Roles', permissions: ['roles'] },
+  {
+    key: 'statistics',
+    label: 'Statistics',
+    permissions: ['events', 'attendance'],
+  },
+] satisfies { key: string; label: string; permissions: ClubPermission[] }[]
 
 export default function OrganizationManagePage() {
   const { organizationId = '' } = useParams()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const rawTab = searchParams.get('tab') || 'info'
-  const activeTab: TabKey = tabs.some((item) => item.key === rawTab)
-    ? (rawTab as TabKey)
-    : 'info'
   const management = useOrganizationManagement(organizationId)
-  const { organization, loading, error } = management
+  const { organization, loading, error, permissions } = management
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="mx-auto max-w-6xl px-4 pt-10 sm:px-8">
-        <p className="text-sm text-muted">Loading organization workspace…</p>
-      </div>
+      <p className="mx-auto max-w-6xl px-4 pt-10 text-sm text-muted">
+        Loading club…
+      </p>
     )
-  if (!organization)
+  }
+  if (!organization) {
     return (
-      <div className="mx-auto max-w-6xl px-4 pt-10 sm:px-8">
-        <p role="alert" className="text-sm text-red-700">
-          {error || 'Organization not found.'}
-        </p>
-      </div>
+      <p
+        role="alert"
+        className="mx-auto max-w-6xl px-4 pt-10 text-sm text-red-700"
+      >
+        {error || 'Club not found.'}
+      </p>
     )
-  const nav = tabs.map((item) => ({
-    title: item.label,
-    onClick: () => setSearchParams({ tab: item.key }),
+  }
+
+  const visible = tabs.filter((tab) =>
+    tab.permissions.some((permission) => permissions.includes(permission)),
+  )
+  const active =
+    visible.find((tab) => tab.key === searchParams.get('tab')) ?? visible[0]
+  const nav = visible.map(({ key, label }) => ({
+    title: label,
+    onClick: () => setSearchParams({ tab: key }),
   }))
 
   return (
     <Workspace
       title={organization.name}
       nav={nav}
-      active={tabs.find((item) => item.key === activeTab)?.label || 'Info'}
+      active={active?.label ?? ''}
       back={{
         title: 'Back to my clubs',
         onClick: () => navigate('/my-organizations'),
       }}
       action={
         <Link
-          to={`/organizations/${organizationId}`}
-          className="inline-flex items-center gap-2 text-sm text-muted hover:text-ink"
+          to={'/organizations/' + organizationId}
+          className="text-sm text-muted hover:text-ink"
         >
-          View organization <span aria-hidden="true">→</span>
+          Preview club <span aria-hidden="true">→</span>
         </Link>
       }
     >
-      {error && (
-        <p role="alert" className="mb-4 text-sm text-red-700">
-          {error}
+      {!active && (
+        <p className="text-sm text-muted">
+          No management tools are available for your permissions.
         </p>
       )}
-      {activeTab === 'info' && (
+      {active?.key === 'info' && (
         <OrganizationInfo
           organization={organization}
           saveOrganization={management.saveOrganization}
+          saving={management.saving}
         />
       )}
-      {activeTab === 'events' && (
+      {active?.key === 'events' && (
         <OrganizationEvents
           club={organization}
           events={management.events}
+          canEdit={permissions.includes('events')}
+          canCheckIn={permissions.includes('attendance')}
           saved={management.saved}
           deleteEvent={management.deleteEvent}
         />
       )}
-      {activeTab === 'members' && (
+      {active?.key === 'members' && (
         <OrganizationMembers
           matchingMembers={management.matchingMembers}
           query={management.query}
           setQuery={management.setQuery}
           updateMember={management.updateMember}
           removeMember={management.removeMember}
-          actorRole={management.actorRole}
+          permissions={permissions}
         />
       )}
-      {(activeTab === 'statistics' || activeTab === 'pages') && (
+      {active?.key === 'roles' && (
+        <ClubRoles
+          roles={management.roles}
+          members={management.members}
+          permissions={permissions}
+          history={management.history}
+          save={management.saveRole}
+          remove={management.deleteRole}
+          undo={management.undoRole}
+        />
+      )}
+      {(active?.key === 'statistics' || active?.key === 'pages') && (
         <section>
           <h1 className="mb-3 text-3xl font-semibold tracking-tight">
-            {activeTab === 'statistics' ? 'Statistics' : 'Pages'}
+            {active.label}
           </h1>
           <p className="text-sm text-muted">Under construction</p>
         </section>

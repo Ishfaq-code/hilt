@@ -9,7 +9,7 @@ type Props = Pick<
   | 'setQuery'
   | 'updateMember'
   | 'removeMember'
-  | 'actorRole'
+  | 'permissions'
 >
 
 export function OrganizationMembers({
@@ -18,10 +18,8 @@ export function OrganizationMembers({
   setQuery,
   updateMember,
   removeMember,
-  actorRole,
+  permissions,
 }: Props) {
-  const canChangeRoles = actorRole === 'owner' || actorRole === 'admin'
-
   return (
     <section>
       <h1 className="mb-5 text-3xl font-semibold tracking-tight">Members</h1>
@@ -49,7 +47,7 @@ export function OrganizationMembers({
             <thead className="bg-paper text-xs text-muted">
               <tr>
                 <th className="px-4 py-3">Member</th>
-                <th className="px-4 py-3">Role</th>
+                <th className="px-4 py-3">Roles</th>
                 <th className="px-4 py-3 text-right">Dues</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
@@ -65,52 +63,33 @@ export function OrganizationMembers({
                       {member.userId.email}
                     </span>
                   </th>
-                  <td className="px-4 py-3 text-muted capitalize">
-                    {member.organizationRole}
+                  <td className="px-4 py-3 text-muted">
+                    {member.roles.map((role) => role.name).join(', ') || '—'}
                   </td>
                   <td className="px-4 py-3 text-right text-muted">
                     {member.isPaid ? 'Paid' : 'Unpaid'}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
-                      {member.organizationRole !== 'owner' && (
-                        <>
-                          {canChangeRoles && (
-                            <button
-                              className="text-xs font-semibold text-accent hover:underline"
-                              onClick={() =>
-                                void updateMember(member, {
-                                  organizationRole:
-                                    member.organizationRole === 'officer'
-                                      ? 'student'
-                                      : 'officer',
-                                })
-                              }
-                            >
-                              {member.organizationRole === 'officer'
-                                ? 'Remove officer'
-                                : 'Make officer'}
-                            </button>
-                          )}
-                          {actorRole !== 'student' && (
-                            <button
-                              className="text-xs font-semibold text-accent hover:underline"
-                              onClick={() =>
-                                void updateMember(member, {
-                                  isPaid: !member.isPaid,
-                                })
-                              }
-                            >
-                              {member.isPaid ? 'Mark unpaid' : 'Mark paid'}
-                            </button>
-                          )}
-                          <button
-                            className="text-xs font-semibold text-red-700 hover:underline"
-                            onClick={() => void removeMember(member)}
-                          >
-                            Remove
-                          </button>
-                        </>
+                      <button
+                        type="button"
+                        className="text-xs font-semibold text-accent hover:underline"
+                        onClick={() =>
+                          void updateMember(member, !member.isPaid)
+                        }
+                      >
+                        {member.isPaid ? 'Mark unpaid' : 'Mark paid'}
+                      </button>
+                      {member.permissions.every((permission) =>
+                        permissions.includes(permission),
+                      ) && (
+                        <button
+                          type="button"
+                          className="text-xs font-semibold text-red-700 hover:underline"
+                          onClick={() => void removeMember(member)}
+                        >
+                          Remove
+                        </button>
                       )}
                     </div>
                   </td>

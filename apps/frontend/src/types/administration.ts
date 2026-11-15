@@ -18,5 +18,4 @@ export type OrgStats = {
   totalMembers: number
   paidMembers: number
   events: number
-  roles: Record<string, number>
 }

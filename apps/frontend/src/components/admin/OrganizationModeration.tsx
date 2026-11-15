@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { inputClass, panelClass, secondaryClass } from '../ui/styles'
 
@@ -52,14 +53,6 @@ export function OrganizationModeration({
                 value: organizationStats.details.paidMembers,
               },
               { label: 'Events', value: organizationStats.details.events },
-              {
-                label: 'Officers',
-                value: organizationStats.details.roles.officer || 0,
-              },
-              {
-                label: 'Regular members',
-                value: organizationStats.details.roles.student || 0,
-              },
             ].map((metric) => (
               <article key={metric.label} className={`${panelClass} p-4`}>
                 <p className="text-sm text-muted">{metric.label}</p>
@@ -96,6 +89,16 @@ export function OrganizationModeration({
                     </span>
                   </span>
                   <span className="flex flex-wrap gap-2">
+                    <Link
+                      to={
+                        '/organizations/' +
+                        organization._id +
+                        '/manage?tab=roles'
+                      }
+                      className={secondaryClass}
+                    >
+                      Manage
+                    </Link>
                     <button
                       className={secondaryClass}
                       disabled={statsLoading === organization._id}

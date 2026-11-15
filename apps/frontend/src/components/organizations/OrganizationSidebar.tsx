@@ -48,11 +48,9 @@ export function OrganizationSidebar({
             />
             <span className="flex min-w-0 flex-col">
               <span className="md:truncate">{organization.name}</span>
-              {['officer', 'owner'].includes(organization._membershipRole) && (
-                <span className="text-xs font-medium text-accent">
-                  {organization._membershipRole === 'owner'
-                    ? 'Owner'
-                    : 'Officer'}
+              {organization.roles.length > 0 && (
+                <span className="text-xs font-medium text-accent md:truncate">
+                  {organization.roles.map((role) => role.name).join(', ')}
                 </span>
               )}
             </span>

@@ -5,11 +5,10 @@ import { JoinedOrganizationDetails } from '../components/organizations/JoinedOrg
 import { OrganizationSidebar } from '../components/organizations/OrganizationSidebar'
 import { api } from '../lib/api'
 import type { Organization } from '../types'
+import type { Membership as ClubMembership } from '../types/management'
 
-type Membership = {
-  _id: string
-  organizationRole: string
-  organizationId: Organization
+type Membership = Omit<ClubMembership, 'organizationId'> & {
+  organizationId: Organization | null
 }
 
 export default function MyOrganizationsPage() {
@@ -51,12 +50,10 @@ export default function MyOrganizationsPage() {
       active = false
     }
   }, [navigate])
-  const organizations = items
-    .filter((membership) => membership.organizationId)
-    .map((membership) => ({
-      ...membership.organizationId,
-      _membershipRole: membership.organizationRole,
-    }))
+  const organizations = items.flatMap(
+    ({ organizationId, roles, permissions }) =>
+      organizationId ? [{ ...organizationId, roles, permissions }] : [],
+  )
   const selectedId = requested ?? ''
   const selected = organizations.find(
     (organization) => organization._id === selectedId,

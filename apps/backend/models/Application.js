@@ -36,6 +36,20 @@ const applicationSchema = new mongoose.Schema(
     category: { type: String, default: 'General', trim: true },
     contactEmail: { type: String, default: null, trim: true, lowercase: true },
     link: { type: String, default: null, trim: true },
+    roleSetup: {
+      type: [
+        new mongoose.Schema(
+          {
+            name: String,
+            permissions: [String],
+            maxMembers: { type: Number, default: null },
+            assignApplicant: Boolean,
+          },
+          { _id: false },
+        ),
+      ],
+      default: undefined,
+    },
     additionalDocuments: {
       type: [documentSchema],
       default: [],
@@ -56,7 +70,11 @@ const applicationSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 )
 
 module.exports = mongoose.model('Application', applicationSchema)

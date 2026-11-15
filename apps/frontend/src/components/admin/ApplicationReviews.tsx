@@ -1,3 +1,4 @@
+import { RoleSetupSummary } from '../roles/RoleSetupSummary'
 import { Icon } from '../ui/Icon'
 import {
   buttonClass,
@@ -119,6 +120,9 @@ export function ApplicationReviews({
               Submitted {new Date(selected.createdAt).toLocaleString()}
             </p>
           </div>
+          {selected.roleSetup?.length ? (
+            <RoleSetupSummary roles={selected.roleSetup} />
+          ) : null}
           {selected.status === 'pending' && (
             <div className="mt-5 flex flex-wrap justify-end gap-2">
               <button

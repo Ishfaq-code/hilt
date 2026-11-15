@@ -1,3 +1,4 @@
+import { RoleSetupSummary } from '../roles/RoleSetupSummary'
 import type { Application } from '../../types'
 import { Icon } from '../ui/Icon'
 import { panelClass } from '../ui/styles'
@@ -71,6 +72,9 @@ export function ApplicationDetails({
           Submitted {new Date(application.createdAt).toLocaleString()}
         </p>
       </div>
+      {application.roleSetup?.length ? (
+        <RoleSetupSummary roles={application.roleSetup} />
+      ) : null}
     </div>
   )
 }
