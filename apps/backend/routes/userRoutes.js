@@ -1,6 +1,7 @@
 const express = require('express')
 const requireAuth = require('../middleware/requireAuth')
 const Membership = require('../models/Membership')
+const User = require('../models/User')
 const { accessFor, removeMembership } = require('../services/clubAccess')
 const { assertAdministrator } = require('../services/clubRoles')
 const passwordService = require('../services/passwordService')
@@ -14,6 +15,7 @@ const editableFields = new Set([
   'email',
   'phoneNumber',
   'password',
+  'currentPassword',
 ])
 
 router.get('/me', requireAuth, (req, res) => {
@@ -22,6 +24,7 @@ router.get('/me', requireAuth, (req, res) => {
     firstName: req.user.firstName,
     lastName: req.user.lastName,
     email: req.user.email,
+    phoneNumber: req.user.phoneNumber,
     role: req.user.appRole,
   })
 })
@@ -83,6 +86,21 @@ router.patch('/me', requireAuth, async (req, res, next) => {
         error:
           'Password must be at least 8 characters and include at least one number and one special symbol.',
       })
+    }
+    if (Object.hasOwn(updates, 'password')) {
+      const account = await User.findById(req.user._id).select('+passwordHash')
+      if (
+        typeof updates.currentPassword !== 'string' ||
+        !account?.passwordHash ||
+        !(await passwordService.verifyPassword(
+          updates.currentPassword,
+          account.passwordHash,
+        ))
+      ) {
+        return res.status(400).json({ error: 'Current password is incorrect.' })
+      }
+    } else if (Object.hasOwn(updates, 'currentPassword')) {
+      return res.status(400).json({ error: 'Enter a new password.' })
     }
 
     if (Object.hasOwn(updates, 'firstName'))

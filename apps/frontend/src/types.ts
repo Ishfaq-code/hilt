@@ -46,6 +46,7 @@ export type AuthUser = {
   firstName: string
   lastName: string
   email?: string
+  phoneNumber?: string | null
   role?: string
 }
 

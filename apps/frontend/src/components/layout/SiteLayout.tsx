@@ -5,14 +5,15 @@ import SiteFooter from './SiteFooter'
 import SiteHeader from './SiteHeader'
 
 export function SiteLayout() {
-  const { user, token } = useCurrentUser()
+  const session = useCurrentUser()
+  const { user, token } = session
   const showApply = !token || user?.role === 'user'
 
   return (
     <div className="site-shell">
       <SiteHeader user={user} showApply={showApply} />
       <main className="site-content">
-        <Outlet />
+        <Outlet context={session} />
       </main>
       <SiteFooter showApply={showApply} />
       <RouteAuthDialog />

@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { SiteLayout } from './components/layout/SiteLayout'
+import AccountPage from './pages/AccountPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import ApplicationPage from './pages/ApplicationPage'
 import AuthEntryPage from './pages/AuthEntryPage'
@@ -21,6 +22,7 @@ function App() {
         <Route path="/qr" element={<CheckInPage key="qr" mode="qr" />} />
         <Route path="/scan" element={<CheckInPage key="scan" mode="scan" />} />
         <Route path="/application" element={<ApplicationPage />} />
+        <Route path="/account" element={<AccountPage />} />
         <Route path="/my-organizations" element={<MyOrganizationsPage />} />
         <Route
           path="/organizations/:organizationId"

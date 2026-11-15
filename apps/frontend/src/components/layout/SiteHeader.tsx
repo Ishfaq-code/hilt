@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { useAuthDialog } from '../../hooks/useAuthDialog'
-import { clearAuthSession } from '../../lib/auth'
 import type { AuthUser } from '../../types'
 import { CheckInCodeDialog } from '../events/CheckInCodeDialog'
 import { EventScanDialog } from '../events/EventScanDialog'
@@ -14,15 +13,8 @@ function SiteHeader({
   user: AuthUser | null
   showApply: boolean
 }) {
-  const navigate = useNavigate()
   const openLogin = useAuthDialog()
   const [checkInTool, setCheckInTool] = useState<'qr' | 'scan' | null>(null)
-
-  function logout() {
-    clearAuthSession()
-    setCheckInTool(null)
-    navigate('/')
-  }
 
   const nav = [
     { to: '/', label: 'Discover', end: true },
@@ -87,12 +79,17 @@ function SiteHeader({
             >
               <Icon name="camera" />
             </button>
-            <button
-              className="inline-flex min-h-8 items-center justify-center rounded-lg border border-line bg-white px-3 py-1 text-sm font-semibold hover:bg-paper"
-              onClick={logout}
+            <NavLink
+              to="/account"
+              aria-label="Account"
+              title="Account"
+              className={({ isActive }) =>
+                'grid size-9 place-items-center rounded-lg hover:bg-paper' +
+                (isActive ? ' bg-soft text-accent' : '')
+              }
             >
-              Sign out
-            </button>
+              <Icon name="user" />
+            </NavLink>
           </div>
         ) : (
           <button
