@@ -1,5 +1,6 @@
 const express = require('express')
 const Application = require('../models/Application')
+const ClubReport = require('../models/ClubReport')
 const EventReport = require('../models/EventReport')
 const { withTags } = require('../services/clubTags')
 const Membership = require('../models/Membership')
@@ -17,6 +18,14 @@ router.get('/event-reports', async (req, res) => {
     .sort({ createdAt: -1 })
     .lean()
   res.json(reports)
+})
+
+router.get('/reports', async (req, res) => {
+  const [clubs, events] = await Promise.all([
+    ClubReport.find({}, 'clubName reason createdAt').lean(),
+    EventReport.find({}, 'clubName eventName reason createdAt').lean(),
+  ])
+  res.json([...clubs, ...events].sort((a, b) => b.createdAt - a.createdAt))
 })
 
 router.get('/statistics', async (req, res, next) => {

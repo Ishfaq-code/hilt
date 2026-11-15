@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { upcomingEvent } from '../../lib/events'
+import { clubPath, upcomingEvent } from '../../lib/events'
 import type { JoinedOrganization } from '../../types/management'
 import { OrganizationEventList } from '../events/OrganizationEventList'
+import { ReportDialog } from '../reports/ReportDialog'
 import { OrganizationSummary } from './OrganizationSummary'
-import { panelClass } from '../ui/styles'
+import { panelClass, textActionClass } from '../ui/styles'
 import { Cover } from './Cover'
 import { OrganizationAvatar } from './OrganizationAvatar'
 
@@ -11,9 +13,18 @@ type Props = {
   selected: JoinedOrganization
   tab: 'Home' | 'Events'
   setTab: (tab: 'Home' | 'Events') => void
+  leaving: boolean
+  onLeave: () => void
 }
 
-export function JoinedOrganizationDetails({ selected, tab, setTab }: Props) {
+export function JoinedOrganizationDetails({
+  selected,
+  tab,
+  setTab,
+  leaving,
+  onLeave,
+}: Props) {
+  const [reportOpen, setReportOpen] = useState(false)
   const events = [...(selected?.events || [])].sort(
     (a, b) => Date.parse(a.startDatetime) - Date.parse(b.startDatetime),
   )
@@ -76,7 +87,34 @@ export function JoinedOrganizationDetails({ selected, tab, setTab }: Props) {
             onShowEvents={() => setTab('Events')}
           />
         )}
+        <div className="flex flex-wrap justify-end gap-x-4 border-t border-line py-3">
+          {selected.roles.length === 0 && (
+            <button
+              type="button"
+              className={textActionClass + ' disabled:opacity-50'}
+              disabled={leaving}
+              onClick={onLeave}
+            >
+              Not interested anymore
+            </button>
+          )}
+          <button
+            type="button"
+            className={textActionClass}
+            aria-haspopup="dialog"
+            onClick={() => setReportOpen(true)}
+          >
+            Report club
+          </button>
+        </div>
       </div>
+      {reportOpen && (
+        <ReportDialog
+          title="Report club"
+          endpoint={'/api' + clubPath(selected._id) + '/reports'}
+          onClose={() => setReportOpen(false)}
+        />
+      )}
     </article>
   )
 }

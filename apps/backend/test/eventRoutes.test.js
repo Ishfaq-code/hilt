@@ -196,6 +196,36 @@ test(
     )
 
     await t.test(
+      'adds club reports alongside event reports in the admin inbox',
+      async () => {
+        const path = '/api/organizations/' + club.id + '/reports'
+        const method = 'POST'
+        const body = { reason: '  Please review this club.  ' }
+        assert.equal((await call(path, { method, body })).status, 401)
+        assert.equal(
+          (await call(path, { user: student, method, body: { reason: ' ' } }))
+            .status,
+          400,
+        )
+        assert.equal(
+          (await call(path, { user: student, method, body })).status,
+          201,
+        )
+
+        const inbox = '/api/admin/reports'
+        assert.equal((await call(inbox, { user: officer })).status, 403)
+        const reports = await call(inbox, { user: admin })
+        assert.equal(reports.status, 200)
+        assert.ok(
+          reports.data.some((report) => report.eventName === 'Private event'),
+        )
+        const clubReport = reports.data.find((report) => !report.eventName)
+        assert.equal(clubReport.clubName, 'Test club')
+        assert.equal(clubReport.reason, 'Please review this club.')
+      },
+    )
+
+    await t.test(
       'saves partial drafts and only reveals the event once published',
       async () => {
         const path = '/api/organizations/' + club.id

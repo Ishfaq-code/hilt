@@ -1,5 +1,6 @@
 const express = require('express')
 const mongoose = require('mongoose')
+const ClubReport = require('../models/ClubReport')
 const Membership = require('../models/Membership')
 const Organization = require('../models/Organization')
 const User = require('../models/User')
@@ -64,6 +65,32 @@ router.get('/:organizationId', optionalAuth, async (req, res, next) => {
   } catch (error) {
     return next(error)
   }
+})
+
+router.post('/:organizationId/reports', requireAuth, async (req, res) => {
+  const { organizationId } = req.params
+  if (!mongoose.isValidObjectId(organizationId)) {
+    return res.status(404).json({ error: 'Club not found.' })
+  }
+
+  const reason =
+    typeof req.body?.reason === 'string' ? req.body.reason.trim() : ''
+  if (!reason || reason.length > 2000) {
+    return res
+      .status(400)
+      .json({ error: 'Enter a reason of up to 2,000 characters.' })
+  }
+
+  const club = await Organization.findById(organizationId, 'name').lean()
+  if (!club) return res.status(404).json({ error: 'Club not found.' })
+
+  await ClubReport.create({
+    organizationId,
+    reporterId: req.user._id,
+    clubName: club.name,
+    reason,
+  })
+  return res.status(201).json({ message: 'Report sent.' })
 })
 
 router.get(

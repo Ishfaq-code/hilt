@@ -2,21 +2,21 @@ import { useEffect, useState } from 'react'
 import { api } from '../../lib/api'
 import { panelClass } from '../ui/styles'
 
-type EventReport = {
+type Report = {
   _id: string
-  eventName: string
+  eventName?: string
   clubName: string
   reason: string
   createdAt: string
 }
 
-export function EventReports() {
-  const [reports, setReports] = useState<EventReport[] | null>(null)
+export function Reports() {
+  const [reports, setReports] = useState<Report[] | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
     const request = new AbortController()
-    api<EventReport[]>('/api/admin/event-reports', { signal: request.signal })
+    api<Report[]>('/api/admin/reports', { signal: request.signal })
       .then(setReports)
       .catch((cause: unknown) => {
         if (!request.signal.aborted)
@@ -29,7 +29,7 @@ export function EventReports() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-3xl font-semibold tracking-tight">Event reports</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">Reports</h1>
       {error ? (
         <p role="alert" className="text-sm text-red-700">
           {error}
@@ -44,8 +44,12 @@ export function EventReports() {
             <li key={report._id} className={panelClass + ' space-y-2 p-4'}>
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <h2 className="font-semibold">{report.eventName}</h2>
-                  <p className="text-sm text-muted">{report.clubName}</p>
+                  <h2 className="font-semibold">
+                    {report.eventName ?? report.clubName}
+                  </h2>
+                  {report.eventName && (
+                    <p className="text-sm text-muted">{report.clubName}</p>
+                  )}
                 </div>
                 <time
                   dateTime={report.createdAt}
@@ -63,7 +67,7 @@ export function EventReports() {
           ))}
         </ul>
       ) : (
-        <p className="text-sm text-muted">No event reports.</p>
+        <p className="text-sm text-muted">No reports.</p>
       )}
     </section>
   )

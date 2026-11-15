@@ -10,6 +10,7 @@ export type Member = {
 }
 
 export type Membership = {
+  _id: string
   organizationId: { _id: string }
   roles: RoleSummary[]
   permissions: ClubPermission[]

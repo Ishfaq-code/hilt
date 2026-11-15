@@ -2,9 +2,9 @@ import { Workspace } from '../components/layout/Workspace'
 
 import { AdminOverview } from '../components/admin/AdminOverview'
 import { ApplicationReviews } from '../components/admin/ApplicationReviews'
-import { EventReports } from '../components/admin/EventReports'
 import { OrganizationModeration } from '../components/admin/OrganizationModeration'
 import { PlatformStatistics } from '../components/admin/PlatformStatistics'
+import { Reports } from '../components/admin/Reports'
 import { useAdministration } from '../hooks/useAdministration'
 
 export default function AdminDashboardPage() {
@@ -57,7 +57,7 @@ export default function AdminDashboardPage() {
           moderate={administration.moderate}
         />
       )}
-      {!loading && activeTab === 'reports' && <EventReports />}
+      {!loading && activeTab === 'reports' && <Reports />}
       {!loading && activeTab === 'statistics' && (
         <PlatformStatistics
           stats={administration.stats}

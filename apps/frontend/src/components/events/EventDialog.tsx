@@ -9,16 +9,14 @@ import type { CheckIn } from '../../lib/checkIn'
 import { eventApi, eventPath, rsvpChangedEvent } from '../../lib/events'
 import type { Organization } from '../../types'
 import type { ManagedEvent } from '../../types/management'
+import { ReportDialog } from '../reports/ReportDialog'
 import { Dialog } from '../ui/Dialog'
 import { Icon } from '../ui/Icon'
-import { buttonClass, secondaryClass } from '../ui/styles'
-import { EventReportDialog } from './EventReportDialog'
+import { buttonClass, secondaryClass, textActionClass } from '../ui/styles'
 import { RsvpButton } from './RsvpButton'
 import { QrScanner } from './ScannerDialog'
 
 type Participation = { rsvped: boolean; checkIn: CheckIn | null }
-const actionClass =
-  'inline-flex min-h-10 items-center text-sm text-muted underline underline-offset-4 hover:text-ink'
 
 export function EventDialog({
   club,
@@ -295,14 +293,14 @@ export function EventDialog({
           <div className="flex flex-wrap justify-end gap-x-4 border-t border-line pt-3">
             <button
               type="button"
-              className={actionClass}
+              className={textActionClass}
               onClick={() => downloadEvent(event, url)}
             >
               Add to calendar
             </button>
             <button
               type="button"
-              className={actionClass}
+              className={textActionClass}
               aria-haspopup="dialog"
               onClick={() => setDialog('report')}
             >
@@ -312,8 +310,9 @@ export function EventDialog({
         )}
       </div>
       {dialog === 'report' && (
-        <EventReportDialog
-          endpoint={endpoint}
+        <ReportDialog
+          title="Report event"
+          endpoint={endpoint + '/reports'}
           onClose={() => setDialog(null)}
         />
       )}

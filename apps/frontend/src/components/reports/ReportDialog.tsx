@@ -7,10 +7,12 @@ import { api } from '../../lib/api'
 import { Dialog } from '../ui/Dialog'
 import { buttonClass, inputClass, secondaryClass } from '../ui/styles'
 
-export function EventReportDialog({
+export function ReportDialog({
+  title,
   endpoint,
   onClose,
 }: {
+  title: string
   endpoint: string
   onClose: () => void
 }) {
@@ -33,7 +35,7 @@ export function EventReportDialog({
     setBusy(true)
     setError('')
     try {
-      await api(endpoint + '/reports', {
+      await api(endpoint, {
         method: 'POST',
         body: JSON.stringify({ reason }),
       })
@@ -47,7 +49,7 @@ export function EventReportDialog({
   }
 
   return (
-    <Dialog title="Report event" onClose={onClose} compact>
+    <Dialog title={title} onClose={onClose} compact>
       {token ? (
         <form className="space-y-4" onSubmit={(event) => void submit(event)}>
           <label className="block text-sm font-medium">
