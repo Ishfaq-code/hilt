@@ -17,7 +17,7 @@ export function EventEditor({
 }: {
   organizationId: string
   event?: ManagedEvent
-  onSaved: () => void
+  onSaved: () => Promise<void>
   onCancel?: () => void
 }) {
   const [error, setError] = useState('')
@@ -51,7 +51,7 @@ export function EventEditor({
         `/api/organizations/${organizationId}/events${event ? `/${event._id}` : ''}`,
         { method: event ? 'PATCH' : 'POST', body: JSON.stringify(payload) },
       )
-      onSaved()
+      await onSaved()
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Unable to save the event.',

@@ -64,11 +64,18 @@ export function useOrganizationManagement(organizationId: string) {
   }, [load])
 
   async function saved(message: string) {
-    await load()
     setCreatingEvent(false)
     setEditingEvent(null)
     setNotice(message)
     setError('')
+
+    try {
+      await load()
+    } catch {
+      setError(
+        'Saved, but the workspace could not be refreshed. Reload the page to see your changes.',
+      )
+    }
   }
 
   async function saveOrganization(event: SubmitEvent<HTMLFormElement>) {

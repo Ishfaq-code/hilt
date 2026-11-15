@@ -42,7 +42,7 @@ export function OrganizationEvents({
       {creatingEvent && (
         <EventEditor
           organizationId={organizationId}
-          onSaved={() => void saved('Event published.')}
+          onSaved={() => saved('Event published.')}
           onCancel={() => setCreatingEvent(false)}
         />
       )}
@@ -101,7 +101,7 @@ export function OrganizationEvents({
                   <EventEditor
                     organizationId={organizationId}
                     event={event}
-                    onSaved={() => void saved('Event changes saved.')}
+                    onSaved={() => saved('Event changes saved.')}
                     onCancel={() => setEditingEvent(null)}
                   />
                 </div>
