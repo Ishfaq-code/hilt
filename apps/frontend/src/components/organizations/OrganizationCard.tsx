@@ -7,12 +7,14 @@ import { OrganizationAvatar } from './OrganizationAvatar'
 
 export default function OrganizationCard({
   organization,
+  to = clubPreviewPath(organization._id),
 }: {
   organization: Organization
+  to?: string
 }) {
   return (
     <Link
-      to={clubPreviewPath(organization._id)}
+      to={to}
       aria-haspopup="dialog"
       className={`${panelClass} group block overflow-hidden hover:border-muted`}
     >

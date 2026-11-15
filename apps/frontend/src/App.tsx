@@ -4,6 +4,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage'
 import ApplicationPage from './pages/ApplicationPage'
 import AuthPage from './pages/AuthPage'
 import CheckInPage from './pages/CheckInPage'
+import ClubSearchPage from './pages/ClubSearchPage'
 import HomePage from './pages/HomePage'
 import MyOrganizationsPage from './pages/MyOrganizationsPage'
 import OrganizationManagePage from './pages/OrganizationManagePage'
@@ -14,6 +15,7 @@ function App() {
     <Routes>
       <Route element={<SiteLayout />}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/search" element={<ClubSearchPage />} />
         <Route path="/login" element={<AuthPage initialMode="login" />} />
         <Route path="/register" element={<AuthPage initialMode="signup" />} />
         <Route path="/qr" element={<CheckInPage key="qr" mode="qr" />} />
