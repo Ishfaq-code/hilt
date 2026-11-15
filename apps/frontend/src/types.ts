@@ -16,7 +16,16 @@ export type Organization = {
     type?: string
     private?: boolean
     banner?: string | null
+    attendance?: AttendanceSettings
   }[]
+}
+
+export type AttendanceSettings = {
+  enabled: boolean
+  self: boolean
+  eventQr: boolean
+  attendeeQr: boolean
+  walkIns: boolean
 }
 
 export type ApiResponse = {

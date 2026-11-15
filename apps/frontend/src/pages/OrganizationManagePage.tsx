@@ -81,12 +81,8 @@ export default function OrganizationManagePage() {
       )}
       {activeTab === 'events' && (
         <OrganizationEvents
-          organizationId={organizationId}
+          club={organization}
           events={management.events}
-          creatingEvent={management.creatingEvent}
-          setCreatingEvent={management.setCreatingEvent}
-          editingEvent={management.editingEvent}
-          setEditingEvent={management.setEditingEvent}
           saved={management.saved}
           deleteEvent={management.deleteEvent}
         />

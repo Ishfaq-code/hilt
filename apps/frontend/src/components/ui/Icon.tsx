@@ -1,4 +1,9 @@
 const paths = {
+  close: 'm6 6 12 12M18 6 6 18',
+  edit: 'm4 16-1 5 5-1L21 7l-4-4L4 16Zm11-11 4 4',
+  share: 'M12 15V3m-4 4 4-4 4 4M6 10H4v11h16V10h-2',
+  qr: 'M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h3v3h-3zm7 0v3m-7 4h3m4-1v1',
+  camera: 'M3 7h5l2-3h4l2 3h5v13H3zm13 6a4 4 0 1 0-8 0 4 4 0 0 0 8 0Z',
   arrow: 'M5 12h14m-6-6 6 6-6 6',
   back: 'M19 12H5m6 6-6-6 6-6',
   home: 'M3 10.5 12 3l9 7.5M5 9v11h14V9m-10 11v-7h6v7',

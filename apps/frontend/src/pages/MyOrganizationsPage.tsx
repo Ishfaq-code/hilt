@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { JoinedOrganizationDetails } from '../components/organizations/JoinedOrganizationDetails'
 import { OrganizationSidebar } from '../components/organizations/OrganizationSidebar'
 import { panelClass } from '../components/ui/styles'
@@ -14,8 +14,9 @@ type Membership = {
 
 export default function MyOrganizationsPage() {
   const navigate = useNavigate()
+  const [params, setParams] = useSearchParams()
+  const requested = params.get('club')
   const [items, setItems] = useState<Membership[]>([])
-  const [selectedId, setSelectedId] = useState('')
   const [tab, setTab] = useState<'Home' | 'Events'>('Home')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -33,7 +34,6 @@ export default function MyOrganizationsPage() {
       .then((memberships) => {
         if (active) {
           setItems(memberships)
-          setSelectedId(memberships[0]?.organizationId?._id || '')
         }
       })
       .catch((cause: unknown) => {
@@ -41,7 +41,7 @@ export default function MyOrganizationsPage() {
           setError(
             cause instanceof Error
               ? cause.message
-              : 'Unable to load your organizations.',
+              : 'Couldn’t load your clubs.',
           )
       })
       .finally(() => {
@@ -51,10 +51,13 @@ export default function MyOrganizationsPage() {
       active = false
     }
   }, [navigate])
-  const organizations = items.map((membership) => ({
-    ...membership.organizationId,
-    _membershipRole: membership.organizationRole,
-  }))
+  const organizations = items
+    .filter((membership) => membership.organizationId)
+    .map((membership) => ({
+      ...membership.organizationId,
+      _membershipRole: membership.organizationRole,
+    }))
+  const selectedId = requested ?? organizations[0]?._id ?? ''
   const selected = organizations.find(
     (organization) => organization._id === selectedId,
   )
@@ -65,7 +68,9 @@ export default function MyOrganizationsPage() {
         My clubs
       </h1>
       {loading && (
-        <p className="text-sm text-muted">Loading your organizations…</p>
+        <p role="status" className="text-sm text-muted">
+          Loading your clubs…
+        </p>
       )}
       {error && (
         <p role="alert" className="text-sm text-muted">
@@ -78,9 +83,9 @@ export default function MyOrganizationsPage() {
             organizations={organizations}
             selectedId={selectedId}
             hasSelected={Boolean(selected)}
-            onHome={() => setSelectedId('')}
+            onHome={() => setParams({ club: '' })}
             onSelect={(id) => {
-              setSelectedId(id)
+              setParams({ club: id })
               setTab('Home')
             }}
           />

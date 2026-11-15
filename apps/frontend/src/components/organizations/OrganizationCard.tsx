@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { clubPreviewPath } from '../../lib/clubs'
 import type { Organization } from '../../types'
 import { panelClass } from '../ui/styles'
 import { Cover } from './Cover'
@@ -11,7 +12,8 @@ export default function OrganizationCard({
 }) {
   return (
     <Link
-      to={`/organizations/${organization._id}`}
+      to={clubPreviewPath(organization._id)}
+      aria-haspopup="dialog"
       className={`${panelClass} group block overflow-hidden hover:border-muted`}
     >
       <Cover organization={organization} />
@@ -30,7 +32,7 @@ export default function OrganizationCard({
           </span>
         </div>
         <p className="mt-1 text-xs text-muted">
-          {organization.category || 'Student organization'}
+          {organization.category || 'Student club'}
         </p>
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">
           {organization.description ||

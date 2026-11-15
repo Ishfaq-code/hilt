@@ -20,8 +20,6 @@ export function useOrganizationManagement(organizationId: string) {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [query, setQuery] = useState('')
-  const [creatingEvent, setCreatingEvent] = useState(false)
-  const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null)
 
   const load = useCallback(async () => {
     const [org, people, metrics, myMemberships, user] = await Promise.all([
@@ -64,8 +62,6 @@ export function useOrganizationManagement(organizationId: string) {
   }, [load])
 
   async function saved(message: string) {
-    setCreatingEvent(false)
-    setEditingEvent(null)
     setNotice(message)
     setError('')
 
@@ -185,10 +181,6 @@ export function useOrganizationManagement(organizationId: string) {
     notice,
     saveOrganization,
     events,
-    creatingEvent,
-    setCreatingEvent,
-    editingEvent,
-    setEditingEvent,
     saved,
     deleteEvent,
     matchingMembers,

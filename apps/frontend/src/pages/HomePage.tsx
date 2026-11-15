@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { ClubPreviewDialog } from '../components/organizations/ClubPreviewDialog'
 import { OrganizationRow } from '../components/organizations/OrganizationRow'
 import { Icon } from '../components/ui/Icon'
 import { inputClass, panelClass } from '../components/ui/styles'
@@ -12,6 +14,8 @@ const categories = [
 ]
 
 export default function HomePage() {
+  const [params, setParams] = useSearchParams()
+  const previewId = params.get('club')
   const [organizations, setOrganizations] = useState<Organization[]>([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
@@ -48,7 +52,7 @@ export default function HomePage() {
   return (
     <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8 sm:pt-13">
       <h1 className="max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl">
-        Find organizations and communities on campus.
+        Find clubs and events on campus.
       </h1>
       <label className="relative mt-5 block max-w-xl">
         <span className="pointer-events-none absolute top-3.5 left-3 text-muted">
@@ -57,8 +61,8 @@ export default function HomePage() {
         <input
           className={`${inputClass} pl-10`}
           type="search"
-          aria-label="Search organizations"
-          placeholder="Search organizations"
+          aria-label="Search clubs"
+          placeholder="Search clubs"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
@@ -102,6 +106,16 @@ export default function HomePage() {
             </p>
           )}
         </>
+      )}
+      {previewId && (
+        <ClubPreviewDialog
+          key={previewId}
+          clubId={previewId}
+          eventId={params.get('event')}
+          initialClub={organizations.find((club) => club._id === previewId)}
+          onClose={() => setParams({}, { replace: true })}
+          onCloseEvent={() => setParams({ club: previewId }, { replace: true })}
+        />
       )}
     </section>
   )

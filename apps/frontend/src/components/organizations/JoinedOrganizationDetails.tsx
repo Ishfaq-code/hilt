@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom'
+import { upcomingEvent } from '../../lib/events'
 import type { JoinedOrganization } from '../../types/management'
+import { OrganizationEventList } from '../events/OrganizationEventList'
+import { OrganizationSummary } from './OrganizationSummary'
 import { panelClass } from '../ui/styles'
 import { Cover } from './Cover'
 import { OrganizationAvatar } from './OrganizationAvatar'
@@ -33,12 +36,6 @@ export function JoinedOrganizationDetails({ selected, tab, setTab }: Props) {
             </h2>
           </div>
           <div className="ml-auto flex gap-2">
-            <Link
-              to={`/organizations/${selected._id}`}
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold hover:bg-paper"
-            >
-              View organization
-            </Link>
             {['owner', 'officer'].includes(selected._membershipRole) && (
               <Link
                 to={`/organizations/${selected._id}/manage`}
@@ -68,72 +65,14 @@ export function JoinedOrganizationDetails({ selected, tab, setTab }: Props) {
           </button>
         </div>
         {tab === 'Events' ? (
-          <div className="py-5">
-            {events.length ? (
-              <ul className="divide-y divide-line">
-                {events.map((event) => (
-                  <li
-                    key={event._id}
-                    className="flex flex-wrap justify-between gap-3 py-4"
-                  >
-                    <div>
-                      <h3 className="font-semibold">{event.name}</h3>
-                      <p className="mt-1 text-sm text-muted">
-                        {new Date(event.startDatetime).toLocaleString()}
-                        {event.place ? ` · ${event.place}` : ''}
-                      </p>
-                      {event.description && (
-                        <p className="mt-2 text-sm text-muted">
-                          {event.description}
-                        </p>
-                      )}
-                    </div>
-                    <span className="text-xs text-muted">
-                      {event.type || 'Event'}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted">No events yet.</p>
-            )}
-          </div>
+          <OrganizationEventList club={selected} events={events} />
         ) : (
-          <div className="grid gap-6 py-6 sm:grid-cols-[2fr_1fr]">
-            <section>
-              <h3 className="mb-3 text-xl font-semibold">Next up</h3>
-              {events[0] ? (
-                <div className={`${panelClass} p-4`}>
-                  <p className="text-sm font-semibold text-accent">
-                    {new Date(events[0].startDatetime).toLocaleDateString(
-                      undefined,
-                      {
-                        month: 'long',
-                        day: 'numeric',
-                      },
-                    )}
-                  </p>
-                  <h4 className="mt-1 font-semibold">{events[0].name}</h4>
-                  <p className="mt-1 text-sm text-muted">
-                    {new Date(events[0].startDatetime).toLocaleTimeString([], {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                    {events[0].place ? ` · ${events[0].place}` : ''}
-                  </p>
-                </div>
-              ) : (
-                <p className="text-sm text-muted">No upcoming events.</p>
-              )}
-            </section>
-            <section>
-              <h3 className="mb-3 text-xl font-semibold">About</h3>
-              <p className="text-sm leading-relaxed text-muted">
-                {selected.description ||
-                  'Organization information will appear here.'}
-              </p>
-            </section>
-          </div>
+          <OrganizationSummary
+            organization={selected}
+            upcoming={upcomingEvent(events)}
+            eventCount={events.length}
+            onShowEvents={() => setTab('Events')}
+          />
         )}
       </div>
     </article>

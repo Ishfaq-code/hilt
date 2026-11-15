@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { clearAuthSession, getStoredUser } from '../../lib/auth'
 import type { AuthUser } from '../../types'
+import { CheckInCodeDialog } from '../events/CheckInCodeDialog'
+import { EventScanDialog } from '../events/EventScanDialog'
+import { Icon } from '../ui/Icon'
 
 function SiteHeader() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [checkInTool, setCheckInTool] = useState<'qr' | 'scan' | null>(null)
   const [user, setUser] = useState<AuthUser | null>(() =>
     sessionStorage.getItem('authToken') ? getStoredUser() : null,
   )
@@ -88,6 +92,26 @@ function SiteHeader() {
         {user ? (
           <div className="ml-auto flex shrink-0 items-center gap-3">
             <button
+              type="button"
+              aria-label="My QR"
+              title="My QR"
+              aria-haspopup="dialog"
+              className="grid size-9 place-items-center rounded-lg hover:bg-paper"
+              onClick={() => setCheckInTool('qr')}
+            >
+              <Icon name="qr" />
+            </button>
+            <button
+              type="button"
+              aria-label="Scan QR"
+              title="Scan QR"
+              aria-haspopup="dialog"
+              className="grid size-9 place-items-center rounded-lg hover:bg-paper"
+              onClick={() => setCheckInTool('scan')}
+            >
+              <Icon name="camera" />
+            </button>
+            <button
               className="inline-flex min-h-8 items-center justify-center rounded-lg border border-line bg-white px-3 py-1 text-sm font-semibold hover:bg-paper"
               onClick={logout}
             >
@@ -103,6 +127,12 @@ function SiteHeader() {
           </button>
         )}
       </div>
+      {user && checkInTool === 'qr' && (
+        <CheckInCodeDialog onClose={() => setCheckInTool(null)} />
+      )}
+      {user && checkInTool === 'scan' && (
+        <EventScanDialog onClose={() => setCheckInTool(null)} />
+      )}
     </header>
   )
 }

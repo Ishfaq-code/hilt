@@ -1,7 +1,15 @@
+import type { Organization } from '../../types'
 import type { ManagedEvent } from '../../types/management'
 import { Icon } from '../ui/Icon'
+import { EventPreviewButton } from './EventPreviewButton'
 
-export function OrganizationEventList({ events }: { events: ManagedEvent[] }) {
+export function OrganizationEventList({
+  club,
+  events,
+}: {
+  club: Pick<Organization, '_id' | 'name'>
+  events: ManagedEvent[]
+}) {
   return (
     <div className="py-5">
       {events.length ? (
@@ -19,7 +27,13 @@ export function OrganizationEventList({ events }: { events: ManagedEvent[] }) {
                   })}
                 </span>
                 <div>
-                  <h2 className="font-semibold">{event.name}</h2>
+                  <h2 className="font-semibold">
+                    <EventPreviewButton
+                      club={club}
+                      event={event}
+                      className="text-left hover:underline"
+                    />
+                  </h2>
                   <p className="mt-1 text-sm text-muted">
                     {new Date(event.startDatetime).toLocaleString()} –{' '}
                     {new Date(event.endDatetime).toLocaleTimeString([], {
@@ -40,9 +54,11 @@ export function OrganizationEventList({ events }: { events: ManagedEvent[] }) {
                   )}
                 </div>
               </div>
-              <span className="rounded bg-paper px-2 py-1 text-xs text-muted">
-                {event.type || 'Event'}
-              </span>
+              {event.private && (
+                <span className="rounded bg-paper px-2 py-1 text-xs text-muted">
+                  Members only
+                </span>
+              )}
             </li>
           ))}
         </ul>

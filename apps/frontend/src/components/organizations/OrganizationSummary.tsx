@@ -1,5 +1,6 @@
 import type { Organization } from '../../types'
 import type { ManagedEvent } from '../../types/management'
+import { EventPreviewButton } from '../events/EventPreviewButton'
 import { Icon } from '../ui/Icon'
 import { panelClass } from '../ui/styles'
 
@@ -29,7 +30,13 @@ export function OrganizationSummary({
                   { month: 'long', day: 'numeric', year: 'numeric' },
                 )}
               </p>
-              <h3 className="text-lg font-semibold">{upcoming.name}</h3>
+              <h3 className="text-lg font-semibold">
+                <EventPreviewButton
+                  club={organization}
+                  event={upcoming}
+                  className="text-left hover:underline"
+                />
+              </h3>
               <p className="mt-1 text-sm text-muted">
                 {new Date(upcoming.startDatetime).toLocaleTimeString([], {
                   hour: 'numeric',
@@ -53,7 +60,7 @@ export function OrganizationSummary({
             onClick={onShowEvents}
             className="mt-3 inline-block text-sm font-semibold text-accent hover:underline"
           >
-            All organization events →
+            All events →
           </button>
         )}
       </section>
@@ -76,7 +83,7 @@ export function OrganizationSummary({
             rel="noreferrer"
             className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:underline"
           >
-            Organization website <Icon name="arrow" size={14} />
+            Website <Icon name="arrow" size={14} />
           </a>
         )}
       </section>

@@ -2,11 +2,16 @@ import type { SubmitEvent } from 'react'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { saveAuthSession } from '../lib/auth'
+import { joinClub, myClubPath } from '../lib/clubs'
 import type { ApiResponse } from '../types'
 
 type AuthPageProps = { initialMode: 'login' | 'signup' }
 
-type AuthLocationState = { from?: string; joinOrganizationId?: string }
+type AuthLocationState = {
+  from?: string
+  joinOrganizationId?: string
+  afterJoin?: string
+}
 
 export default function AuthPage({ initialMode }: AuthPageProps) {
   const navigate = useNavigate()
@@ -20,6 +25,29 @@ export default function AuthPage({ initialMode }: AuthPageProps) {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+
+  async function finish(defaultPath: string) {
+    const state = location.state as AuthLocationState | null
+    const destination = state?.from || defaultPath
+    const clubId = state?.joinOrganizationId
+    if (!clubId) {
+      navigate(destination, { replace: true })
+      return
+    }
+
+    try {
+      await joinClub(clubId)
+      navigate(state?.afterJoin || myClubPath(clubId), { replace: true })
+    } catch (cause) {
+      navigate(destination, {
+        replace: true,
+        state: {
+          joinError:
+            cause instanceof Error ? cause.message : 'Couldn’t join the club.',
+        },
+      })
+    }
+  }
 
   async function request(endpoint: string, body: Record<string, string>) {
     const response = await fetch(`/api/auth/${endpoint}`, {
@@ -42,13 +70,7 @@ export default function AuthPage({ initialMode }: AuthPageProps) {
       if (initialMode === 'login') {
         const result = await request('login', { email, password })
         saveAuthSession(result)
-        const state = location.state as AuthLocationState | null
-        navigate(state?.from || '/my-organizations', {
-          replace: true,
-          state: state?.joinOrganizationId
-            ? { joinOrganizationId: state.joinOrganizationId }
-            : null,
-        })
+        await finish('/my-organizations')
       } else {
         const result = await request('register', {
           firstName,
@@ -226,15 +248,7 @@ export default function AuthPage({ initialMode }: AuthPageProps) {
             </p>
             <button
               className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-ink bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-active"
-              onClick={() => {
-                const state = location.state as AuthLocationState | null
-                navigate(state?.from || '/', {
-                  replace: true,
-                  state: state?.joinOrganizationId
-                    ? { joinOrganizationId: state.joinOrganizationId }
-                    : null,
-                })
-              }}
+              onClick={() => void finish('/')}
             >
               {location.state ? 'Continue' : 'Explore organizations'}
             </button>

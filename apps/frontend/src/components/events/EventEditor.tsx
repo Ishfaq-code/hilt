@@ -2,12 +2,7 @@ import type { SubmitEvent } from 'react'
 import { useState } from 'react'
 import { api } from '../../lib/api'
 import type { ManagedEvent } from '../../types/management'
-import {
-  buttonClass,
-  inputClass,
-  panelClass,
-  secondaryClass,
-} from '../ui/styles'
+import { buttonClass, inputClass, secondaryClass } from '../ui/styles'
 
 export function EventEditor({
   organizationId,
@@ -22,6 +17,9 @@ export function EventEditor({
 }) {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [trackAttendance, setTrackAttendance] = useState(
+    event?.attendance?.enabled ?? false,
+  )
 
   async function submit(formEvent: SubmitEvent<HTMLFormElement>) {
     formEvent.preventDefault()
@@ -45,6 +43,13 @@ export function EventEditor({
       type: data.get('type'),
       private: data.get('visibility') === 'members',
       banner: data.get('banner') || null,
+      attendance: {
+        enabled: trackAttendance,
+        self: data.has('self'),
+        eventQr: data.has('eventQr'),
+        attendeeQr: data.has('attendeeQr'),
+        walkIns: data.has('walkIns'),
+      },
     }
     try {
       await api(
@@ -71,13 +76,7 @@ export function EventEditor({
       : ''
 
   return (
-    <form
-      onSubmit={(event) => void submit(event)}
-      className={`${panelClass} mt-4 space-y-4 p-5`}
-    >
-      <h2 className="text-xl font-semibold">
-        {event ? 'Edit event' : 'New event'}
-      </h2>
+    <form onSubmit={(event) => void submit(event)} className="space-y-4">
       <label className="block text-sm font-medium">
         Title
         <input
@@ -88,8 +87,7 @@ export function EventEditor({
         />
       </label>
       <label className="block text-sm font-medium">
-        Banner image URL{' '}
-        <span className="font-normal text-muted">(optional)</span>
+        Banner <span className="font-normal text-muted">(optional)</span>
         <input
           name="banner"
           type="url"
@@ -174,6 +172,36 @@ export function EventEditor({
           defaultValue={event?.description || ''}
         />
       </label>
+      <fieldset className="space-y-2 border-t border-line pt-4">
+        <legend className="pr-2 text-sm font-semibold">Attendance</legend>
+        <label className="flex items-center gap-2 text-sm font-medium">
+          <input
+            type="checkbox"
+            checked={trackAttendance}
+            onChange={(change) => setTrackAttendance(change.target.checked)}
+          />
+          Track attendance
+        </label>
+        <div hidden={!trackAttendance} className="space-y-2 pl-5">
+          {(
+            [
+              ['self', 'I am here'],
+              ['eventQr', 'Event QR'],
+              ['attendeeQr', 'Attendee QR'],
+              ['walkIns', 'Allow walk-ins'],
+            ] as const
+          ).map(([name, label]) => (
+            <label key={name} className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name={name}
+                defaultChecked={event?.attendance?.[name]}
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
       {error && (
         <p role="alert" className="text-sm text-red-700">
           {error}
@@ -184,7 +212,7 @@ export function EventEditor({
           Cancel
         </button>
         <button className={buttonClass} disabled={busy}>
-          {busy ? 'Saving…' : event ? 'Save changes' : 'Publish event'}
+          {busy ? 'Saving…' : event ? 'Save' : 'Publish'}
         </button>
       </div>
     </form>
