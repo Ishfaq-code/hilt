@@ -1,13 +1,15 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const Application = require('../models/Application')
+const Organization = require('../models/Organization')
+const Membership = require('../models/Membership')
 const s3Service = require('../services/s3Service')
 const requireAppAdmin = require('../middleware/requireAppAdmin')
 const requireAuth = require('../middleware/requireAuth')
 const multer = require('multer')
 
 const router = express.Router()
-const applicationFields = new Set(['organizationName', 'organizationDescription'])
+const applicationFields = new Set(['organizationName', 'organizationDescription', 'category', 'contactEmail', 'link'])
 const uploadDocument = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024, files: 1 },
@@ -87,6 +89,15 @@ router.post('/', requireAuth, handleDocumentUpload, async (req, res, next) => {
   if (!fields.includes('organizationName') || fields.some((field) => !applicationFields.has(field))) {
     return res.status(400).json({ error: 'One or more application fields are missing or cannot be set.' })
   }
+  if (typeof body.organizationName !== 'string' || !body.organizationName.trim()) {
+    return res.status(400).json({ error: 'Organization name is required.' })
+  }
+  if (body.contactEmail && (typeof body.contactEmail !== 'string' || !/^\S+@\S+\.\S+$/.test(body.contactEmail))) {
+    return res.status(400).json({ error: 'Contact email must be a valid email address.' })
+  }
+  if (body.link && (typeof body.link !== 'string' || !/^https?:\/\//i.test(body.link))) {
+    return res.status(400).json({ error: 'Supporting link must start with http:// or https://.' })
+  }
 
   let uploadedDocument
   try {
@@ -137,6 +148,52 @@ router.patch('/:applicationId', requireAuth, requireAppAdmin, async (req, res, n
   try {
     const application = await Application.findById(req.params.applicationId)
     if (!application) return res.status(404).json({ error: 'Application not found.' })
+    if (Object.hasOwn(updates, 'status') && application.status !== 'pending') {
+      return res.status(409).json({ error: 'This application has already been reviewed.' })
+    }
+    if (updates.status === 'approved') {
+      const claimed = await Application.findOneAndUpdate(
+        { _id: application._id, status: 'pending' },
+        { $set: { status: 'approved', reviewedBy: req.user._id, reviewedAt: new Date() } },
+        { new: true },
+      )
+      if (!claimed) return res.status(409).json({ error: 'This application has already been reviewed.' })
+      let organization
+      try {
+        organization = await Organization.create({
+          name: application.organizationName,
+          description: application.organizationDescription,
+          category: application.category,
+          profile: application.link,
+        })
+        await Membership.create({
+          userId: application.userId,
+          organizationId: organization._id,
+          organizationRole: 'owner',
+          isPaid: organization.membershipFee === 0,
+        })
+      } catch (error) {
+        if (organization) {
+          await Membership.deleteMany({ organizationId: organization._id })
+          await organization.deleteOne()
+        }
+        await Application.updateOne(
+          { _id: claimed._id, status: 'approved', reviewedBy: req.user._id },
+          { $set: { status: 'pending', reviewedBy: null, reviewedAt: null } },
+        )
+        throw error
+      }
+      return res.status(200).json(claimed)
+    }
+    if (updates.status === 'denied') {
+      const denied = await Application.findOneAndUpdate(
+        { _id: application._id, status: 'pending' },
+        { $set: { status: 'denied', reviewedBy: req.user._id, reviewedAt: new Date() } },
+        { new: true },
+      )
+      if (!denied) return res.status(409).json({ error: 'This application has already been reviewed.' })
+      return res.status(200).json(denied)
+    }
     for (const field of fields) {
       if (field === 'status') {
         application.status = updates.status

@@ -33,6 +33,9 @@ const applicationSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    category: { type: String, default: 'General', trim: true },
+    contactEmail: { type: String, default: null, trim: true, lowercase: true },
+    link: { type: String, default: null, trim: true },
     additionalDocuments: {
       type: [documentSchema],
       default: [],

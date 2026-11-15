@@ -36,6 +36,10 @@ const eventSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    place: { type: String, default: null, trim: true },
+    type: { type: String, default: 'Meeting', trim: true },
+    private: { type: Boolean, default: false },
+    banner: { type: String, default: null, trim: true },
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } },
 )
@@ -52,6 +56,8 @@ const organizationSchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    category: { type: String, default: 'General', trim: true },
+    profile: { type: String, default: null, trim: true },
     assets: {
       type: [assetSchema],
       default: [],

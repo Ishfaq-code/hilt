@@ -6,20 +6,21 @@ const User = require('../models/User')
 const requireAppAdmin = require('../middleware/requireAppAdmin')
 const requireAuth = require('../middleware/requireAuth')
 const requireOrganizationAdmin = require('../middleware/requireOrganizationAdmin')
+const optionalAuth = require('../middleware/optionalAuth')
 
 const router = express.Router()
-const editableFields = new Set(['name', 'description', 'assets', 'membershipFee', 'events'])
+const editableFields = new Set(['name', 'description', 'category', 'profile', 'assets', 'membershipFee', 'events'])
 
 router.get('/', async (req, res, next) => {
   try {
-    const organizations = await Organization.find({}, 'name description assets').lean()
+    const organizations = await Organization.find({}, 'name description category profile assets membershipFee').lean()
     return res.status(200).json(organizations)
   } catch (error) {
     return next(error)
   }
 })
 
-router.get('/:organizationId', requireAuth, async (req, res, next) => {
+router.get('/:organizationId', optionalAuth, async (req, res, next) => {
   if (!mongoose.isValidObjectId(req.params.organizationId)) {
     return res.status(404).json({ error: 'Organization not found.' })
   }
@@ -30,18 +31,89 @@ router.get('/:organizationId', requireAuth, async (req, res, next) => {
       return res.status(404).json({ error: 'Organization not found.' })
     }
 
-    const membership = await Membership.exists({
-      userId: req.user._id,
-      organizationId: organization._id,
-    })
-    if (!membership) {
-      return res.status(403).json({ error: 'Organization membership is required.' })
-    }
-
-    return res.status(200).json(organization)
+    const result = organization.toObject()
+    const hasMembership = req.user && (req.user.appRole === 'admin' || await Membership.exists({ userId: req.user._id, organizationId: organization._id }))
+    if (!hasMembership) result.events = result.events.filter((event) => !event.private)
+    return res.status(200).json(result)
   } catch (error) {
     return next(error)
   }
+})
+
+router.get('/:organizationId/members', requireAuth, requireOrganizationAdmin, async (req, res, next) => {
+  try {
+    const memberships = await Membership.find({ organizationId: req.params.organizationId })
+      .populate('userId', 'firstName lastName email')
+      .sort({ createdAt: 1 })
+    return res.status(200).json(memberships)
+  } catch (error) { return next(error) }
+})
+
+router.get('/:organizationId/statistics', requireAuth, requireOrganizationAdmin, async (req, res, next) => {
+  try {
+    const organization = await Organization.findById(req.params.organizationId).lean()
+    const memberships = await Membership.aggregate([
+      { $match: { organizationId: new mongoose.Types.ObjectId(req.params.organizationId) } },
+      { $group: { _id: '$organizationRole', count: { $sum: 1 }, paid: { $sum: { $cond: ['$isPaid', 1, 0] } } } },
+    ])
+    const roles = Object.fromEntries(memberships.map((item) => [item._id, item.count]))
+    return res.status(200).json({
+      organizationId: organization._id,
+      name: organization.name,
+      totalMembers: memberships.reduce((sum, item) => sum + item.count, 0),
+      paidMembers: memberships.reduce((sum, item) => sum + item.paid, 0),
+      events: organization.events?.length || 0,
+      roles,
+    })
+  } catch (error) { return next(error) }
+})
+
+router.post('/:organizationId/events', requireAuth, requireOrganizationAdmin, async (req, res, next) => {
+  try {
+    const { name, description, startDatetime, endDatetime, place, type, private: isPrivate, banner } = req.body || {}
+    if (typeof name !== 'string' || !name.trim() || !startDatetime || !endDatetime ||
+      !Number.isFinite(Date.parse(startDatetime)) || !Number.isFinite(Date.parse(endDatetime)) ||
+      Date.parse(endDatetime) <= Date.parse(startDatetime)) {
+      return res.status(400).json({ error: 'Provide an event name and a valid end time after the start time.' })
+    }
+    const organization = await Organization.findById(req.params.organizationId)
+    organization.events.push({ name: name.trim(), description, startDatetime, endDatetime, place, type, private: Boolean(isPrivate), banner })
+    await organization.save()
+    return res.status(201).json(organization.events.at(-1))
+  } catch (error) {
+    if (error.name === 'ValidationError' || error.name === 'CastError') return res.status(400).json({ error: 'Event details are invalid.' })
+    return next(error)
+  }
+})
+
+router.patch('/:organizationId/events/:eventId', requireAuth, requireOrganizationAdmin, async (req, res, next) => {
+  try {
+    const fields = Object.keys(req.body || {})
+    if (!fields.length || fields.some((field) => !['name', 'description', 'startDatetime', 'endDatetime', 'place', 'type', 'private', 'banner'].includes(field))) {
+      return res.status(400).json({ error: 'Provide valid event fields to update.' })
+    }
+    const organization = await Organization.findById(req.params.organizationId)
+    const event = organization.events.id(req.params.eventId)
+    if (!event) return res.status(404).json({ error: 'Event not found.' })
+    for (const field of fields) event.set(field, req.body[field])
+    if (event.endDatetime <= event.startDatetime) return res.status(400).json({ error: 'Event end time must be after its start time.' })
+    await organization.save()
+    return res.status(200).json(event)
+  } catch (error) {
+    if (error.name === 'ValidationError' || error.name === 'CastError') return res.status(400).json({ error: 'Event details are invalid.' })
+    return next(error)
+  }
+})
+
+router.delete('/:organizationId/events/:eventId', requireAuth, requireOrganizationAdmin, async (req, res, next) => {
+  try {
+    const organization = await Organization.findById(req.params.organizationId)
+    const event = organization.events.id(req.params.eventId)
+    if (!event) return res.status(404).json({ error: 'Event not found.' })
+    event.deleteOne()
+    await organization.save()
+    return res.status(204).end()
+  } catch (error) { return next(error) }
 })
 
 router.post('/', requireAuth, requireAppAdmin, async (req, res, next) => {
@@ -99,6 +171,12 @@ router.patch('/:organizationId', requireAuth, requireOrganizationAdmin, async (r
     }
     if (fields.some((field) => !editableFields.has(field))) {
       return res.status(400).json({ error: 'One or more organization fields cannot be updated.' })
+    }
+    if (Object.hasOwn(updates, 'profile') && updates.profile && (typeof updates.profile !== 'string' || !/^https?:\/\//i.test(updates.profile))) {
+      return res.status(400).json({ error: 'Organization website must start with http:// or https://.' })
+    }
+    if (Object.hasOwn(updates, 'membershipFee') && (!Number.isFinite(updates.membershipFee) || updates.membershipFee < 0)) {
+      return res.status(400).json({ error: 'Membership dues must be a non-negative number.' })
     }
 
     const organization = await Organization.findById(req.params.organizationId)

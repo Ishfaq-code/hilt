@@ -9,6 +9,15 @@ const requireOrganizationAdmin = require('../middleware/requireOrganizationAdmin
 const router = express.Router()
 const editableFields = new Set(['organizationRole', 'isPaid'])
 
+router.get('/mine', requireAuth, async (req, res, next) => {
+  try {
+    const memberships = await Membership.find({ userId: req.user._id })
+      .populate('organizationId', 'name description category profile assets membershipFee events')
+      .sort({ createdAt: -1 })
+    return res.status(200).json(memberships)
+  } catch (error) { return next(error) }
+})
+
 router.get('/', requireAuth, requireAppAdmin, async (req, res, next) => {
   try {
     const memberships = await Membership.find({})
@@ -85,13 +94,14 @@ router.patch('/:membershipId', requireAuth, async (req, res, next) => {
     const membership = await Membership.findById(req.params.membershipId)
     if (!membership) return res.status(404).json({ error: 'Membership not found.' })
 
+    let actorMembership
     if (req.user.appRole !== 'admin') {
-      const isOfficer = await Membership.exists({
+      actorMembership = await Membership.findOne({
         userId: req.user._id,
         organizationId: membership.organizationId,
         organizationRole: { $in: ['officer', 'owner'] },
       })
-      if (!isOfficer) return res.status(403).json({ error: 'Organization officer access is required.' })
+      if (!actorMembership) return res.status(403).json({ error: 'Organization officer access is required.' })
     }
 
     const updates = req.body
@@ -102,6 +112,17 @@ router.patch('/:membershipId', requireAuth, async (req, res, next) => {
     if (!fields.length) return res.status(400).json({ error: 'At least one membership field must be provided.' })
     if (fields.some((field) => !editableFields.has(field))) {
       return res.status(400).json({ error: 'One or more membership fields cannot be updated.' })
+    }
+    if (Object.hasOwn(updates, 'organizationRole')) {
+      if (!['student', 'officer'].includes(updates.organizationRole)) {
+        return res.status(400).json({ error: 'Membership role must be student or officer.' })
+      }
+      if (req.user.appRole !== 'admin' && actorMembership.organizationRole !== 'owner') {
+        return res.status(403).json({ error: 'Only an organization owner can change member roles.' })
+      }
+      if (membership.organizationRole === 'owner') {
+        return res.status(400).json({ error: 'Transfer ownership before changing the owner membership.' })
+      }
     }
 
     for (const field of fields) membership.set(field, updates[field])
@@ -132,6 +153,9 @@ router.delete('/:membershipId', requireAuth, async (req, res, next) => {
         organizationRole: { $in: ['officer', 'owner'] },
       })
       if (!isOfficer) return res.status(403).json({ error: 'You cannot delete this membership.' })
+    }
+    if (membership.organizationRole === 'owner' && req.user.appRole !== 'admin') {
+      return res.status(403).json({ error: 'Transfer ownership before removing the organization owner.' })
     }
 
     await membership.deleteOne()

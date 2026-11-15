@@ -1,28 +1,15 @@
+import { Link } from 'react-router-dom'
 import type { Organization } from '../types'
+import { Cover, OrganizationAvatar, panelClass } from './wireframe/Design'
 
-type OrganizationCardProps = {
-  organization: Organization
-  index: number
-  onJoin: (organizationId: string) => void
-  joining: boolean
+export default function OrganizationCard({ organization }: { organization: Organization }) {
+  return <Link to={`/organizations/${organization._id}`} className={`${panelClass} group block overflow-hidden hover:border-muted`}>
+    <Cover organization={organization} />
+    <div className="relative px-4 pb-4">
+      <OrganizationAvatar organization={organization} className="-mt-6 size-12 text-xs" />
+      <div className="mt-3 flex items-center justify-between gap-2"><h3 className="font-semibold">{organization.name}</h3><span aria-hidden="true" className="text-muted transition-transform group-hover:translate-x-1">→</span></div>
+      <p className="mt-1 text-xs text-muted">{organization.category || 'Student organization'}</p>
+      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">{organization.description || 'Connect with other students around shared interests and ideas.'}</p>
+    </div>
+  </Link>
 }
-
-function OrganizationCard({ organization, index, onJoin, joining }: OrganizationCardProps) {
-  return (
-    <article className="organization-card">
-      <div className={`organization-symbol symbol-${index % 4}`} aria-hidden="true">
-        {organization.name.trim().charAt(0).toUpperCase()}
-      </div>
-      <p className="card-index">COMMUNITY · {(index + 1).toString().padStart(2, '0')}</p>
-      <h3>{organization.name}</h3>
-      <p className="organization-description">
-        {organization.description || 'A community bringing people together around shared interests and ideas.'}
-      </p>
-      <button className="join-button" onClick={() => onJoin(organization._id)} disabled={joining}>
-        {joining ? 'Joining…' : 'Join organization'} <span aria-hidden="true">↗</span>
-      </button>
-    </article>
-  )
-}
-
-export default OrganizationCard
