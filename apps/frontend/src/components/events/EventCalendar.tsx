@@ -8,6 +8,7 @@ import { ClubPreviewDialog } from '../organizations/ClubPreviewDialog'
 import { TagPicker } from '../organizations/TagPicker'
 import { inputClass, panelClass } from '../ui/styles'
 import { CalendarMonth } from './CalendarMonth'
+import { EventBanner } from './EventBanner'
 import { EventDialog } from './EventDialog'
 import { dateKey, entriesByDay, eventKinds } from './calendarEntries'
 import type { CalendarEntry } from './calendarEntries'
@@ -268,30 +269,38 @@ export function EventCalendar({
                       type="button"
                       aria-haspopup="dialog"
                       onClick={() => openEvent(entry)}
-                      className="block w-full px-4 py-3 text-left hover:bg-paper"
+                      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-paper"
                     >
-                      <span
-                        aria-hidden="true"
-                        className={
-                          'mr-2 inline-block size-2 rounded-full ' +
-                          eventKinds[entry.kind].dot
-                        }
-                      />
-                      <span className="text-sm font-semibold">
-                        {entry.event.name}
-                      </span>
-                      <span className="mt-1 block text-xs text-muted">
-                        {new Date(entry.event.startDatetime).toLocaleTimeString(
-                          [],
-                          { hour: 'numeric', minute: '2-digit' },
-                        )}{' '}
-                        · {entry.club.name}
-                      </span>
-                      {entry.event.private && (
-                        <span className="mt-1 block text-xs font-medium text-muted">
-                          Members only
+                      <span className="min-w-0 wrap-anywhere">
+                        <span
+                          aria-hidden="true"
+                          className={
+                            'mr-2 inline-block size-2 rounded-full ' +
+                            eventKinds[entry.kind].dot
+                          }
+                        />
+                        <span className="text-sm font-semibold">
+                          {entry.event.name}
                         </span>
-                      )}
+                        <span className="mt-1 block text-xs text-muted">
+                          {new Date(
+                            entry.event.startDatetime,
+                          ).toLocaleTimeString([], {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          })}{' '}
+                          · {entry.club.name}
+                        </span>
+                        {entry.event.private && (
+                          <span className="mt-1 block text-xs font-medium text-muted">
+                            Members only
+                          </span>
+                        )}
+                      </span>
+                      <EventBanner
+                        src={entry.event.banner}
+                        className="h-12 w-18 shrink-0 rounded-md"
+                      />
                     </button>
                   </li>
                 ))}

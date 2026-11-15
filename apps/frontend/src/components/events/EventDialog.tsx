@@ -13,6 +13,7 @@ import { ReportDialog } from '../reports/ReportDialog'
 import { Dialog } from '../ui/Dialog'
 import { Icon } from '../ui/Icon'
 import { buttonClass, secondaryClass, textActionClass } from '../ui/styles'
+import { EventBanner } from './EventBanner'
 import { RsvpButton } from './RsvpButton'
 import { QrScanner } from './ScannerDialog'
 
@@ -167,13 +168,11 @@ export function EventDialog({
   return (
     <Dialog title={event.name} onClose={onClose}>
       <div className="space-y-5">
-        {event.banner && (
-          <img
-            src={event.banner}
-            alt=""
-            className="aspect-[3/1] w-full rounded-lg object-cover"
-          />
-        )}
+        <EventBanner
+          src={event.banner}
+          loading="eager"
+          className="aspect-[3/1] w-full rounded-lg"
+        />
         <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">

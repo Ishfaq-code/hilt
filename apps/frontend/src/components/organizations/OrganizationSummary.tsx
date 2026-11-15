@@ -1,5 +1,6 @@
 import type { Organization } from '../../types'
 import type { ManagedEvent } from '../../types/management'
+import { EventBanner } from '../events/EventBanner'
 import { EventPreviewButton } from '../events/EventPreviewButton'
 import { Icon } from '../ui/Icon'
 import { panelClass } from '../ui/styles'
@@ -22,7 +23,11 @@ export function OrganizationSummary({
       <section>
         <h2 className="mb-3 text-xl font-semibold">Next up</h2>
         {upcoming ? (
-          <div className={panelClass}>
+          <div className={panelClass + ' overflow-hidden'}>
+            <EventBanner
+              src={upcoming.banner}
+              className="aspect-[3/1] w-full"
+            />
             <div className="p-4">
               <p className="mb-1 text-sm font-semibold text-accent">
                 {new Date(upcoming.startDatetime).toLocaleDateString(

@@ -1,6 +1,7 @@
 import type { Organization } from '../../types'
 import type { ManagedEvent } from '../../types/management'
 import { Icon } from '../ui/Icon'
+import { EventBanner } from './EventBanner'
 import { EventPreviewButton } from './EventPreviewButton'
 
 export function OrganizationEventList({
@@ -19,14 +20,14 @@ export function OrganizationEventList({
               key={event._id}
               className="flex flex-wrap items-start justify-between gap-3 py-4"
             >
-              <div className="flex gap-3">
+              <div className="flex min-w-0 flex-1 gap-3">
                 <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-soft text-sm font-semibold text-accent">
                   {new Date(event.startDatetime).toLocaleDateString(undefined, {
                     month: 'short',
                     day: 'numeric',
                   })}
                 </span>
-                <div>
+                <div className="min-w-0 wrap-anywhere">
                   <h2 className="font-semibold">
                     <EventPreviewButton
                       club={club}
@@ -54,10 +55,18 @@ export function OrganizationEventList({
                   )}
                 </div>
               </div>
-              {event.private && (
-                <span className="rounded bg-paper px-2 py-1 text-xs text-muted">
-                  Members only
-                </span>
+              {(event.banner || event.private) && (
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <EventBanner
+                    src={event.banner}
+                    className="h-12 w-18 rounded-md sm:h-18 sm:w-28"
+                  />
+                  {event.private && (
+                    <span className="rounded bg-paper px-2 py-1 text-xs text-muted">
+                      Members only
+                    </span>
+                  )}
+                </div>
               )}
             </li>
           ))}
