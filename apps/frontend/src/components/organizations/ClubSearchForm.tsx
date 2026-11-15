@@ -1,8 +1,10 @@
+import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { buttonClass, inputClass } from '../ui/styles'
+import { TagPicker } from './TagPicker'
 
-type Filters = { categories: string[]; category: string; sort: string }
+type Filters = { tags: string[]; selected: string[]; sort: string }
 
 export function ClubSearchForm({
   query = '',
@@ -12,22 +14,30 @@ export function ClubSearchForm({
   filters?: Filters
 }) {
   const navigate = useNavigate()
+  const form = useRef<HTMLFormElement>(null)
+
+  function search(tags: string[]) {
+    if (!form.current) return
+    const data = new FormData(form.current)
+    const params = new URLSearchParams()
+    for (const key of ['q', 'sort']) {
+      const value = String(data.get(key) ?? '').trim()
+      if (value) params.set(key, value)
+    }
+    for (const tag of tags) params.append('tag', tag)
+    navigate(params.size ? '/search?' + params : '/search')
+  }
 
   return (
     <form
       role="search"
       aria-label="Club search"
       action="/search"
+      ref={form}
       className="mt-5"
       onSubmit={(event) => {
         event.preventDefault()
-        const data = new FormData(event.currentTarget)
-        const params = new URLSearchParams()
-        for (const key of ['q', 'category', 'sort']) {
-          const value = String(data.get(key) ?? '').trim()
-          if (value) params.set(key, value)
-        }
-        navigate(params.size ? '/search?' + params : '/search')
+        search(filters?.selected ?? [])
       }}
     >
       <div className="flex max-w-2xl gap-2">
@@ -49,19 +59,12 @@ export function ClubSearchForm({
         </button>
       </div>
       {filters && (
-        <div className="mt-3 grid max-w-2xl grid-cols-2 gap-2 sm:flex">
-          <select
-            name="category"
-            aria-label="Category"
-            defaultValue={filters.category}
-            className={inputClass + ' sm:w-44'}
-            onChange={(event) => event.currentTarget.form?.requestSubmit()}
-          >
-            <option value="">All categories</option>
-            {filters.categories.map((category) => (
-              <option key={category}>{category}</option>
-            ))}
-          </select>
+        <div className="mt-3 grid max-w-2xl grid-cols-2 gap-2 sm:grid-cols-[repeat(2,11rem)]">
+          <TagPicker
+            options={filters.tags}
+            selected={filters.selected}
+            onChange={search}
+          />
           <select
             name="sort"
             aria-label="Sort clubs"

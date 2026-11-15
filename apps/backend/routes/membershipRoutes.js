@@ -11,6 +11,7 @@ const {
   removeMembership,
 } = require('../services/clubAccess')
 const { permissions, permissionsFor } = require('../services/clubRoles')
+const { withTags } = require('../services/clubTags')
 
 const router = express.Router()
 
@@ -23,7 +24,7 @@ router.get('/mine', requireAuth, async (req, res) => {
   const memberships = await Membership.find({ userId: req.user._id })
     .populate(
       'organizationId',
-      'name description category profile assets membershipFee events',
+      'name description tags category profile assets membershipFee events',
     )
     .sort({ createdAt: -1 })
   const items = await Promise.all(
@@ -31,7 +32,7 @@ router.get('/mine', requireAuth, async (req, res) => {
       .filter((member) => member.organizationId)
       .map(async (member) => {
         const data = publicMembership(member)
-        const club = data.organizationId
+        const club = withTags(data.organizationId)
         const access = await accessFor(club._id)
         const roles = access.roles.filter((role) =>
           role.memberIds.some((id) => id.equals(member._id)),
@@ -40,6 +41,7 @@ router.get('/mine', requireAuth, async (req, res) => {
 
         return {
           ...data,
+          organizationId: club,
           roles: roles.map(({ _id, name }) => ({ _id, name })),
           permissions:
             req.user.appRole === 'admin'

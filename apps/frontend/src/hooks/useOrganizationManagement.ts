@@ -96,7 +96,7 @@ export function useOrganizationManagement(organizationId: string) {
         body: JSON.stringify({
           name: form.get('name'),
           description: form.get('description'),
-          category: form.get('category'),
+          tags: form.getAll('tags'),
           profile: form.get('profile'),
           membershipFee: Number(form.get('membershipFee')),
           assets: [...preservedAssets, ...updatedAssets],

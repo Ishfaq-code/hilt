@@ -4,6 +4,7 @@ const Application = require('../models/Application')
 const Organization = require('../models/Organization')
 const { createClub } = require('../services/clubAccess')
 const { parseApplicationRoles } = require('../services/clubRoles')
+const { parseTags, tagsFor } = require('../services/clubTags')
 const s3Service = require('../services/s3Service')
 const requireAppAdmin = require('../middleware/requireAppAdmin')
 const requireAuth = require('../middleware/requireAuth')
@@ -13,7 +14,7 @@ const router = express.Router()
 const applicationFields = new Set([
   'organizationName',
   'organizationDescription',
-  'category',
+  'tags',
   'contactEmail',
   'link',
   'roleSetup',
@@ -156,6 +157,12 @@ router.post('/', requireAuth, handleDocumentUpload, async (req, res, next) => {
   }
   roleSetup = parseApplicationRoles(roleSetup)
 
+  let tags = Object.hasOwn(body, 'tags') ? body.tags : []
+  if (typeof tags === 'string' && req.is('multipart/form-data')) tags = [tags]
+  tags = parseTags(tags)
+  if (!tags)
+    return res.status(400).json({ error: 'Tags must be a list of names.' })
+
   let uploadedDocument
   try {
     if (req.file) {
@@ -169,6 +176,7 @@ router.post('/', requireAuth, handleDocumentUpload, async (req, res, next) => {
     const application = await Application.create({
       ...body,
       roleSetup,
+      tags,
       userId: req.user._id,
       additionalDocuments: uploadedDocument
         ? [{ name: req.file.originalname, link: uploadedDocument.url }]
@@ -228,6 +236,11 @@ router.patch(
     }
     if (Object.hasOwn(updates, 'roleSetup'))
       updates.roleSetup = parseApplicationRoles(updates.roleSetup)
+    if (Object.hasOwn(updates, 'tags')) {
+      updates.tags = parseTags(updates.tags)
+      if (!updates.tags)
+        return res.status(400).json({ error: 'Tags must be a list of names.' })
+    }
     if (
       Object.hasOwn(updates, 'status') &&
       !['approved', 'denied'].includes(updates.status)
@@ -276,7 +289,7 @@ router.patch(
           const organization = new Organization({
             name: claimed.organizationName,
             description: claimed.organizationDescription,
-            category: claimed.category,
+            tags: tagsFor(claimed),
             profile: claimed.link,
           })
           await createClub(organization, claimed.userId, roleSetup)

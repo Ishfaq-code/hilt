@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const { serializeTags } = require('../services/clubTags')
 
 const assetSchema = new mongoose.Schema(
   {
@@ -73,7 +74,8 @@ const organizationSchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
-    category: { type: String, default: 'General', trim: true },
+    category: { type: String, trim: true },
+    tags: { type: [String], default: undefined },
     profile: { type: String, default: null, trim: true },
     assets: {
       type: [assetSchema],
@@ -90,7 +92,7 @@ const organizationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
+    toJSON: { virtuals: true, transform: serializeTags },
     toObject: { virtuals: true },
   },
 )

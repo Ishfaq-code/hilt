@@ -151,7 +151,8 @@ export function useAdministration() {
         .includes(query.trim().toLowerCase()),
   )
   const matchingOrganizations = organizations.filter((organization) =>
-    `${organization.name} ${organization.description || ''} ${organization.category || ''}`
+    [organization.name, organization.description, ...organization.tags]
+      .join(' ')
       .toLowerCase()
       .includes(query.trim().toLowerCase()),
   )

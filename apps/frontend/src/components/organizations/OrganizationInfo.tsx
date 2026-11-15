@@ -1,5 +1,8 @@
+import { useState } from 'react'
+import { clubTagOptions } from '../../lib/clubTags'
 import type { Organization } from '../../types'
 import { buttonClass, inputClass, panelClass } from '../ui/styles'
+import { TagPicker } from './TagPicker'
 
 import type { OrganizationManagement } from '../../hooks/useOrganizationManagement'
 
@@ -12,6 +15,8 @@ export function OrganizationInfo({
   saveOrganization,
   saving,
 }: Props) {
+  const [tags, setTags] = useState(organization.tags)
+
   return (
     <section>
       <h1 className="mb-5 text-3xl font-semibold tracking-tight">Info</h1>
@@ -19,37 +24,22 @@ export function OrganizationInfo({
         className={`${panelClass} space-y-4 p-5`}
         onSubmit={(event) => void saveOrganization(event)}
       >
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_12rem]">
-          <label className="block text-sm font-medium">
-            Name
-            <input
-              name="name"
-              className={`${inputClass} mt-2`}
-              defaultValue={organization.name}
-              required
-            />
-          </label>
-          <label className="block text-sm font-medium">
-            Category
-            <select
-              name="category"
-              className={`${inputClass} mt-2`}
-              defaultValue={organization.category || 'General'}
-            >
-              {[
-                'Technology',
-                'Outdoors',
-                'Arts',
-                'Culture',
-                'Academic',
-                'Community',
-                'General',
-              ].map((category) => (
-                <option key={category}>{category}</option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <label className="block text-sm font-medium">
+          Name
+          <input
+            name="name"
+            className={`${inputClass} mt-2`}
+            defaultValue={organization.name}
+            required
+          />
+        </label>
+        <TagPicker
+          options={clubTagOptions}
+          selected={tags}
+          onChange={setTags}
+          name="tags"
+          inline
+        />
         <label className="block text-sm font-medium">
           Description
           <textarea

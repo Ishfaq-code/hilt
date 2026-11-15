@@ -4,11 +4,12 @@ import { ClubSearchForm } from '../components/organizations/ClubSearchForm'
 import { OrganizationRow } from '../components/organizations/OrganizationRow'
 import { panelClass } from '../components/ui/styles'
 import { useClubDirectory } from '../hooks/useClubDirectory'
+import { hasAnyTag } from '../lib/clubTags'
 
-const categories = [
-  { category: 'Outdoors', title: 'Crave the outdoors?' },
-  { category: 'Technology', title: 'Techies' },
-  { category: 'Arts', title: 'For the artists' },
+const sections = [
+  { tag: 'Outdoors', title: 'Crave the outdoors?' },
+  { tag: 'Technology', title: 'Techies' },
+  { tag: 'Arts', title: 'For the artists' },
 ]
 
 export default function HomePage() {
@@ -36,13 +37,11 @@ export default function HomePage() {
       {!loading && !error && (
         <>
           <OrganizationRow title="Popular" organizations={clubs} />
-          {categories.map(({ category, title }) => {
-            const matches = clubs.filter(
-              (club) => club.category?.toLowerCase() === category.toLowerCase(),
-            )
+          {sections.map(({ tag, title }) => {
+            const matches = clubs.filter((club) => hasAnyTag(club.tags, [tag]))
             return matches.length ? (
               <OrganizationRow
-                key={category}
+                key={tag}
                 title={title}
                 organizations={matches}
               />

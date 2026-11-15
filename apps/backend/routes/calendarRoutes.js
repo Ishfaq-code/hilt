@@ -3,6 +3,7 @@ const Membership = require('../models/Membership')
 const Rsvp = require('../models/EventRsvp')
 const Organization = require('../models/Organization')
 const optionalAuth = require('../middleware/optionalAuth')
+const { tagsFor } = require('../services/clubTags')
 
 const router = express.Router()
 const maxRange = 32 * 24 * 60 * 60 * 1000
@@ -58,6 +59,7 @@ router.get('/', optionalAuth, async (req, res) => {
     {
       $project: {
         name: 1,
+        tags: 1,
         category: 1,
         events: {
           $filter: {
@@ -76,7 +78,9 @@ router.get('/', optionalAuth, async (req, res) => {
   ])
 
   const entries = []
-  for (const { _id, name, category, events: clubEvents } of events) {
+  for (const organization of events) {
+    const { _id, name, events: clubEvents } = organization
+    const club = { _id, name, tags: tagsFor(organization) }
     const member = joined.has(String(_id))
     for (const event of clubEvents) {
       if (event.status === 'draft' || (event.private && !member)) continue
@@ -87,7 +91,7 @@ router.get('/', optionalAuth, async (req, res) => {
       if (scope === 'mine' && !member && !rsvped) continue
 
       entries.push({
-        club: { _id, name, category },
+        club,
         event,
         kind: rsvped ? 'rsvp' : member ? 'joined' : 'other',
       })

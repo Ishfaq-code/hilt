@@ -12,7 +12,7 @@ export function OrganizationAvatar({
   const logo = organization.assets?.find((asset) =>
     /logo|icon/i.test(asset.type),
   )
-  const theme = themeFor(organization.category)
+  const theme = themeFor(organization.tags)
   const colors: Record<Theme, string> = {
     tech: 'bg-[#ece8db] text-[#59472d]',
     outdoors: 'bg-[#dfe8d9] text-[#344f39]',

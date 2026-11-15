@@ -4,7 +4,7 @@ export type Organization = {
   _id: string
   name: string
   description?: string
-  category?: string
+  tags: string[]
   profile?: string | null
   membershipFee?: number
   assets?: { _id?: string; type: string; link: string }[]
@@ -54,7 +54,7 @@ export type Application = {
   userId: AuthUser | string
   organizationName: string
   organizationDescription?: string | null
-  category?: string
+  tags: string[]
   roleSetup?: ApplicationRole[]
   contactEmail?: string | null
   link?: string | null

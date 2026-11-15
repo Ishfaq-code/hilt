@@ -80,9 +80,7 @@ export function OrganizationRow({
           ))}
         </ul>
       ) : (
-        <p className={`${panelClass} p-6 text-muted`}>
-          No organizations in this category yet.
-        </p>
+        <p className={`${panelClass} p-6 text-muted`}>No clubs to show.</p>
       )}
     </section>
   )

@@ -8,6 +8,7 @@ const requireAuth = require('../middleware/requireAuth')
 const requireClubPermission = require('../middleware/requireClubPermission')
 const ClubAccess = require('../models/ClubAccess')
 const { accessFor, createClub } = require('../services/clubAccess')
+const { parseTags, withTags } = require('../services/clubTags')
 const {
   parseApplicationRoles,
   permissionsFor,
@@ -19,7 +20,7 @@ const router = express.Router()
 const editableFields = new Set([
   'name',
   'description',
-  'category',
+  'tags',
   'profile',
   'assets',
   'membershipFee',
@@ -29,9 +30,9 @@ router.get('/', async (req, res, next) => {
   try {
     const organizations = await Organization.find(
       {},
-      'name description category profile assets membershipFee',
+      'name description tags category profile assets membershipFee',
     ).lean()
-    return res.status(200).json(organizations)
+    return res.status(200).json(organizations.map(withTags))
   } catch (error) {
     return next(error)
   }
@@ -48,7 +49,7 @@ router.get('/:organizationId', optionalAuth, async (req, res, next) => {
       return res.status(404).json({ error: 'Organization not found.' })
     }
 
-    const result = organization.toObject()
+    const result = withTags(organization.toObject())
     const hasMembership =
       req.user &&
       (req.user.appRole === 'admin' ||
@@ -235,9 +236,15 @@ router.post('/', requireAuth, requireAppAdmin, async (req, res, next) => {
         .status(400)
         .json({ error: 'One or more club fields cannot be set.' })
     }
-    const organization = new Organization(
-      Object.fromEntries(fields.map((field) => [field, body[field]])),
+    const details = Object.fromEntries(
+      fields.map((field) => [field, body[field]]),
     )
+    if (Object.hasOwn(details, 'tags')) {
+      details.tags = parseTags(details.tags)
+      if (!details.tags)
+        return res.status(400).json({ error: 'Tags must be a list of names.' })
+    }
+    const organization = new Organization(details)
     await createClub(
       organization,
       initialUserId,
@@ -278,17 +285,22 @@ router.patch(
           .status(400)
           .json({ error: 'One or more organization fields cannot be updated.' })
       }
+      if (Object.hasOwn(updates, 'tags')) {
+        updates.tags = parseTags(updates.tags)
+        if (!updates.tags)
+          return res
+            .status(400)
+            .json({ error: 'Tags must be a list of names.' })
+      }
       if (
         Object.hasOwn(updates, 'profile') &&
         updates.profile &&
         (typeof updates.profile !== 'string' ||
           !/^https?:\/\//i.test(updates.profile))
       ) {
-        return res
-          .status(400)
-          .json({
-            error: 'Organization website must start with http:// or https://.',
-          })
+        return res.status(400).json({
+          error: 'Organization website must start with http:// or https://.',
+        })
       }
       if (
         Object.hasOwn(updates, 'membershipFee') &&

@@ -83,9 +83,11 @@ export function ApplicationReviews({
             </div>
             <div className="border-t border-line pt-4">
               <h3 className="font-semibold">Organization details</h3>
-              <p className="mt-2 text-sm text-muted">
-                {selected.category || 'General'}
-              </p>
+              {selected.tags.length > 0 && (
+                <p className="mt-2 text-sm text-muted">
+                  {selected.tags.join(' · ')}
+                </p>
+              )}
               {selected.contactEmail && (
                 <a
                   className="mt-1 block text-sm text-accent"

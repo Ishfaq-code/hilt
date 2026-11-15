@@ -1,5 +1,6 @@
 const express = require('express')
 const Application = require('../models/Application')
+const { withTags } = require('../services/clubTags')
 const Membership = require('../models/Membership')
 const Organization = require('../models/Organization')
 const User = require('../models/User')
@@ -25,13 +26,16 @@ router.get('/statistics', async (req, res, next) => {
 
 router.get('/organizations', async (req, res, next) => {
   try {
-    const organizations = await Organization.find({}, 'name description category profile assets membershipFee events createdAt').lean()
+    const organizations = await Organization.find(
+      {},
+      'name description tags category profile assets membershipFee events createdAt',
+    ).lean()
     const counts = await Membership.aggregate([
       { $group: { _id: '$organizationId', members: { $sum: 1 } } },
     ])
     const memberCounts = new Map(counts.map((item) => [String(item._id), item.members]))
     return res.status(200).json(organizations.map((organization) => ({
-      ...organization,
+      ...withTags(organization),
       memberCount: memberCounts.get(String(organization._id)) || 0,
     })))
   } catch (error) { return next(error) }

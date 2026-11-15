@@ -6,7 +6,9 @@ import type { ApplicationRole } from '../../types/clubRoles'
 import { RoleFields } from '../roles/RoleFields'
 import { RoleSetupSummary } from '../roles/RoleSetupSummary'
 import { api } from '../../lib/api'
+import { clubTagOptions } from '../../lib/clubTags'
 import type { Application } from '../../types'
+import { TagPicker } from '../organizations/TagPicker'
 import {
   buttonClass,
   inputClass,
@@ -28,7 +30,7 @@ const initialRole: RoleEntry = {
 type Details = {
   organizationName: string
   organizationDescription: string
-  category: string
+  tags: string[]
   contactEmail: string
   link: string
 }
@@ -36,7 +38,7 @@ type Details = {
 const emptyDetails: Details = {
   organizationName: '',
   organizationDescription: '',
-  category: '',
+  tags: [],
   contactEmail: '',
   link: '',
 }
@@ -60,6 +62,10 @@ export function NewApplication({
 
   async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (step === 0 && !details.tags.length) {
+      setError('Choose at least one tag.')
+      return
+    }
     if (step === 2) {
       const names = roles.map((role) => role.name.trim().toLowerCase())
       const granted = roles
@@ -148,23 +154,12 @@ export function NewApplication({
                 }
               />
             </label>
-            <label className="block text-sm font-medium">
-              Category
-              <select
-                className={`${inputClass} mt-2`}
-                required
-                value={details.category}
-                onChange={(event) => set('category', event.target.value)}
-              >
-                <option value="">Choose a category</option>
-                <option>Technology</option>
-                <option>Outdoors</option>
-                <option>Arts</option>
-                <option>Culture</option>
-                <option>Academic</option>
-                <option>Other</option>
-              </select>
-            </label>
+            <TagPicker
+              options={clubTagOptions}
+              selected={details.tags}
+              onChange={(tags) => set('tags', tags)}
+              inline
+            />
             <label className="block text-sm font-medium">
               About the club
               <textarea
@@ -286,7 +281,7 @@ export function NewApplication({
             <p className="text-lg font-semibold">{details.organizationName}</p>
             <div className={`${panelClass} space-y-3 p-5`}>
               <p className="text-xs font-semibold text-muted">
-                {details.category}
+                {details.tags.join(' · ')}
               </p>
               <p className="whitespace-pre-wrap text-sm leading-relaxed">
                 {details.organizationDescription}

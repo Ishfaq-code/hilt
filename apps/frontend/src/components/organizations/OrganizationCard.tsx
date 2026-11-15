@@ -33,9 +33,11 @@ export default function OrganizationCard({
             →
           </span>
         </div>
-        <p className="mt-1 text-xs text-muted">
-          {organization.category || 'Student club'}
-        </p>
+        {organization.tags.length > 0 && (
+          <p className="mt-1 text-xs text-muted">
+            {organization.tags.join(' · ')}
+          </p>
+        )}
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">
           {organization.description ||
             'Connect with other students around shared interests and ideas.'}

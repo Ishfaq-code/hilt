@@ -27,7 +27,7 @@ export function Cover({
         className={`block w-full object-cover ${large ? 'h-40 sm:h-48' : 'h-28'}`}
       />
     )
-  const theme = themeFor(organization.category)
+  const theme = themeFor(organization.tags)
   const [background, foreground] = coverColors[theme]
 
   return (

@@ -28,9 +28,11 @@ export function JoinedOrganizationDetails({ selected, tab, setTab }: Props) {
         />
         <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="mb-1 text-sm font-semibold text-accent">
-              {selected.category || 'Student organization'}
-            </p>
+            {selected.tags.length > 0 && (
+              <p className="mb-1 text-sm font-semibold text-accent">
+                {selected.tags.join(' · ')}
+              </p>
+            )}
             <h2 className="text-3xl font-semibold tracking-tight">
               {selected.name}
             </h2>

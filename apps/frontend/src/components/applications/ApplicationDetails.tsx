@@ -46,9 +46,11 @@ export function ApplicationDetails({
         </div>
         <div className="border-t border-line pt-4">
           <h3 className="font-semibold">Application details</h3>
-          <p className="mt-2 text-sm text-muted">
-            {application.category || 'General'}
-          </p>
+          {application.tags.length > 0 && (
+            <p className="mt-2 text-sm text-muted">
+              {application.tags.join(' · ')}
+            </p>
+          )}
           {application.contactEmail && (
             <a
               className="mt-1 block text-sm text-accent hover:underline"

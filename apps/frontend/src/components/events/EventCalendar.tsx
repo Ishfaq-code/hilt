@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useAuthToken } from '../../hooks/useAuthToken'
 import { api } from '../../lib/api'
+import { hasAnyTag } from '../../lib/clubTags'
 import { rsvpChangedEvent } from '../../lib/events'
 import type { Organization } from '../../types'
+import { TagPicker } from '../organizations/TagPicker'
 import { inputClass, panelClass } from '../ui/styles'
 import { CalendarMonth } from './CalendarMonth'
 import { EventDialog } from './EventDialog'
@@ -17,7 +19,7 @@ type MonthResult = {
   error?: string
 }
 
-const emptyFilters = { text: '', subject: '', type: '', club: '' }
+const emptyFilters = { text: '', tags: [] as string[], type: '', club: '' }
 const dayLabel = { weekday: 'long', month: 'short', day: 'numeric' } as const
 
 function options(values: (string | undefined)[]) {
@@ -95,7 +97,7 @@ export function EventCalendar({
       .join(' ')
       .toLowerCase()
     return (
-      (!filters.subject || club.category === filters.subject) &&
+      hasAnyTag(club.tags, filters.tags) &&
       (!filters.type || event.type === filters.type) &&
       (!filters.club || club._id === filters.club) &&
       searchable.includes(text)
@@ -116,7 +118,10 @@ export function EventCalendar({
     setSelected('')
   }
 
-  function updateFilter(key: keyof typeof emptyFilters, value: string) {
+  function updateFilter<Key extends keyof typeof emptyFilters>(
+    key: Key,
+    value: (typeof emptyFilters)[Key],
+  ) {
     setFilters((previous) => ({ ...previous, [key]: value }))
   }
 
@@ -126,12 +131,9 @@ export function EventCalendar({
   }
 
   const hasFilters = Boolean(
-    text || filters.subject || filters.type || filters.club || onlyRsvps,
+    text || filters.tags.length || filters.type || filters.club || onlyRsvps,
   )
-  const subjects = options([
-    ...clubs.map((club) => club.category),
-    filters.subject,
-  ])
+  const tags = clubs.flatMap((club) => club.tags)
   const types = options([
     ...entries.map(({ event }) => event.type),
     filters.type,
@@ -177,17 +179,11 @@ export function EventCalendar({
             value={filters.text}
             onChange={(change) => updateFilter('text', change.target.value)}
           />
-          <select
-            aria-label="Subject"
-            className={inputClass}
-            value={filters.subject}
-            onChange={(change) => updateFilter('subject', change.target.value)}
-          >
-            <option value="">All subjects</option>
-            {subjects.map((name) => (
-              <option key={name}>{name}</option>
-            ))}
-          </select>
+          <TagPicker
+            options={tags}
+            selected={filters.tags}
+            onChange={(tags) => updateFilter('tags', tags)}
+          />
           <select
             aria-label="Event type"
             className={inputClass}

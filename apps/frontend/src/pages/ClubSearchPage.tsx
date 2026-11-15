@@ -5,29 +5,25 @@ import OrganizationCard from '../components/organizations/OrganizationCard'
 import { Icon } from '../components/ui/Icon'
 import { panelClass } from '../components/ui/styles'
 import { useClubDirectory } from '../hooks/useClubDirectory'
+import { hasAnyTag } from '../lib/clubTags'
 
 export default function ClubSearchPage() {
   const [params] = useSearchParams()
   const { clubs, loading, error } = useClubDirectory()
   const query = params.get('q')?.trim() ?? ''
-  const category = params.get('category') ?? ''
+  const selected = params.getAll('tag')
+  const previousCategory = params.get('category')
+  if (!selected.length && previousCategory) selected.push(previousCategory)
   const sort = params.get('sort') === 'name' ? 'name' : ''
-  const categories = [
-    ...new Set(
-      clubs
-        .map((club) => club.category)
-        .filter((value): value is string => Boolean(value)),
-    ),
-  ].sort()
-  if (category && !categories.includes(category)) categories.push(category)
+  const tags = clubs.flatMap((club) => club.tags)
 
   const terms = query.toLowerCase().split(/\s+/)
   const results = clubs.filter((club) => {
-    const text = [club.name, club.description, club.category]
+    const text = [club.name, club.description, ...club.tags]
       .join(' ')
       .toLowerCase()
     return (
-      (!category || club.category === category) &&
+      hasAnyTag(club.tags, selected) &&
       terms.every((term) => text.includes(term))
     )
   })
@@ -51,9 +47,9 @@ export default function ClubSearchPage() {
       </Link>
       <h1 className="text-4xl font-semibold tracking-tight">Search results</h1>
       <ClubSearchForm
-        key={JSON.stringify([query, category, sort])}
+        key={JSON.stringify([query, sort])}
         query={query}
-        filters={{ categories, category, sort }}
+        filters={{ tags, selected, sort }}
       />
       {loading && (
         <p role="status" className="mt-6 text-sm text-muted">

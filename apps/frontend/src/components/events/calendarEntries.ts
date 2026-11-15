@@ -20,7 +20,7 @@ export const eventKinds = {
 } as const
 
 export type CalendarEntry = {
-  club: Pick<Organization, '_id' | 'name' | 'category'>
+  club: Pick<Organization, '_id' | 'name' | 'tags'>
   event: ManagedEvent
   kind: keyof typeof eventKinds
 }
