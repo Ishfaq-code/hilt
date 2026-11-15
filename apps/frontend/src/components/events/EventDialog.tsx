@@ -45,18 +45,15 @@ export function EventDialog({
   const hasStarted = now >= start.getTime()
   const canCheckIn =
     hasStarted && now < end.getTime() && event.attendance?.enabled
-  const sameDay = start.toDateString() === end.toDateString()
-  const time = {
+  const startDate = start.toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  })
+  const startTime = start.toLocaleTimeString(undefined, {
     hour: 'numeric',
     minute: '2-digit',
-    timeZoneName: 'short',
-  } as const
-  const date = {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  } as const
+  })
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 1000)
@@ -173,37 +170,41 @@ export function EventDialog({
             className="aspect-[3/1] w-full rounded-lg object-cover"
           />
         )}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-accent">{club.name}</p>
-            {event.private && (
-              <span className="rounded bg-paper px-2 py-0.5 text-xs font-semibold text-muted">
-                Members only
-              </span>
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-accent">{club.name}</p>
+              {event.private && (
+                <span className="rounded bg-paper px-2 py-0.5 text-xs font-semibold text-muted">
+                  Members only
+                </span>
+              )}
+            </div>
+            {!previewOnly && (
+              <button
+                type="button"
+                aria-label="Share event"
+                title="Share event"
+                className={secondaryClass + ' size-10 p-0!'}
+                onClick={() => void share()}
+              >
+                <Icon name="share" />
+              </button>
             )}
           </div>
-          {!previewOnly && (
-            <button
-              type="button"
-              aria-label="Share event"
-              title="Share event"
-              className={secondaryClass + ' size-10 p-0!'}
-              onClick={() => void share()}
-            >
-              <Icon name="share" />
-            </button>
+          {event.description && (
+            <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted">
+              {event.description}
+            </p>
           )}
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0 flex-1 basis-64 space-y-2 text-sm text-muted">
             <p className="flex items-start gap-2">
               <Icon name="calendar" />
-              <span>
-                {start.toLocaleDateString(undefined, date)} ·{' '}
-                {start.toLocaleTimeString(undefined, time)} –{' '}
-                {!sameDay && end.toLocaleDateString(undefined, date) + ' · '}
-                {end.toLocaleTimeString(undefined, time)}
-              </span>
+              <time dateTime={event.startDatetime}>
+                {startDate} @ {startTime}
+              </time>
             </p>
             {event.place && (
               <p className="flex items-start gap-2">
@@ -246,14 +247,6 @@ export function EventDialog({
             </div>
           )}
         </div>
-        {event.description && (
-          <div className="border-t border-line pt-4">
-            <h3 className="font-semibold">About the event</h3>
-            <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-muted">
-              {event.description}
-            </p>
-          </div>
-        )}
         {error && (
           <p role="alert" className="text-sm text-red-700">
             {error}
