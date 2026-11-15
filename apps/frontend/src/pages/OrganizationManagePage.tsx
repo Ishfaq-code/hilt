@@ -1,5 +1,7 @@
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useState } from 'react'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { Workspace } from '../components/layout/Workspace'
+import { ClubPreviewDialog } from '../components/organizations/ClubPreviewDialog'
 import { OrganizationEvents } from '../components/organizations/OrganizationEvents'
 import { OrganizationInfo } from '../components/organizations/OrganizationInfo'
 import { OrganizationMembers } from '../components/organizations/OrganizationMembers'
@@ -23,6 +25,7 @@ const tabs = [
 export default function OrganizationManagePage() {
   const { organizationId = '' } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
+  const [previewOpen, setPreviewOpen] = useState(false)
   const management = useOrganizationManagement(organizationId)
   const { organization, loading, error, permissions } = management
 
@@ -69,12 +72,14 @@ export default function OrganizationManagePage() {
       active={active?.label ?? ''}
       back={back}
       action={
-        <Link
-          to={'/organizations/' + organizationId}
-          className="text-sm text-muted hover:text-ink"
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          className="cursor-pointer text-sm text-muted hover:text-ink"
+          onClick={() => setPreviewOpen(true)}
         >
-          Preview club <span aria-hidden="true">→</span>
-        </Link>
+          Preview club
+        </button>
       }
     >
       {!active && (
@@ -127,6 +132,13 @@ export default function OrganizationManagePage() {
           </h1>
           <p className="text-sm text-muted">Under construction</p>
         </section>
+      )}
+      {previewOpen && (
+        <ClubPreviewDialog
+          clubId={organizationId}
+          initialClub={organization}
+          onClose={() => setPreviewOpen(false)}
+        />
       )}
     </Workspace>
   )

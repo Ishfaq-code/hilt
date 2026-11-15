@@ -21,13 +21,13 @@ export function ClubPreviewDialog({
   eventId,
   initialClub,
   onClose,
-  onCloseEvent,
+  onCloseEvent = onClose,
 }: {
   clubId: string
-  eventId: string | null
+  eventId?: string | null
   initialClub?: Organization
   onClose: () => void
-  onCloseEvent: () => void
+  onCloseEvent?: () => void
 }) {
   const navigate = useNavigate()
   const openLogin = useAuthDialog()
