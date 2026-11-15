@@ -38,9 +38,7 @@ export function EventDialog({
   const [now, setNow] = useState(Date.now)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [dialog, setDialog] = useState<'calendar' | 'report' | 'scan' | null>(
-    null,
-  )
+  const [dialog, setDialog] = useState<'report' | 'scan' | null>(null)
 
   const signedIn = Boolean(token)
   const endpoint = eventApi(club._id, event._id)
@@ -290,8 +288,7 @@ export function EventDialog({
             <button
               type="button"
               className={actionClass}
-              aria-haspopup="dialog"
-              onClick={() => setDialog('calendar')}
+              onClick={() => downloadEvent(event, url)}
             >
               Add to calendar
             </button>
@@ -306,17 +303,6 @@ export function EventDialog({
           </div>
         )}
       </div>
-      {dialog === 'calendar' && (
-        <Dialog title="Add to calendar" onClose={() => setDialog(null)}>
-          <button
-            type="button"
-            className={buttonClass}
-            onClick={() => downloadEvent(event, url)}
-          >
-            Download calendar file
-          </button>
-        </Dialog>
-      )}
       {dialog === 'report' && (
         <EventReportDialog
           endpoint={endpoint}
