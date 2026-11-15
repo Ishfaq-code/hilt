@@ -14,11 +14,10 @@ export function ClubReportButton({ clubId }: { clubId: string }) {
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
       >
-        Report club
+        Report
       </button>
       {open && (
         <ReportDialog
-          title="Report club"
           endpoint={'/api' + clubPath(clubId) + '/reports'}
           onClose={() => setOpen(false)}
         />

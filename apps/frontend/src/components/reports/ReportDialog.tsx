@@ -8,11 +8,9 @@ import { Dialog } from '../ui/Dialog'
 import { buttonClass, inputClass, secondaryClass } from '../ui/styles'
 
 export function ReportDialog({
-  title,
   endpoint,
   onClose,
 }: {
-  title: string
   endpoint: string
   onClose: () => void
 }) {
@@ -49,7 +47,7 @@ export function ReportDialog({
   }
 
   return (
-    <Dialog title={title} onClose={onClose} compact>
+    <Dialog title="Report" onClose={onClose} compact>
       {token ? (
         <form className="space-y-4" onSubmit={(event) => void submit(event)}>
           <label className="block text-sm font-medium">

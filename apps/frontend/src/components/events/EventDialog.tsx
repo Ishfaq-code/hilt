@@ -303,14 +303,13 @@ export function EventDialog({
               aria-haspopup="dialog"
               onClick={() => setDialog('report')}
             >
-              Report event
+              Report
             </button>
           </div>
         )}
       </div>
       {dialog === 'report' && (
         <ReportDialog
-          title="Report event"
           endpoint={endpoint + '/reports'}
           onClose={() => setDialog(null)}
         />
