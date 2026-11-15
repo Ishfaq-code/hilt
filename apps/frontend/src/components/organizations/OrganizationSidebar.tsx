@@ -29,7 +29,7 @@ export function OrganizationSidebar({
           type="button"
           aria-current={!hasSelected ? 'page' : undefined}
           onClick={onHome}
-          className={`mb-2 flex shrink-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm ${!hasSelected ? 'bg-soft font-semibold text-accent' : 'text-muted hover:bg-paper'}`}
+          className={`mb-2 flex shrink-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm md:w-full ${!hasSelected ? 'bg-soft font-semibold text-accent' : 'text-muted hover:bg-paper'}`}
         >
           <Icon name="home" size={18} />
           Home
