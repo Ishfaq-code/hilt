@@ -38,7 +38,7 @@ export function OrganizationInfo({
           selected={tags}
           onChange={setTags}
           name="tags"
-          inline
+          showLabel
         />
         <label className="block text-sm font-medium">
           Description

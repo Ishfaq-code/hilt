@@ -7,7 +7,6 @@ const paths = {
   camera: 'M3 7h5l2-3h4l2 3h5v13H3zm13 6a4 4 0 1 0-8 0 4 4 0 0 0 8 0Z',
   arrow: 'M5 12h14m-6-6 6 6-6 6',
   back: 'M19 12H5m6 6-6-6 6-6',
-  chevronDown: 'm6 9 6 6 6-6',
   home: 'M3 10.5 12 3l9 7.5M5 9v11h14V9m-10 11v-7h6v7',
   search: 'm21 21-4.4-4.4m2.4-5.6a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z',
   calendar: 'M7 3v4m10-4v4M4 10h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z',

@@ -59,7 +59,7 @@ export function ClubSearchForm({
         </button>
       </div>
       {filters && (
-        <div className="mt-3 grid max-w-2xl grid-cols-2 gap-2 sm:grid-cols-[repeat(2,11rem)]">
+        <div className="mt-3 grid max-w-2xl grid-cols-2 items-start gap-2 sm:grid-cols-[repeat(2,11rem)]">
           <TagPicker
             options={filters.tags}
             selected={filters.selected}

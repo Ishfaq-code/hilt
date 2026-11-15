@@ -158,7 +158,7 @@ export function NewApplication({
               options={clubTagOptions}
               selected={details.tags}
               onChange={(tags) => set('tags', tags)}
-              inline
+              showLabel
             />
             <label className="block text-sm font-medium">
               About the club

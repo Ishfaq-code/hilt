@@ -175,7 +175,7 @@ export function EventCalendar({
         )}
       </div>
       {discover && (
-        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_repeat(3,minmax(0,10rem))]">
+        <div className="mb-4 grid grid-cols-2 items-start gap-2 sm:grid-cols-[minmax(0,1fr)_repeat(3,minmax(0,10rem))]">
           <input
             type="search"
             aria-label="Search events"
