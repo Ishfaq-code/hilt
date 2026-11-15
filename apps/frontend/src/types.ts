@@ -16,7 +16,7 @@ export type Organization = {
     startDatetime: string
     endDatetime: string
     place?: string
-    type?: string
+    tags: string[]
     private?: boolean
     banner?: string | null
     attendance?: AttendanceSettings

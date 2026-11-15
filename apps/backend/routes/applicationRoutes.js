@@ -4,7 +4,7 @@ const Application = require('../models/Application')
 const Organization = require('../models/Organization')
 const { createClub } = require('../services/clubAccess')
 const { parseApplicationRoles } = require('../services/clubRoles')
-const { parseTags, tagsFor } = require('../services/clubTags')
+const { parseTags, tagsFor } = require('../services/tags')
 const s3Service = require('../services/s3Service')
 const requireAppAdmin = require('../middleware/requireAppAdmin')
 const requireAuth = require('../middleware/requireAuth')
@@ -289,7 +289,7 @@ router.patch(
           const organization = new Organization({
             name: claimed.organizationName,
             description: claimed.organizationDescription,
-            tags: tagsFor(claimed),
+            tags: tagsFor(claimed.tags, claimed.category),
             profile: claimed.link,
           })
           await createClub(organization, claimed.userId, roleSetup)

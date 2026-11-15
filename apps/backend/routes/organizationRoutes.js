@@ -9,7 +9,7 @@ const requireAuth = require('../middleware/requireAuth')
 const requireClubPermission = require('../middleware/requireClubPermission')
 const ClubAccess = require('../models/ClubAccess')
 const { accessFor, createClub } = require('../services/clubAccess')
-const { parseTags, withTags } = require('../services/clubTags')
+const { parseTags, withClubTags } = require('../services/tags')
 const {
   parseApplicationRoles,
   permissionsFor,
@@ -33,7 +33,7 @@ router.get('/', async (req, res, next) => {
       {},
       'name description tags category profile assets membershipFee',
     ).lean()
-    return res.status(200).json(organizations.map(withTags))
+    return res.status(200).json(organizations.map(withClubTags))
   } catch (error) {
     return next(error)
   }
@@ -50,7 +50,7 @@ router.get('/:organizationId', optionalAuth, async (req, res, next) => {
       return res.status(404).json({ error: 'Organization not found.' })
     }
 
-    const result = withTags(organization.toObject())
+    const result = withClubTags(organization.toObject())
     const hasMembership =
       req.user &&
       (req.user.appRole === 'admin' ||

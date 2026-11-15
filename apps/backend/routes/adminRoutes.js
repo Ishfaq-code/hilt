@@ -2,7 +2,7 @@ const express = require('express')
 const Application = require('../models/Application')
 const ClubReport = require('../models/ClubReport')
 const EventReport = require('../models/EventReport')
-const { withTags } = require('../services/clubTags')
+const { withClubTags, withEventTags } = require('../services/tags')
 const Membership = require('../models/Membership')
 const Organization = require('../models/Organization')
 const User = require('../models/User')
@@ -52,7 +52,8 @@ router.get('/organizations', async (req, res, next) => {
     ])
     const memberCounts = new Map(counts.map((item) => [String(item._id), item.members]))
     return res.status(200).json(organizations.map((organization) => ({
-      ...withTags(organization),
+      ...withClubTags(organization),
+      events: (organization.events ?? []).map(withEventTags),
       memberCount: memberCounts.get(String(organization._id)) || 0,
     })))
   } catch (error) { return next(error) }

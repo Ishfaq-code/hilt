@@ -1,17 +1,19 @@
+const { parseTags } = require('./tags')
+
 const fields = new Set([
   'name',
   'description',
   'startDatetime',
   'endDatetime',
   'place',
-  'type',
+  'tags',
   'private',
   'banner',
   'attendance',
   'status',
   'draftSchedule',
 ])
-const textFields = ['name', 'description', 'place', 'type', 'banner']
+const textFields = ['name', 'description', 'place', 'banner']
 const attendanceFields = new Set([
   'enabled',
   'self',
@@ -72,6 +74,10 @@ function eventDetails(body, current) {
   const next = {
     ...body,
     status: body.status ?? current?.status ?? 'published',
+  }
+  if (Object.hasOwn(body, 'tags')) {
+    next.tags = parseTags(body.tags)
+    if (!next.tags) invalid('Tags must be a list of names.')
   }
   if (!['draft', 'published'].includes(next.status))
     invalid('Choose a valid event status.')

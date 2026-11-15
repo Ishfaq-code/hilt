@@ -24,14 +24,13 @@ type MonthResult = {
   error?: string
 }
 
-const emptyFilters = { text: '', tags: [] as string[], type: '', club: '' }
-const dayLabel = { weekday: 'long', month: 'short', day: 'numeric' } as const
-
-function options(values: (string | undefined)[]) {
-  return [
-    ...new Set(values.filter((value): value is string => Boolean(value))),
-  ].sort()
+const emptyFilters = {
+  text: '',
+  clubTags: [] as string[],
+  eventTags: [] as string[],
+  club: '',
 }
+const dayLabel = { weekday: 'long', month: 'short', day: 'numeric' } as const
 
 export function EventCalendar({
   scope,
@@ -102,8 +101,8 @@ export function EventCalendar({
       .join(' ')
       .toLowerCase()
     return (
-      hasAnyTag(club.tags, filters.tags) &&
-      (!filters.type || event.type === filters.type) &&
+      hasAnyTag(club.tags, filters.clubTags) &&
+      hasAnyTag(event.tags, filters.eventTags) &&
       (!filters.club || club._id === filters.club) &&
       searchable.includes(text)
     )
@@ -136,13 +135,14 @@ export function EventCalendar({
   }
 
   const hasFilters = Boolean(
-    text || filters.tags.length || filters.type || filters.club || onlyRsvps,
+    text ||
+    filters.clubTags.length ||
+    filters.eventTags.length ||
+    filters.club ||
+    onlyRsvps,
   )
-  const tags = clubs.flatMap((club) => club.tags)
-  const types = options([
-    ...entries.map(({ event }) => event.type),
-    filters.type,
-  ])
+  const clubTags = clubs.flatMap((club) => club.tags)
+  const eventTags = entries.flatMap(({ event }) => event.tags)
 
   return (
     <section
@@ -185,21 +185,17 @@ export function EventCalendar({
             onChange={(change) => updateFilter('text', change.target.value)}
           />
           <TagPicker
-            options={tags}
-            selected={filters.tags}
-            onChange={(tags) => updateFilter('tags', tags)}
+            label="Club tags"
+            options={clubTags}
+            selected={filters.clubTags}
+            onChange={(tags) => updateFilter('clubTags', tags)}
           />
-          <select
-            aria-label="Event type"
-            className={inputClass}
-            value={filters.type}
-            onChange={(change) => updateFilter('type', change.target.value)}
-          >
-            <option value="">All event types</option>
-            {types.map((name) => (
-              <option key={name}>{name}</option>
-            ))}
-          </select>
+          <TagPicker
+            label="Event tags"
+            options={eventTags}
+            selected={filters.eventTags}
+            onChange={(tags) => updateFilter('eventTags', tags)}
+          />
           <select
             aria-label="Hosting club"
             className={inputClass + ' col-span-2 sm:col-span-1'}

@@ -2,7 +2,10 @@ import type { SubmitEvent } from 'react'
 import { useState } from 'react'
 import { api } from '../../lib/api'
 import type { EditableEvent } from '../../types/management'
+import { TagPicker } from '../organizations/TagPicker'
 import { buttonClass, inputClass, secondaryClass } from '../ui/styles'
+
+const eventTagOptions = ['Workshop', 'Social', 'Meeting', 'Outdoors']
 
 export function EventEditor({
   organizationId,
@@ -17,6 +20,7 @@ export function EventEditor({
 }) {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [tags, setTags] = useState(event?.tags ?? [])
   const [trackAttendance, setTrackAttendance] = useState(
     event?.attendance?.enabled ?? false,
   )
@@ -56,7 +60,7 @@ export function EventEditor({
             endDatetime: end.toISOString(),
           }),
       place: data.get('place'),
-      type: data.get('type'),
+      tags,
       private: data.get('visibility') === 'members',
       banner: data.get('banner') || null,
       attendance: {
@@ -157,20 +161,13 @@ export function EventEditor({
           placeholder="Building and room"
         />
       </label>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-medium">
-          Event type
-          <select
-            name="type"
-            className={`${inputClass} mt-2`}
-            defaultValue={event?.type || 'Workshop'}
-          >
-            <option>Workshop</option>
-            <option>Social</option>
-            <option>Meeting</option>
-            <option>Outdoors</option>
-          </select>
-        </label>
+      <div className="grid items-start gap-4 sm:grid-cols-2">
+        <TagPicker
+          options={[...eventTagOptions, ...(event?.tags ?? [])]}
+          selected={tags}
+          onChange={setTags}
+          showLabel
+        />
         <label className="block text-sm font-medium">
           Visibility
           <select

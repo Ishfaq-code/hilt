@@ -7,12 +7,14 @@ export function TagPicker({
   selected,
   onChange,
   name,
+  label = 'Tags',
   showLabel = false,
 }: {
   options: string[]
   selected: string[]
   onChange: (tags: string[]) => void
   name?: string
+  label?: string
   showLabel?: boolean
 }) {
   const id = useId()
@@ -52,7 +54,7 @@ export function TagPicker({
     >
       {showLabel && (
         <label htmlFor={id} className="mb-2 block text-sm font-medium">
-          Tags
+          {label}
         </label>
       )}
       <div
@@ -82,11 +84,13 @@ export function TagPicker({
           id={id}
           ref={input}
           type="text"
-          aria-label={showLabel ? undefined : 'Tags'}
+          aria-label={showLabel ? undefined : label}
           aria-autocomplete="list"
           aria-controls={term ? suggestionsId : undefined}
           autoComplete="off"
-          placeholder={selected.length ? 'Add tag' : 'Search tags'}
+          placeholder={
+            selected.length ? 'Add tag' : `Search ${label.toLowerCase()}`
+          }
           className="min-w-18 flex-1 bg-transparent placeholder:text-muted focus-visible:outline-none"
           value={query}
           onChange={(event) => setQuery(event.target.value)}

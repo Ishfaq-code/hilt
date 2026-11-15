@@ -11,17 +11,18 @@ function parseTags(value) {
   return [...tags.values()]
 }
 
-function tagsFor(record) {
-  return record.tags ?? (record.category ? [record.category] : [])
+function tagsFor(tags, legacyTag) {
+  return tags ?? (legacyTag ? [legacyTag] : [])
 }
 
-function withTags(record) {
+function withClubTags(record) {
   const { category, ...rest } = record
-  return { ...rest, tags: tagsFor(record) }
+  return { ...rest, tags: tagsFor(rest.tags, category) }
 }
 
-function serializeTags(_document, record) {
-  return withTags(record)
+function withEventTags(record) {
+  const { type, ...rest } = record
+  return { ...rest, tags: tagsFor(rest.tags, type) }
 }
 
-module.exports = { parseTags, tagsFor, withTags, serializeTags }
+module.exports = { parseTags, tagsFor, withClubTags, withEventTags }

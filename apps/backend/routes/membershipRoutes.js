@@ -11,7 +11,7 @@ const {
   removeMembership,
 } = require('../services/clubAccess')
 const { permissions, permissionsFor } = require('../services/clubRoles')
-const { withTags } = require('../services/clubTags')
+const { withClubTags } = require('../services/tags')
 
 const router = express.Router()
 
@@ -32,7 +32,7 @@ router.get('/mine', requireAuth, async (req, res) => {
       .filter((member) => member.organizationId)
       .map(async (member) => {
         const data = publicMembership(member)
-        const club = withTags(data.organizationId)
+        const club = withClubTags(data.organizationId)
         const access = await accessFor(club._id)
         const roles = access.roles.filter((role) =>
           role.memberIds.some((id) => id.equals(member._id)),

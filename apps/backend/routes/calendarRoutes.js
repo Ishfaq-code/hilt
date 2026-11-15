@@ -3,7 +3,7 @@ const Membership = require('../models/Membership')
 const Rsvp = require('../models/EventRsvp')
 const Organization = require('../models/Organization')
 const optionalAuth = require('../middleware/optionalAuth')
-const { tagsFor } = require('../services/clubTags')
+const { tagsFor, withEventTags } = require('../services/tags')
 
 const router = express.Router()
 const maxRange = 32 * 24 * 60 * 60 * 1000
@@ -80,7 +80,11 @@ router.get('/', optionalAuth, async (req, res) => {
   const entries = []
   for (const organization of events) {
     const { _id, name, events: clubEvents } = organization
-    const club = { _id, name, tags: tagsFor(organization) }
+    const club = {
+      _id,
+      name,
+      tags: tagsFor(organization.tags, organization.category),
+    }
     const member = joined.has(String(_id))
     for (const event of clubEvents) {
       if (event.status === 'draft' || (event.private && !member)) continue
@@ -92,7 +96,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
       entries.push({
         club,
-        event,
+        event: withEventTags(event),
         kind: rsvped ? 'rsvp' : member ? 'joined' : 'other',
       })
     }

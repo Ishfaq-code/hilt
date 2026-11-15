@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { serializeTags } = require('../services/clubTags')
+const { withClubTags } = require('../services/tags')
 
 const documentSchema = new mongoose.Schema(
   {
@@ -74,7 +74,10 @@ const applicationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true, transform: serializeTags },
+    toJSON: {
+      virtuals: true,
+      transform: (_document, application) => withClubTags(application),
+    },
     toObject: { virtuals: true },
   },
 )

@@ -78,6 +78,7 @@ test(
         },
         {
           name: 'Future event',
+          type: 'Workshop',
           startDatetime: now + 600_000,
           endDatetime: now + 1_200_000,
           attendance,
@@ -232,10 +233,15 @@ test(
         const draft = await call(path + '/events', {
           user: officer,
           method: 'POST',
-          body: { status: 'draft', draftSchedule: { startTime: '18:00' } },
+          body: {
+            status: 'draft',
+            draftSchedule: { startTime: '18:00' },
+            tags: ['Workshop', ' Social ', 'workshop'],
+          },
         })
         assert.equal(draft.status, 201)
         assert.equal(draft.data.draftSchedule.startTime, '18:00')
+        assert.deepEqual(draft.data.tags, ['Workshop', 'Social'])
         const route = path + '/events/' + draft.data._id
         assert.equal((await call(route, { user: officer })).status, 404)
         assert.ok(
@@ -271,7 +277,50 @@ test(
           },
         })
         assert.equal(published.status, 200)
-        assert.equal((await call(route)).data.event.name, 'Draft test event')
+        const { event } = (await call(route)).data
+        assert.equal(event.name, 'Draft test event')
+        assert.deepEqual(event.tags, ['Workshop', 'Social'])
+      },
+    )
+
+    await t.test(
+      'exposes legacy event types as tags and lets officers replace or clear them',
+      async () => {
+        const path = eventPath(future)
+        assert.deepEqual((await call(path)).data.event.tags, ['Workshop'])
+        const query = new URLSearchParams({
+          start: new Date(now).toISOString(),
+          end: new Date(now + 1_200_000).toISOString(),
+        })
+        const { data: calendar } = await call('/api/calendar?' + query)
+        assert.deepEqual(
+          calendar.find(({ event }) => event._id === future.id).event.tags,
+          ['Workshop'],
+        )
+
+        const edit = { user: officer, method: 'PATCH' }
+        assert.equal(
+          (await call(path, { ...edit, body: { tags: 'Meeting' } })).status,
+          400,
+        )
+        const updated = await call(path, {
+          ...edit,
+          body: { tags: ['Meeting', 'Social'] },
+        })
+        assert.equal(updated.status, 200)
+        const { data: memberships } = await call('/api/memberships/mine', {
+          user: student,
+        })
+        const event = memberships[0].organizationId.events.find(
+          ({ _id }) => _id === future.id,
+        )
+        assert.deepEqual(event.tags, ['Meeting', 'Social'])
+
+        assert.equal(
+          (await call(path, { ...edit, body: { tags: [] } })).status,
+          200,
+        )
+        assert.deepEqual((await call(path)).data.event.tags, [])
       },
     )
 

@@ -1,5 +1,10 @@
 const mongoose = require('mongoose')
-const { serializeTags } = require('../services/clubTags')
+const { withClubTags, withEventTags } = require('../services/tags')
+
+const eventOutput = {
+  virtuals: true,
+  transform: (_document, event) => withEventTags(event),
+}
 
 const assetSchema = new mongoose.Schema(
   {
@@ -43,7 +48,8 @@ const eventSchema = new mongoose.Schema(
       default: null,
     },
     place: { type: String, default: null, trim: true },
-    type: { type: String, default: 'Meeting', trim: true },
+    type: { type: String, trim: true },
+    tags: { type: [String], default: undefined },
     private: { type: Boolean, default: false },
     banner: { type: String, default: null, trim: true },
     draftSchedule: {
@@ -59,7 +65,7 @@ const eventSchema = new mongoose.Schema(
       walkIns: { type: Boolean, default: false },
     },
   },
-  { toJSON: { virtuals: true }, toObject: { virtuals: true } },
+  { toJSON: eventOutput, toObject: eventOutput },
 )
 
 const organizationSchema = new mongoose.Schema(
@@ -92,7 +98,10 @@ const organizationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true, transform: serializeTags },
+    toJSON: {
+      virtuals: true,
+      transform: (_document, club) => withClubTags(club),
+    },
     toObject: { virtuals: true },
   },
 )
