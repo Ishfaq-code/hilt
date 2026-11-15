@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useAuthDialog } from '../../hooks/useAuthDialog'
+import { useAuthToken } from '../../hooks/useAuthToken'
 import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
 import { downloadEvent } from '../../lib/calendar'
@@ -27,13 +28,15 @@ export function EventDialog({
   previewOnly?: boolean
 }) {
   const { toast } = useToast()
+  const openLogin = useAuthDialog()
+  const token = useAuthToken()
   const [participation, setParticipation] = useState<Participation | null>(null)
   const [now, setNow] = useState(Date.now)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [dialog, setDialog] = useState<'calendar' | 'scan' | null>(null)
 
-  const signedIn = Boolean(sessionStorage.getItem('authToken'))
+  const signedIn = Boolean(token)
   const endpoint = eventApi(club._id, event._id)
   const path = eventPath(club._id, event._id)
   const url = new URL(path, window.location.origin).href
@@ -89,7 +92,7 @@ export function EventDialog({
       request.abort()
       window.clearTimeout(poll)
     }
-  }, [endpoint, previewOnly, signedIn, busy])
+  }, [endpoint, previewOnly, signedIn, token, busy])
 
   async function share() {
     setError('')
@@ -231,13 +234,14 @@ export function EventDialog({
                   {participation?.rsvped ? 'Going' : 'RSVP'}
                 </button>
               ) : (
-                <Link
-                  to="/login"
-                  state={{ from: path }}
+                <button
+                  type="button"
+                  aria-haspopup="dialog"
+                  onClick={() => openLogin()}
                   className={buttonClass}
                 >
                   Log in to RSVP
-                </Link>
+                </button>
               )}
             </div>
           )}

@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { RouteAuthDialog } from '../auth/RouteAuthDialog'
 import SiteFooter from './SiteFooter'
 import SiteHeader from './SiteHeader'
 
@@ -10,6 +11,7 @@ export function SiteLayout() {
         <Outlet />
       </main>
       <SiteFooter />
+      <RouteAuthDialog />
     </div>
   )
 }

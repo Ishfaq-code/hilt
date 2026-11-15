@@ -8,12 +8,14 @@ export function Dialog({
   onClose,
   children,
   fullScreen = false,
+  compact = false,
 }: {
   title: string
   subtitle?: string
   onClose: () => void
   children: ReactNode
   fullScreen?: boolean
+  compact?: boolean
 }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const titleId = useId()
@@ -38,7 +40,8 @@ export function Dialog({
         'overscroll-contain border-line bg-white text-ink shadow-xl backdrop:bg-black/50 ' +
         (fullScreen
           ? 'm-0 h-dvh max-h-none w-full max-w-none'
-          : 'm-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl rounded-xl border')
+          : 'm-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] rounded-xl border ' +
+            (compact ? 'max-w-md' : 'max-w-2xl'))
       }
       onClose={(event) => {
         if (!event.currentTarget.open) onClose()

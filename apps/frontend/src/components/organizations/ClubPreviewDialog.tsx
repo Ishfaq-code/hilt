@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuthDialog } from '../../hooks/useAuthDialog'
+import { useAuthToken } from '../../hooks/useAuthToken'
 import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
+import { authPath, getAuthMode } from '../../lib/authDialog'
 import { joinClub, myClubPath } from '../../lib/clubs'
 import { clubPath } from '../../lib/events'
 import type { Organization } from '../../types'
@@ -27,16 +30,21 @@ export function ClubPreviewDialog({
   onCloseEvent: () => void
 }) {
   const navigate = useNavigate()
+  const openLogin = useAuthDialog()
+  const token = useAuthToken()
   const { toast } = useToast()
   const location = useLocation()
   const [details, setDetails] = useState<Organization | null>(null)
   const [joined, setJoined] = useState(false)
-  const [error, setError] = useState<string>(location.state?.joinError ?? '')
+  const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
-  const signedIn = Boolean(sessionStorage.getItem('authToken'))
+  const signedIn = Boolean(token)
+  const authOpen = Boolean(getAuthMode(location.search))
+  const message = error || location.state?.joinError
 
   useEffect(() => {
+    if (authOpen) return
     const request = new AbortController()
     const options = { signal: request.signal }
     Promise.all([
@@ -63,19 +71,17 @@ export function ClubPreviewDialog({
         if (!request.signal.aborted) setLoading(false)
       })
     return () => request.abort()
-  }, [clubId, signedIn])
+  }, [clubId, signedIn, token, authOpen])
 
   const myClubs = myClubPath(clubId)
 
   async function join() {
-    const from = location.pathname + location.search
+    const from = authPath(location)
     if (!signedIn) {
-      navigate('/login', {
-        state: {
-          from,
-          joinOrganizationId: clubId,
-          afterJoin: eventId ? from : undefined,
-        },
+      openLogin({
+        from,
+        joinOrganizationId: clubId,
+        afterJoin: eventId ? from : undefined,
       })
       return
     }
@@ -128,9 +134,9 @@ export function ClubPreviewDialog({
           Loading club…
         </p>
       )}
-      {error && (
+      {message && (
         <p role="alert" className="mt-4 text-sm text-red-700">
-          {error}
+          {message}
         </p>
       )}
       {details && (
@@ -174,7 +180,7 @@ export function ClubPreviewDialog({
           eventId={eventId}
           join={() => void join()}
           busy={busy}
-          message={error}
+          message={message}
           onClose={onCloseEvent}
         />
       )}

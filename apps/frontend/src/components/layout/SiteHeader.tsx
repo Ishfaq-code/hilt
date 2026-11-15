@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useAuthDialog } from '../../hooks/useAuthDialog'
+import { useAuthToken } from '../../hooks/useAuthToken'
 import { clearAuthSession, getStoredUser } from '../../lib/auth'
 import type { AuthUser } from '../../types'
 import { CheckInCodeDialog } from '../events/CheckInCodeDialog'
@@ -9,27 +11,34 @@ import { Icon } from '../ui/Icon'
 function SiteHeader() {
   const navigate = useNavigate()
   const location = useLocation()
+  const openLogin = useAuthDialog()
+  const token = useAuthToken()
   const [checkInTool, setCheckInTool] = useState<'qr' | 'scan' | null>(null)
-  const [user, setUser] = useState<AuthUser | null>(() =>
-    sessionStorage.getItem('authToken') ? getStoredUser() : null,
-  )
+  const [profile, setProfile] = useState<{
+    token: string
+    user: AuthUser
+  } | null>(null)
+  const user = !token
+    ? null
+    : profile?.token === token
+      ? profile.user
+      : getStoredUser()
 
   function logout() {
     clearAuthSession()
-    setUser(null)
+    setProfile(null)
+    setCheckInTool(null)
     navigate('/')
   }
 
   useEffect(() => {
-    const token = sessionStorage.getItem('authToken')
     if (!token) return
 
     let active = true
     fetch('/api/users/me', { headers: { Authorization: `Bearer ${token}` } })
       .then(async (response) => {
         if (response.status === 401) {
-          clearAuthSession()
-          if (active) setUser(null)
+          if (active) clearAuthSession()
           return null
         }
         if (!response.ok) return null
@@ -38,7 +47,7 @@ function SiteHeader() {
       .then((currentUser) => {
         if (!active || !currentUser) return
         sessionStorage.setItem('authUser', JSON.stringify(currentUser))
-        setUser(currentUser)
+        setProfile({ token, user: currentUser })
       })
       .catch(() => {
         // keep the cached name if the profile request is temporarily unavailable
@@ -46,7 +55,7 @@ function SiteHeader() {
     return () => {
       active = false
     }
-  }, [location.pathname])
+  }, [location.pathname, token])
 
   const nav = [
     { to: '/', label: 'Discover', end: true },
@@ -120,8 +129,10 @@ function SiteHeader() {
           </div>
         ) : (
           <button
+            type="button"
+            aria-haspopup="dialog"
             className="ml-auto inline-flex min-h-8 items-center justify-center rounded-lg border border-ink bg-ink px-3 py-1 text-sm font-semibold text-white hover:bg-active"
-            onClick={() => navigate('/login')}
+            onClick={() => openLogin()}
           >
             Log in
           </button>

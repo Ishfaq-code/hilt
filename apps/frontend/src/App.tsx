@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { SiteLayout } from './components/layout/SiteLayout'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import ApplicationPage from './pages/ApplicationPage'
-import AuthPage from './pages/AuthPage'
+import AuthEntryPage from './pages/AuthEntryPage'
 import CheckInPage from './pages/CheckInPage'
 import ClubSearchPage from './pages/ClubSearchPage'
 import HomePage from './pages/HomePage'
@@ -16,8 +16,8 @@ function App() {
       <Route element={<SiteLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<ClubSearchPage />} />
-        <Route path="/login" element={<AuthPage initialMode="login" />} />
-        <Route path="/register" element={<AuthPage initialMode="signup" />} />
+        <Route path="/login" element={<AuthEntryPage mode="login" />} />
+        <Route path="/register" element={<AuthEntryPage mode="register" />} />
         <Route path="/qr" element={<CheckInPage key="qr" mode="qr" />} />
         <Route path="/scan" element={<CheckInPage key="scan" mode="scan" />} />
         <Route path="/application" element={<ApplicationPage />} />

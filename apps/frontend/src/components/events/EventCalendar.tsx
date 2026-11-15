@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useAuthToken } from '../../hooks/useAuthToken'
 import { api } from '../../lib/api'
 import { rsvpChangedEvent } from '../../lib/events'
 import type { Organization } from '../../types'
@@ -9,7 +10,12 @@ import { dateKey, entriesByDay, eventKinds } from './calendarEntries'
 import type { CalendarEntry } from './calendarEntries'
 
 type Scope = 'discover' | 'mine'
-type MonthResult = { month: Date; entries: CalendarEntry[]; error?: string }
+type MonthResult = {
+  month: Date
+  token: string | null
+  entries: CalendarEntry[]
+  error?: string
+}
 
 const emptyFilters = { text: '', subject: '', type: '', club: '' }
 const dayLabel = { weekday: 'long', month: 'short', day: 'numeric' } as const
@@ -27,6 +33,7 @@ export function EventCalendar({
   scope: Scope
   clubs?: Organization[]
 }) {
+  const token = useAuthToken()
   const [month, setMonth] = useState(() => {
     const today = new Date()
     return new Date(today.getFullYear(), today.getMonth(), 1)
@@ -60,12 +67,13 @@ export function EventCalendar({
     })
     api<CalendarEntry[]>('/api/calendar?' + params, { signal: request.signal })
       .then((entries) => {
-        if (!request.signal.aborted) setResult({ month, entries })
+        if (!request.signal.aborted) setResult({ month, token, entries })
       })
       .catch((cause: unknown) => {
         if (!request.signal.aborted) {
           setResult({
             month,
+            token,
             entries: [],
             error:
               cause instanceof Error ? cause.message : 'Couldn’t load events.',
@@ -73,9 +81,10 @@ export function EventCalendar({
         }
       })
     return () => request.abort()
-  }, [month, revision, scope])
+  }, [month, revision, scope, token])
 
-  const current = result?.month === month ? result : undefined
+  const current =
+    result?.month === month && result.token === token ? result : undefined
   const entries = current?.entries ?? []
   const discover = scope === 'discover'
   const text = filters.text.trim().toLowerCase()

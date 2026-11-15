@@ -1,32 +1,35 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ApplicationDetails } from '../components/applications/ApplicationDetails'
 import { NewApplication } from '../components/applications/NewApplication'
 import { Icon } from '../components/ui/Icon'
 import { buttonClass, panelClass } from '../components/ui/styles'
+import { useAuthDialog } from '../hooks/useAuthDialog'
+import { useAuthToken } from '../hooks/useAuthToken'
 import { api } from '../lib/api'
 import type { Application, AuthUser } from '../types'
 
 export default function ApplicationPage() {
   const navigate = useNavigate()
+  const openLogin = useAuthDialog()
+  const token = useAuthToken()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [applications, setApplications] = useState<Application[]>([])
   const [selected, setSelected] = useState<Application | null>(null)
   const [tab, setTab] = useState<'New application' | 'My applications'>(
     'New application',
   )
-  const [loading, setLoading] = useState(() =>
-    Boolean(sessionStorage.getItem('authToken')),
-  )
+  const [loadedToken, setLoadedToken] = useState<string | null>(null)
+  const loading = Boolean(token && loadedToken !== token)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const token = sessionStorage.getItem('authToken')
     if (!token) return
     let active = true
     api<AuthUser>('/api/users/me')
       .then(async (profile) => {
         if (!active) return
+        setError('')
         setUser(profile)
         if (profile.role === 'admin') {
           navigate('/admin', { replace: true })
@@ -44,37 +47,42 @@ export default function ApplicationPage() {
           )
       })
       .finally(() => {
-        if (active) setLoading(false)
+        if (active) setLoadedToken(token)
       })
     return () => {
       active = false
     }
-  }, [navigate])
+  }, [navigate, token])
 
   return (
     <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8 sm:pt-13">
       <h1 className="mb-4 text-3xl font-semibold tracking-tight">
         Apply for a club
       </h1>
-      {!user && !loading && (
+      {!token && (
         <div className={`${panelClass} p-5`}>
           <p className="mb-4 text-sm text-muted">
             Sign in to submit an organization application and track its review.
           </p>
-          <Link to="/login" className={buttonClass}>
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            className={buttonClass}
+            onClick={() => openLogin()}
+          >
             Log in to apply
-          </Link>
+          </button>
         </div>
       )}
       {loading && (
         <p className="text-sm text-muted">Loading your applications…</p>
       )}
-      {error && (
+      {token && !loading && error && (
         <p role="alert" className="text-sm text-red-700">
           {error}
         </p>
       )}
-      {user && (
+      {token && !loading && user && (
         <>
           <nav
             aria-label="Applications"

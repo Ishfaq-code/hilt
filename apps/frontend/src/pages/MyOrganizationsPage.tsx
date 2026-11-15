@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { EventCalendar } from '../components/events/EventCalendar'
 import { JoinedOrganizationDetails } from '../components/organizations/JoinedOrganizationDetails'
 import { OrganizationSidebar } from '../components/organizations/OrganizationSidebar'
+import { useAuthToken } from '../hooks/useAuthToken'
 import { api } from '../lib/api'
+import { authEntry, authPath } from '../lib/authDialog'
 import type { Organization } from '../types'
 import type { Membership as ClubMembership } from '../types/management'
 
@@ -12,7 +14,8 @@ type Membership = Omit<ClubMembership, 'organizationId'> & {
 }
 
 export default function MyOrganizationsPage() {
-  const navigate = useNavigate()
+  const location = useLocation()
+  const token = useAuthToken()
   const [params, setParams] = useSearchParams()
   const requested = params.get('club')
   const [items, setItems] = useState<Membership[]>([])
@@ -21,13 +24,7 @@ export default function MyOrganizationsPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!sessionStorage.getItem('authToken')) {
-      navigate('/login', {
-        replace: true,
-        state: { from: '/my-organizations' },
-      })
-      return
-    }
+    if (!token) return
     let active = true
     api<Membership[]>('/api/memberships/mine')
       .then((memberships) => {
@@ -49,7 +46,9 @@ export default function MyOrganizationsPage() {
     return () => {
       active = false
     }
-  }, [navigate])
+  }, [token])
+  if (!token)
+    return <Navigate {...authEntry('login', { from: authPath(location) })} />
   const organizations = items.flatMap(
     ({ organizationId, roles, permissions }) =>
       organizationId ? [{ ...organizationId, roles, permissions }] : [],

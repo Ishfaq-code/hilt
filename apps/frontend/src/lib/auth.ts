@@ -2,6 +2,16 @@ import type { ApiResponse, AuthUser } from '../types'
 
 const authTokenKey = 'authToken'
 const authUserKey = 'authUser'
+const sessionChanged = 'hilt:auth-session-changed'
+
+export function getAuthToken() {
+  return sessionStorage.getItem(authTokenKey)
+}
+
+export function subscribeToAuthSession(listener: () => void) {
+  window.addEventListener(sessionChanged, listener)
+  return () => window.removeEventListener(sessionChanged, listener)
+}
 
 export function getStoredUser(): AuthUser | null {
   const value = sessionStorage.getItem(authUserKey)
@@ -28,9 +38,11 @@ export function saveAuthSession(result: ApiResponse) {
       } satisfies AuthUser),
     )
   }
+  window.dispatchEvent(new Event(sessionChanged))
 }
 
 export function clearAuthSession() {
   sessionStorage.removeItem(authTokenKey)
   sessionStorage.removeItem(authUserKey)
+  window.dispatchEvent(new Event(sessionChanged))
 }
