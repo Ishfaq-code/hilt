@@ -20,6 +20,8 @@ export function OrganizationMembers({
   removeMember,
   actorRole,
 }: Props) {
+  const canChangeRoles = actorRole === 'owner' || actorRole === 'admin'
+
   return (
     <section>
       <h1 className="mb-5 text-3xl font-semibold tracking-tight">Members</h1>
@@ -73,23 +75,23 @@ export function OrganizationMembers({
                     <div className="flex justify-end gap-2">
                       {member.organizationRole !== 'owner' && (
                         <>
-                          <button
-                            className="text-xs font-semibold text-accent hover:underline"
-                            onClick={() =>
-                              void updateMember(member, {
-                                organizationRole:
-                                  member.organizationRole === 'officer'
-                                    ? 'student'
-                                    : 'officer',
-                              })
-                            }
-                          >
-                            {member.organizationRole === 'officer'
-                              ? 'Remove officer'
-                              : actorRole === 'owner'
-                                ? 'Make officer'
-                                : ''}
-                          </button>
+                          {canChangeRoles && (
+                            <button
+                              className="text-xs font-semibold text-accent hover:underline"
+                              onClick={() =>
+                                void updateMember(member, {
+                                  organizationRole:
+                                    member.organizationRole === 'officer'
+                                      ? 'student'
+                                      : 'officer',
+                                })
+                              }
+                            >
+                              {member.organizationRole === 'officer'
+                                ? 'Remove officer'
+                                : 'Make officer'}
+                            </button>
+                          )}
                           {actorRole !== 'student' && (
                             <button
                               className="text-xs font-semibold text-accent hover:underline"

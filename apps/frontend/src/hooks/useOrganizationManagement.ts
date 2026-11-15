@@ -1,7 +1,7 @@
 import type { SubmitEvent } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../lib/api'
-import type { Organization } from '../types'
+import type { AuthUser, Organization } from '../types'
 import type {
   ManagedEvent,
   Member,
@@ -13,9 +13,9 @@ export function useOrganizationManagement(organizationId: string) {
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [members, setMembers] = useState<Member[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
-  const [actorRole, setActorRole] = useState<'student' | 'officer' | 'owner'>(
-    'student',
-  )
+  const [actorRole, setActorRole] = useState<
+    Membership['organizationRole'] | 'admin'
+  >('student')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -24,18 +24,22 @@ export function useOrganizationManagement(organizationId: string) {
   const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null)
 
   const load = useCallback(async () => {
-    const [org, people, metrics, myMemberships] = await Promise.all([
+    const [org, people, metrics, myMemberships, user] = await Promise.all([
       api<Organization>(`/api/organizations/${organizationId}`),
       api<Member[]>(`/api/organizations/${organizationId}/members`),
       api<Stats>(`/api/organizations/${organizationId}/statistics`),
       api<Membership[]>('/api/memberships/mine'),
+      api<AuthUser>('/api/users/me'),
     ])
     setOrganization(org)
     setMembers(people)
     setStats(metrics)
     setActorRole(
-      myMemberships.find((item) => item.organizationId?._id === organizationId)
-        ?.organizationRole || 'student',
+      user.role === 'admin'
+        ? 'admin'
+        : myMemberships.find(
+            (item) => item.organizationId?._id === organizationId,
+          )?.organizationRole || 'student',
     )
   }, [organizationId])
 
