@@ -1,25 +1,12 @@
-import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { SiteLayout } from './components/layout/SiteLayout'
+import AdminDashboardPage from './pages/AdminDashboardPage'
 import ApplicationPage from './pages/ApplicationPage'
 import AuthPage from './pages/AuthPage'
 import HomePage from './pages/HomePage'
 import MyOrganizationsPage from './pages/MyOrganizationsPage'
-import OrganizationPage from './pages/OrganizationPage'
 import OrganizationManagePage from './pages/OrganizationManagePage'
-import AdminDashboardPage from './pages/AdminDashboardPage'
-import SiteFooter from './components/SiteFooter'
-import SiteHeader from './components/SiteHeader'
-
-function SiteLayout() {
-  return (
-    <div className="site-shell">
-      <SiteHeader />
-      <main className="site-content">
-        <Outlet />
-      </main>
-      <SiteFooter />
-    </div>
-  )
-}
+import OrganizationPage from './pages/OrganizationPage'
 
 function App() {
   return (

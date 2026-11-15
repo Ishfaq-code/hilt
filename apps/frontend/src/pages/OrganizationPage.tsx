@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import ActionButton from '../components/atoms/ActionButton'
-import {
-  Cover,
-  Icon,
-  OrganizationAvatar,
-  panelClass,
-  secondaryClass,
-  Tabs,
-} from '../components/wireframe/Design'
+import { OrganizationEventList } from '../components/events/OrganizationEventList'
+import { Cover } from '../components/organizations/Cover'
+import { OrganizationAvatar } from '../components/organizations/OrganizationAvatar'
+import { OrganizationSummary } from '../components/organizations/OrganizationSummary'
+import ActionButton from '../components/ui/ActionButton'
+import { Icon } from '../components/ui/Icon'
+import { panelClass, secondaryClass } from '../components/ui/styles'
+import { Tabs } from '../components/ui/Tabs'
 import { api } from '../lib/api'
 import type { Organization } from '../types'
 
@@ -31,6 +30,7 @@ export default function OrganizationPage() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [now] = useState(() => Date.now())
+
   useEffect(() => {
     let active = true
     Promise.all([
@@ -62,6 +62,7 @@ export default function OrganizationPage() {
       active = false
     }
   }, [organizationId])
+
   async function join() {
     if (!sessionStorage.getItem('authToken')) {
       navigate('/login', {
@@ -93,6 +94,7 @@ export default function OrganizationPage() {
       setBusy(false)
     }
   }
+
   if (loading)
     return (
       <div className="mx-auto max-w-5xl px-4 pt-9 sm:px-8">
@@ -128,6 +130,7 @@ export default function OrganizationPage() {
       Manage
     </Link>
   )
+
   return (
     <div className="mx-auto max-w-5xl px-4 pt-7 sm:px-8">
       <Link
@@ -183,120 +186,14 @@ export default function OrganizationPage() {
             />
           </div>
           {tab === 'Events' ? (
-            <div className="py-5">
-              {events.length ? (
-                <ul className="divide-y divide-line">
-                  {events.map((event) => (
-                    <li
-                      key={event._id}
-                      className="flex flex-wrap items-start justify-between gap-3 py-4"
-                    >
-                      <div className="flex gap-3">
-                        <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-soft text-sm font-semibold text-accent">
-                          {new Date(event.startDatetime).toLocaleDateString(
-                            undefined,
-                            { month: 'short', day: 'numeric' },
-                          )}
-                        </span>
-                        <div>
-                          <h2 className="font-semibold">{event.name}</h2>
-                          <p className="mt-1 text-sm text-muted">
-                            {new Date(event.startDatetime).toLocaleString()} –{' '}
-                            {new Date(event.endDatetime).toLocaleTimeString(
-                              [],
-                              { hour: 'numeric', minute: '2-digit' },
-                            )}
-                          </p>
-                          {event.place && (
-                            <p className="mt-1 flex items-center gap-1 text-sm text-muted">
-                              <Icon name="pin" size={14} />
-                              {event.place}
-                            </p>
-                          )}
-                          {event.description && (
-                            <p className="mt-2 text-sm leading-relaxed text-muted">
-                              {event.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <span className="rounded bg-paper px-2 py-1 text-xs text-muted">
-                        {event.type || 'Event'}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="py-4 text-sm text-muted">
-                  No events have been scheduled yet.
-                </p>
-              )}
-            </div>
+            <OrganizationEventList events={events} />
           ) : (
-            <div className="grid gap-6 py-6 sm:grid-cols-[2fr_1fr]">
-              <section>
-                <h2 className="mb-3 text-xl font-semibold">Next up</h2>
-                {upcoming ? (
-                  <div className={panelClass}>
-                    <div className="p-4">
-                      <p className="mb-1 text-sm font-semibold text-accent">
-                        {new Date(upcoming.startDatetime).toLocaleDateString(
-                          undefined,
-                          { month: 'long', day: 'numeric', year: 'numeric' },
-                        )}
-                      </p>
-                      <h3 className="text-lg font-semibold">{upcoming.name}</h3>
-                      <p className="mt-1 text-sm text-muted">
-                        {new Date(upcoming.startDatetime).toLocaleTimeString(
-                          [],
-                          { hour: 'numeric', minute: '2-digit' },
-                        )}
-                        {upcoming.place ? ` · ${upcoming.place}` : ''}
-                      </p>
-                      {upcoming.description && (
-                        <p className="mt-3 text-sm leading-relaxed text-muted">
-                          {upcoming.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted">No upcoming events.</p>
-                )}
-                {events.length > (upcoming ? 1 : 0) && (
-                  <button
-                    type="button"
-                    onClick={() => setTab('Events')}
-                    className="mt-3 inline-block text-sm font-semibold text-accent hover:underline"
-                  >
-                    All organization events →
-                  </button>
-                )}
-              </section>
-              <section>
-                <h2 className="mb-3 text-xl font-semibold">About</h2>
-                <p className="text-sm leading-relaxed text-muted">
-                  {organization.description ||
-                    'Learn more about this organization and connect with its members.'}
-                </p>
-                <p className="mt-4 text-sm text-muted">
-                  Membership dues:{' '}
-                  {organization.membershipFee
-                    ? `$${organization.membershipFee}`
-                    : 'Free'}
-                </p>
-                {organization.profile && (
-                  <a
-                    href={organization.profile}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:underline"
-                  >
-                    Organization website <Icon name="arrow" size={14} />
-                  </a>
-                )}
-              </section>
-            </div>
+            <OrganizationSummary
+              organization={organization}
+              upcoming={upcoming}
+              eventCount={events.length}
+              onShowEvents={() => setTab('Events')}
+            />
           )}
         </div>
       </article>

@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import { buttonClass, secondaryClass } from '../wireframe/Design'
+import { buttonClass, secondaryClass } from './styles'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode
@@ -18,6 +18,7 @@ export default function ActionButton({
       : variant === 'secondary'
         ? secondaryClass
         : `${secondaryClass} border-red-200 text-red-800 hover:bg-red-50`
+
   return (
     <button className={`${appearance} ${className}`} {...props}>
       {children}

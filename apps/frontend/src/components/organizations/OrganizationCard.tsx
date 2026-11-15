@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
-import type { Organization } from '../types'
-import { Cover, OrganizationAvatar, panelClass } from './wireframe/Design'
+import type { Organization } from '../../types'
+import { panelClass } from '../ui/styles'
+import { Cover } from './Cover'
+import { OrganizationAvatar } from './OrganizationAvatar'
 
 export default function OrganizationCard({
   organization,

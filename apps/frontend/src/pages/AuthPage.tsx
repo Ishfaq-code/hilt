@@ -1,10 +1,11 @@
+import type { SubmitEvent } from 'react'
 import { useState } from 'react'
-import type { FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { saveAuthSession } from '../auth'
+import { saveAuthSession } from '../lib/auth'
 import type { ApiResponse } from '../types'
 
 type AuthPageProps = { initialMode: 'login' | 'signup' }
+
 type AuthLocationState = { from?: string; joinOrganizationId?: string }
 
 export default function AuthPage({ initialMode }: AuthPageProps) {
@@ -19,6 +20,7 @@ export default function AuthPage({ initialMode }: AuthPageProps) {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+
   async function request(endpoint: string, body: Record<string, string>) {
     const response = await fetch(`/api/auth/${endpoint}`, {
       method: 'POST',
@@ -30,7 +32,8 @@ export default function AuthPage({ initialMode }: AuthPageProps) {
       throw new Error(result.error || 'Something went wrong. Please try again.')
     return result
   }
-  async function submit(event: FormEvent<HTMLFormElement>) {
+
+  async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     setBusy(true)
     setError('')
@@ -64,7 +67,8 @@ export default function AuthPage({ initialMode }: AuthPageProps) {
       setBusy(false)
     }
   }
-  async function verify(event: FormEvent<HTMLFormElement>) {
+
+  async function verify(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     setBusy(true)
     setError('')
@@ -92,6 +96,7 @@ export default function AuthPage({ initialMode }: AuthPageProps) {
           ? 'Log in'
           : 'Create account'
   const textAction = 'text-sm font-medium text-accent hover:underline'
+
   return (
     <section className="mx-auto max-w-md px-4 pt-10">
       <div className="rounded-xl border border-line bg-white p-6">

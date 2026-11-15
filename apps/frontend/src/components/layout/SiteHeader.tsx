@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { clearAuthSession, getStoredUser } from '../auth'
-import type { AuthUser } from '../types'
+import { clearAuthSession, getStoredUser } from '../../lib/auth'
+import type { AuthUser } from '../../types'
 
 function SiteHeader() {
   const navigate = useNavigate()
@@ -37,7 +37,7 @@ function SiteHeader() {
         setUser(currentUser)
       })
       .catch(() => {
-        /* Keep the cached name if the profile request is temporarily unavailable. */
+        // keep the cached name if the profile request is temporarily unavailable
       })
     return () => {
       active = false

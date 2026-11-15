@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import {
-  Cover,
-  Icon,
-  OrganizationAvatar,
-  panelClass,
-} from '../components/wireframe/Design'
+import { JoinedOrganizationDetails } from '../components/organizations/JoinedOrganizationDetails'
+import { OrganizationSidebar } from '../components/organizations/OrganizationSidebar'
+import { panelClass } from '../components/ui/styles'
 import { api } from '../lib/api'
 import type { Organization } from '../types'
 
@@ -22,6 +19,7 @@ export default function MyOrganizationsPage() {
   const [tab, setTab] = useState<'Home' | 'Events'>('Home')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
   useEffect(() => {
     if (!sessionStorage.getItem('authToken')) {
       navigate('/login', {
@@ -60,9 +58,7 @@ export default function MyOrganizationsPage() {
   const selected = organizations.find(
     (organization) => organization._id === selectedId,
   )
-  const events = [...(selected?.events || [])].sort(
-    (a, b) => Date.parse(a.startDatetime) - Date.parse(b.startDatetime),
-  )
+
   return (
     <div className="mx-auto max-w-6xl px-4 pt-9 sm:px-8 sm:pt-13">
       <h1 className="mb-6 text-4xl font-semibold tracking-tight sm:text-5xl">
@@ -78,194 +74,23 @@ export default function MyOrganizationsPage() {
       )}
       {!loading && !error && (
         <div className="grid gap-4 md:grid-cols-[12rem_minmax(0,1fr)] lg:grid-cols-[13rem_minmax(0,1fr)]">
-          <aside
-            className={`${panelClass} min-w-0 self-start md:sticky md:top-4`}
-          >
-            <nav
-              aria-label="Joined organizations"
-              className="flex items-center gap-1 overflow-x-auto p-2 md:block"
-            >
-              <button
-                type="button"
-                aria-current={!selected ? 'page' : undefined}
-                onClick={() => setSelectedId('')}
-                className={`mb-2 flex shrink-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm ${!selected ? 'bg-soft font-semibold text-accent' : 'text-muted hover:bg-paper'}`}
-              >
-                <Icon name="home" size={18} />
-                Home
-              </button>
-              {organizations.map((organization) => (
-                <button
-                  type="button"
-                  key={organization._id}
-                  aria-current={
-                    organization._id === selectedId ? 'page' : undefined
-                  }
-                  onClick={() => {
-                    setSelectedId(organization._id)
-                    setTab('Home')
-                  }}
-                  className={`flex shrink-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm md:w-full ${organization._id === selectedId ? 'bg-soft font-semibold text-accent' : 'text-muted hover:bg-paper hover:text-ink'}`}
-                >
-                  <OrganizationAvatar
-                    organization={organization}
-                    className="size-8 text-xs"
-                  />
-                  <span className="flex min-w-0 flex-col">
-                    <span className="md:truncate">{organization.name}</span>
-                    {['officer', 'owner'].includes(
-                      organization._membershipRole,
-                    ) && (
-                      <span className="text-xs font-medium text-accent">
-                        {organization._membershipRole === 'owner'
-                          ? 'Owner'
-                          : 'Officer'}
-                      </span>
-                    )}
-                  </span>
-                </button>
-              ))}
-              <Link
-                to="/"
-                className="flex shrink-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-muted hover:bg-paper hover:text-ink md:mt-2"
-              >
-                <Icon name="search" size={17} />
-                Find organizations
-              </Link>
-            </nav>
-          </aside>
+          <OrganizationSidebar
+            organizations={organizations}
+            selectedId={selectedId}
+            hasSelected={Boolean(selected)}
+            onHome={() => setSelectedId('')}
+            onSelect={(id) => {
+              setSelectedId(id)
+              setTab('Home')
+            }}
+          />
           <section className="min-w-0">
             {selected ? (
-              <article className={`${panelClass} overflow-hidden`}>
-                <Cover organization={selected} large />
-                <div className="relative px-5 pb-0 sm:px-8">
-                  <OrganizationAvatar
-                    organization={selected}
-                    className="-mt-7 size-15 text-lg"
-                  />
-                  <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-                    <div>
-                      <p className="mb-1 text-sm font-semibold text-accent">
-                        {selected.category || 'Student organization'}
-                      </p>
-                      <h2 className="text-3xl font-semibold tracking-tight">
-                        {selected.name}
-                      </h2>
-                    </div>
-                    <div className="ml-auto flex gap-2">
-                      <Link
-                        to={`/organizations/${selected._id}`}
-                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold hover:bg-paper"
-                      >
-                        View organization
-                      </Link>
-                      {['owner', 'officer'].includes(
-                        selected._membershipRole,
-                      ) && (
-                        <Link
-                          to={`/organizations/${selected._id}/manage`}
-                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-ink bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-active"
-                        >
-                          Manage
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-4 flex gap-6 overflow-x-auto border-b border-line">
-                    <button
-                      type="button"
-                      aria-current={tab === 'Home' ? 'page' : undefined}
-                      onClick={() => setTab('Home')}
-                      className={`shrink-0 border-b-2 py-3 text-sm font-semibold ${tab === 'Home' ? 'border-accent text-ink' : 'border-transparent text-muted'}`}
-                    >
-                      Home
-                    </button>
-                    <button
-                      type="button"
-                      aria-current={tab === 'Events' ? 'page' : undefined}
-                      onClick={() => setTab('Events')}
-                      className={`shrink-0 border-b-2 py-3 text-sm font-semibold ${tab === 'Events' ? 'border-accent text-ink' : 'border-transparent text-muted'}`}
-                    >
-                      Events
-                    </button>
-                  </div>
-                  {tab === 'Events' ? (
-                    <div className="py-5">
-                      {events.length ? (
-                        <ul className="divide-y divide-line">
-                          {events.map((event) => (
-                            <li
-                              key={event._id}
-                              className="flex flex-wrap justify-between gap-3 py-4"
-                            >
-                              <div>
-                                <h3 className="font-semibold">{event.name}</h3>
-                                <p className="mt-1 text-sm text-muted">
-                                  {new Date(
-                                    event.startDatetime,
-                                  ).toLocaleString()}
-                                  {event.place ? ` · ${event.place}` : ''}
-                                </p>
-                                {event.description && (
-                                  <p className="mt-2 text-sm text-muted">
-                                    {event.description}
-                                  </p>
-                                )}
-                              </div>
-                              <span className="text-xs text-muted">
-                                {event.type || 'Event'}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-muted">No events yet.</p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="grid gap-6 py-6 sm:grid-cols-[2fr_1fr]">
-                      <section>
-                        <h3 className="mb-3 text-xl font-semibold">Next up</h3>
-                        {events[0] ? (
-                          <div className={`${panelClass} p-4`}>
-                            <p className="text-sm font-semibold text-accent">
-                              {new Date(
-                                events[0].startDatetime,
-                              ).toLocaleDateString(undefined, {
-                                month: 'long',
-                                day: 'numeric',
-                              })}
-                            </p>
-                            <h4 className="mt-1 font-semibold">
-                              {events[0].name}
-                            </h4>
-                            <p className="mt-1 text-sm text-muted">
-                              {new Date(
-                                events[0].startDatetime,
-                              ).toLocaleTimeString([], {
-                                hour: 'numeric',
-                                minute: '2-digit',
-                              })}
-                              {events[0].place ? ` · ${events[0].place}` : ''}
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted">
-                            No upcoming events.
-                          </p>
-                        )}
-                      </section>
-                      <section>
-                        <h3 className="mb-3 text-xl font-semibold">About</h3>
-                        <p className="text-sm leading-relaxed text-muted">
-                          {selected.description ||
-                            'Organization information will appear here.'}
-                        </p>
-                      </section>
-                    </div>
-                  )}
-                </div>
-              </article>
+              <JoinedOrganizationDetails
+                selected={selected}
+                tab={tab}
+                setTab={setTab}
+              />
             ) : (
               <div className={`${panelClass} p-6 sm:p-8`}>
                 <h2 className="text-2xl font-semibold tracking-tight">

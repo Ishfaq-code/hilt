@@ -1,4 +1,4 @@
-import type { ApiResponse, AuthUser } from './types'
+import type { ApiResponse, AuthUser } from '../types'
 
 const authTokenKey = 'authToken'
 const authUserKey = 'authUser'
@@ -6,6 +6,7 @@ const authUserKey = 'authUser'
 export function getStoredUser(): AuthUser | null {
   const value = sessionStorage.getItem(authUserKey)
   if (!value) return null
+
   try {
     return JSON.parse(value) as AuthUser
   } catch {
