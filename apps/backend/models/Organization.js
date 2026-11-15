@@ -1,4 +1,10 @@
 const mongoose = require('mongoose')
+const { withClubTags, withEventTags } = require('../services/tags')
+
+const eventOutput = {
+  virtuals: true,
+  transform: (_document, event) => withEventTags(event),
+}
 
 const assetSchema = new mongoose.Schema(
   {
@@ -20,8 +26,13 @@ const eventSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      default: '',
       trim: true,
+    },
+    status: {
+      type: String,
+      enum: ['draft', 'published'],
+      default: 'published',
     },
     description: {
       type: String,
@@ -30,14 +41,31 @@ const eventSchema = new mongoose.Schema(
     },
     startDatetime: {
       type: Date,
-      required: true,
+      default: null,
     },
     endDatetime: {
       type: Date,
-      required: true,
+      default: null,
+    },
+    place: { type: String, default: null, trim: true },
+    type: { type: String, trim: true },
+    tags: { type: [String], default: undefined },
+    private: { type: Boolean, default: false },
+    banner: { type: String, default: null, trim: true },
+    draftSchedule: {
+      date: String,
+      startTime: String,
+      endTime: String,
+    },
+    attendance: {
+      enabled: { type: Boolean, default: false },
+      self: { type: Boolean, default: false },
+      eventQr: { type: Boolean, default: false },
+      attendeeQr: { type: Boolean, default: false },
+      walkIns: { type: Boolean, default: false },
     },
   },
-  { toJSON: { virtuals: true }, toObject: { virtuals: true } },
+  { toJSON: eventOutput, toObject: eventOutput },
 )
 
 const organizationSchema = new mongoose.Schema(
@@ -52,6 +80,9 @@ const organizationSchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    category: { type: String, trim: true },
+    tags: { type: [String], default: undefined },
+    profile: { type: String, default: null, trim: true },
     assets: {
       type: [assetSchema],
       default: [],
@@ -65,7 +96,15 @@ const organizationSchema = new mongoose.Schema(
       default: [],
     },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } },
+  {
+    timestamps: true,
+    optimisticConcurrency: true,
+    toJSON: {
+      virtuals: true,
+      transform: (_document, club) => withClubTags(club),
+    },
+    toObject: { virtuals: true },
+  },
 )
 
 module.exports = mongoose.model('Organization', organizationSchema)

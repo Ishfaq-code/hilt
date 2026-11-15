@@ -14,15 +14,23 @@ services:
     build:
       context: ./apps/backend
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "3000:3000"
     environment:
       PORT: 3000
       MONGODB_URI: mongodb://mongodb:27017/HiltDB
+      S3_ENDPOINT: http://storage:8333
+      S3_BUCKET: ${S3_BUCKET:-hilt-media}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-hilt-local}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-hilt-local-development}
     depends_on:
       mongodb:
         condition: service_healthy
+      storage:
+        condition: service_started
 
   mongodb:
     image: mongo:8
@@ -36,6 +44,19 @@ services:
       timeout: 5s
       retries: 10
 
+  storage:
+    image: chrislusf/seaweedfs:4.53
+    command: ['mini', '-dir=/data']
+    ports:
+      - '127.0.0.1:8333:8333'
+    environment:
+      S3_BUCKET: ${S3_BUCKET:-hilt-media}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-hilt-local}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-hilt-local-development}
+    volumes:
+      - storage_data:/data
+
 volumes:
   mongodb_data:
   frontend_node_modules:
+  storage_data:

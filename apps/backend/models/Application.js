@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const { withClubTags } = require('../services/tags')
 
 const documentSchema = new mongoose.Schema(
   {
@@ -33,6 +34,33 @@ const applicationSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    category: { type: String, trim: true },
+    tags: { type: [String], default: undefined },
+    contactEmail: { type: String, default: null, trim: true, lowercase: true },
+    link: { type: String, default: null, trim: true },
+    roleSetup: {
+      type: [
+        new mongoose.Schema(
+          {
+            name: String,
+            permissions: [String],
+            maxMembers: { type: Number, default: null },
+            assignApplicant: Boolean,
+          },
+          { _id: false },
+        ),
+      ],
+      default: undefined,
+    },
+    assets: {
+      type: [
+        {
+          type: { type: String, required: true },
+          link: { type: String, required: true },
+        },
+      ],
+      default: [],
+    },
     additionalDocuments: {
       type: [documentSchema],
       default: [],
@@ -53,7 +81,14 @@ const applicationSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } },
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: (_document, application) => withClubTags(application),
+    },
+    toObject: { virtuals: true },
+  },
 )
 
 module.exports = mongoose.model('Application', applicationSchema)

@@ -1,144 +1,154 @@
 const express = require('express')
-const mongoose = require('mongoose')
+const { isObjectIdOrHexString } = require('mongoose')
 const Membership = require('../models/Membership')
 const Organization = require('../models/Organization')
 const requireAppAdmin = require('../middleware/requireAppAdmin')
 const requireAuth = require('../middleware/requireAuth')
-const requireOrganizationAdmin = require('../middleware/requireOrganizationAdmin')
+const requireClubPermission = require('../middleware/requireClubPermission')
+const {
+  accessFor,
+  clubPermissions,
+  removeMembership,
+} = require('../services/clubAccess')
+const { permissions, permissionsFor } = require('../services/clubRoles')
+const { withClubTags } = require('../services/tags')
 
 const router = express.Router()
-const editableFields = new Set(['organizationRole', 'isPaid'])
 
-router.get('/', requireAuth, requireAppAdmin, async (req, res, next) => {
-  try {
-    const memberships = await Membership.find({})
-    return res.status(200).json(memberships)
-  } catch (error) {
-    return next(error)
-  }
+function publicMembership(membership) {
+  const { organizationRole, ...data } = membership.toObject()
+  return data
+}
+
+router.get('/mine', requireAuth, async (req, res) => {
+  const memberships = await Membership.find({ userId: req.user._id })
+    .populate(
+      'organizationId',
+      'name description tags category profile assets membershipFee events',
+    )
+    .sort({ createdAt: -1 })
+  const items = await Promise.all(
+    memberships
+      .filter((member) => member.organizationId)
+      .map(async (member) => {
+        const data = publicMembership(member)
+        const club = withClubTags(data.organizationId)
+        const access = await accessFor(club._id)
+        const roles = access.roles.filter((role) =>
+          role.memberIds.some((id) => id.equals(member._id)),
+        )
+        club.events = club.events.filter((event) => event.status !== 'draft')
+
+        return {
+          ...data,
+          organizationId: club,
+          roles: roles.map(({ _id, name }) => ({ _id, name })),
+          permissions:
+            req.user.appRole === 'admin'
+              ? permissions
+              : permissionsFor(roles, member._id),
+        }
+      }),
+  )
+  res.json(items)
 })
 
-router.get('/organization/:organizationId', requireAuth, requireOrganizationAdmin, async (req, res, next) => {
-  try {
-    const memberships = await Membership.find({ organizationId: req.params.organizationId })
-    return res.status(200).json(memberships)
-  } catch (error) {
-    return next(error)
-  }
+router.get('/', requireAuth, requireAppAdmin, async (req, res) => {
+  const memberships = await Membership.find()
+  res.json(memberships.map(publicMembership))
 })
 
-router.get('/:membershipId', requireAuth, async (req, res, next) => {
-  if (!mongoose.isValidObjectId(req.params.membershipId)) {
+router.get(
+  '/organization/:organizationId',
+  requireAuth,
+  requireClubPermission('members', 'roles'),
+  async (req, res) => {
+    const memberships = await Membership.find({
+      organizationId: req.params.organizationId,
+    })
+    res.json(memberships.map(publicMembership))
+  },
+)
+
+router.get('/:membershipId', requireAuth, async (req, res) => {
+  if (!isObjectIdOrHexString(req.params.membershipId)) {
     return res.status(404).json({ error: 'Membership not found.' })
   }
-
-  try {
-    const membership = await Membership.findById(req.params.membershipId)
-    if (!membership) return res.status(404).json({ error: 'Membership not found.' })
-    if (!membership.userId.equals(req.user._id)) {
-      return res.status(403).json({ error: 'You can only access your own membership.' })
-    }
-    return res.status(200).json(membership)
-  } catch (error) {
-    return next(error)
+  const membership = await Membership.findById(req.params.membershipId)
+  if (!membership)
+    return res.status(404).json({ error: 'Membership not found.' })
+  if (!membership.userId.equals(req.user._id)) {
+    return res
+      .status(403)
+      .json({ error: 'You can only access your own membership.' })
   }
+  res.json(publicMembership(membership))
 })
 
 router.post('/', requireAuth, async (req, res, next) => {
   const body = req.body
-  if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length === 0) {
-    return res.status(400).json({ error: 'A valid organizationId is required.' })
+  if (
+    !body ||
+    Object.keys(body).length !== 1 ||
+    !isObjectIdOrHexString(body.organizationId)
+  ) {
+    return res
+      .status(400)
+      .json({ error: 'A valid organizationId is required.' })
   }
-  if (Object.keys(body).some((field) => field !== 'organizationId')) {
-    return res.status(400).json({ error: 'Only organizationId may be provided.' })
-  }
-  if (typeof body.organizationId !== 'string' || !mongoose.isValidObjectId(body.organizationId)) {
-    return res.status(400).json({ error: 'A valid organizationId is required.' })
-  }
-
+  const organization = await Organization.findById(body.organizationId)
+  if (!organization) return res.status(404).json({ error: 'Club not found.' })
   try {
-    const organization = await Organization.findById(body.organizationId)
-    if (!organization) return res.status(404).json({ error: 'Organization not found.' })
     const membership = await Membership.create({
       userId: req.user._id,
       organizationId: organization._id,
       isPaid: organization.membershipFee === 0,
     })
-    return res.status(201).json(membership)
+    return res.status(201).json(publicMembership(membership))
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(409).json({ error: 'You already have a membership in this organization.' })
-    }
-    if (error.name === 'ValidationError' || error.name === 'CastError') {
-      return res.status(400).json({ error: 'Membership details are invalid.' })
-    }
-    return next(error)
-  }
-})
-
-router.patch('/:membershipId', requireAuth, async (req, res, next) => {
-  if (!mongoose.isValidObjectId(req.params.membershipId)) {
-    return res.status(404).json({ error: 'Membership not found.' })
-  }
-
-  try {
-    const membership = await Membership.findById(req.params.membershipId)
-    if (!membership) return res.status(404).json({ error: 'Membership not found.' })
-
-    if (req.user.appRole !== 'admin') {
-      const isOfficer = await Membership.exists({
-        userId: req.user._id,
-        organizationId: membership.organizationId,
-        organizationRole: { $in: ['officer', 'owner'] },
-      })
-      if (!isOfficer) return res.status(403).json({ error: 'Organization officer access is required.' })
-    }
-
-    const updates = req.body
-    if (!updates || typeof updates !== 'object' || Array.isArray(updates)) {
-      return res.status(400).json({ error: 'A valid membership update is required.' })
-    }
-    const fields = Object.keys(updates)
-    if (!fields.length) return res.status(400).json({ error: 'At least one membership field must be provided.' })
-    if (fields.some((field) => !editableFields.has(field))) {
-      return res.status(400).json({ error: 'One or more membership fields cannot be updated.' })
-    }
-
-    for (const field of fields) membership.set(field, updates[field])
-    await membership.save()
-    return res.status(200).json(membership)
-  } catch (error) {
-    if (error.name === 'ValidationError' || error.name === 'CastError') {
-      return res.status(400).json({ error: 'Membership details are invalid.' })
+      return res
+        .status(409)
+        .json({ error: 'You already have a membership in this club.' })
     }
     return next(error)
   }
 })
 
-router.delete('/:membershipId', requireAuth, async (req, res, next) => {
-  if (!mongoose.isValidObjectId(req.params.membershipId)) {
+router.patch('/:membershipId', requireAuth, async (req, res) => {
+  if (!isObjectIdOrHexString(req.params.membershipId)) {
     return res.status(404).json({ error: 'Membership not found.' })
   }
-
-  try {
-    const membership = await Membership.findById(req.params.membershipId)
-    if (!membership) return res.status(404).json({ error: 'Membership not found.' })
-
-    const isOwner = membership.userId.equals(req.user._id)
-    if (!isOwner && req.user.appRole !== 'admin') {
-      const isOfficer = await Membership.exists({
-        userId: req.user._id,
-        organizationId: membership.organizationId,
-        organizationRole: { $in: ['officer', 'owner'] },
-      })
-      if (!isOfficer) return res.status(403).json({ error: 'You cannot delete this membership.' })
-    }
-
-    await membership.deleteOne()
-    return res.status(204).end()
-  } catch (error) {
-    return next(error)
+  const membership = await Membership.findById(req.params.membershipId)
+  if (!membership)
+    return res.status(404).json({ error: 'Membership not found.' })
+  const granted = await clubPermissions(membership.organizationId, req.user)
+  if (!granted.includes('members')) {
+    return res
+      .status(403)
+      .json({ error: 'You don’t have permission to manage members.' })
   }
+  if (
+    !req.body ||
+    Object.keys(req.body).length !== 1 ||
+    typeof req.body.isPaid !== 'boolean'
+  ) {
+    return res.status(400).json({ error: 'Provide a valid dues update.' })
+  }
+  membership.isPaid = req.body.isPaid
+  await membership.save()
+  res.json(publicMembership(membership))
+})
+
+router.delete('/:membershipId', requireAuth, async (req, res) => {
+  if (!isObjectIdOrHexString(req.params.membershipId)) {
+    return res.status(404).json({ error: 'Membership not found.' })
+  }
+  const membership = await Membership.findById(req.params.membershipId)
+  if (!membership)
+    return res.status(404).json({ error: 'Membership not found.' })
+  await removeMembership(membership, req.user)
+  res.sendStatus(204)
 })
 
 module.exports = router
