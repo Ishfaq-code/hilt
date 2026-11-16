@@ -37,11 +37,24 @@ const editableFields = new Set([
 
 router.get('/', async (req, res, next) => {
   try {
-    const organizations = await Organization.find(
-      {},
-      'name description tags category profile assets membershipFee',
-    ).lean()
-    return res.status(200).json(organizations.map(withClubTags))
+    const [organizations, membershipCounts] = await Promise.all([
+      Organization.find(
+        {},
+        'name description tags category profile assets membershipFee',
+      ).lean(),
+      Membership.aggregate([
+        { $group: { _id: '$organizationId', memberCount: { $sum: 1 } } },
+      ]),
+    ])
+    const membersByOrganization = new Map(
+      membershipCounts.map(({ _id, memberCount }) => [String(_id), memberCount]),
+    )
+    return res.status(200).json(
+      organizations.map((organization) => ({
+        ...withClubTags(organization),
+        memberCount: membersByOrganization.get(String(organization._id)) || 0,
+      })),
+    )
   } catch (error) {
     return next(error)
   }

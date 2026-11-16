@@ -3,12 +3,13 @@ import { api } from '../../lib/api'
 import type { Organization } from '../../types'
 import type { ManagedEvent } from '../../types/management'
 import { TagPicker } from '../organizations/TagPicker'
-import { inputClass, secondaryClass } from '../ui/styles'
+import { inputClass } from '../ui/styles'
 import { DiscoverEventCard } from './DiscoverEventCard'
 
 type Entry = {
   club: Pick<Organization, '_id' | 'name' | 'tags' | 'assets'>
   event: ManagedEvent
+  rsvpCount: number
 }
 
 type Result = {
@@ -26,7 +27,6 @@ const emptyFilters = {
 
 export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
   const [filters, setFilters] = useState(emptyFilters)
-  const [page, setPage] = useState(1)
   const [result, setResult] = useState<{ key: string; data: Result }>()
   const [error, setError] = useState('')
   const [errorKey, setErrorKey] = useState('')
@@ -36,7 +36,7 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
     const request = new AbortController()
     const params = new URLSearchParams({
       scope: 'discover',
-      page: String(page),
+      page: '1',
     })
     if (filters.text.trim()) params.set('search', filters.text.trim())
     if (filters.club) params.set('club', filters.club)
@@ -60,18 +60,17 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
         }
       })
     return () => request.abort()
-  }, [filters, page, revision])
+  }, [filters, revision])
 
   function updateFilter<Key extends keyof typeof emptyFilters>(
     key: Key,
     value: (typeof emptyFilters)[Key],
   ) {
     setFilters((previous) => ({ ...previous, [key]: value }))
-    setPage(1)
   }
 
   const clubTags = [...new Set(clubs.flatMap((club) => club.tags))]
-  const params = new URLSearchParams({ scope: 'discover', page: String(page) })
+  const params = new URLSearchParams({ scope: 'discover', page: '1' })
   if (filters.text.trim()) params.set('search', filters.text.trim())
   if (filters.club) params.set('club', filters.club)
   filters.clubTags.forEach((tag) => params.append('clubTag', tag))
@@ -86,7 +85,7 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
     <section aria-label="Upcoming events" className="mt-10 min-w-0">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-semibold tracking-tight">
-          Upcoming events
+          Most RSVPed upcoming events
         </h2>
         {(filters.text ||
           filters.clubTags.length ||
@@ -97,7 +96,6 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
             className="text-sm font-semibold text-accent hover:underline"
             onClick={() => {
               setFilters(emptyFilters)
-              setPage(1)
             }}
           >
             Clear filters
@@ -178,28 +176,6 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
           })}
         </ul>
       ) : null}
-      <nav
-        aria-label="Event pages"
-        className="mt-5 flex items-center justify-between"
-      >
-        <button
-          type="button"
-          className={secondaryClass}
-          disabled={page <= 1 || loading}
-          onClick={() => setPage((current) => current - 1)}
-        >
-          Previous
-        </button>
-        <span className="text-sm text-muted">Page {page}</span>
-        <button
-          type="button"
-          className={secondaryClass}
-          disabled={!currentResult?.hasNext || loading}
-          onClick={() => setPage((current) => current + 1)}
-        >
-          Next
-        </button>
-      </nav>
     </section>
   )
 }

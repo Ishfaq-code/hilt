@@ -7,7 +7,7 @@ const { tagsFor, withEventTags } = require('../services/tags')
 
 const router = express.Router()
 const maxRange = 32 * 24 * 60 * 60 * 1000
-const pageSize = 10
+const pageSize = 5
 
 function readDate(value) {
   return typeof value === 'string' ? Date.parse(value) : NaN
@@ -172,11 +172,33 @@ router.get('/', optionalAuth, async (req, res) => {
       )
     })
     const eventTags = [...new Set(entries.flatMap(({ event }) => event.tags))]
-    const offset = (page - 1) * pageSize
+    const rsvpCounts = await Rsvp.aggregate([
+      {
+        $group: {
+          _id: { organizationId: '$organizationId', eventId: '$eventId' },
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    const countsByEvent = new Map(
+      rsvpCounts.map(({ _id, count }) => [
+        String(_id.organizationId) + ':' + String(_id.eventId),
+        count,
+      ]),
+    )
+    filtered.sort((a, b) => {
+      const aCount = countsByEvent.get(String(a.club._id) + ':' + a.event._id) || 0
+      const bCount = countsByEvent.get(String(b.club._id) + ':' + b.event._id) || 0
+      return bCount - aCount || a.event.startDatetime - b.event.startDatetime
+    })
     res.set('Cache-Control', 'private, no-store').json({
-      entries: filtered.slice(offset, offset + pageSize),
+      entries: filtered.slice(0, pageSize).map((entry) => ({
+        ...entry,
+        rsvpCount:
+          countsByEvent.get(String(entry.club._id) + ':' + entry.event._id) || 0,
+      })),
       page,
-      hasNext: filtered.length > offset + pageSize,
+      hasNext: false,
       eventTags,
     })
     return
