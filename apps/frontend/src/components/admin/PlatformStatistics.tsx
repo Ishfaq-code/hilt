@@ -12,9 +12,9 @@ export function PlatformStatistics({
 }: Props) {
   return (
     <section>
-      <h1 className="text-3xl font-semibold tracking-tight">
-        Application statistics
-      </h1>
+      <h2 className="text-2xl font-semibold tracking-tight">
+        Platform statistics
+      </h2>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {stats && (
           <>

@@ -23,12 +23,6 @@ export function AdminOverview({ stats, setSearchParams }: Props) {
             count: stats?.organizations || 0,
             label: 'active organizations',
           },
-          {
-            tab: 'statistics' as const,
-            title: 'Platform statistics',
-            count: stats?.users || 0,
-            label: 'registered users',
-          },
         ].map((item) => (
           <button
             key={item.tab}

@@ -15,7 +15,6 @@ const nav = [
   { key: 'applications', label: 'Applications' },
   { key: 'organizations', label: 'Organizations' },
   { key: 'reports', label: 'Reports' },
-  { key: 'statistics', label: 'Statistics' },
 ] as const
 
 type Tab = (typeof nav)[number]['key']

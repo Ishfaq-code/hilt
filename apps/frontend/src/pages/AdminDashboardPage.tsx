@@ -27,10 +27,19 @@ export default function AdminDashboardPage() {
         <p className="text-sm text-muted">Loading administration data…</p>
       )}
       {!loading && activeTab === 'overview' && (
-        <AdminOverview
-          stats={administration.stats}
-          setSearchParams={administration.setSearchParams}
-        />
+        <>
+          <AdminOverview
+            stats={administration.stats}
+            setSearchParams={administration.setSearchParams}
+          />
+          <div className="mt-8">
+            <PlatformStatistics
+              stats={administration.stats}
+              organizations={administration.organizations}
+              showStatistics={administration.showStatistics}
+            />
+          </div>
+        </>
       )}
       {!loading && activeTab === 'applications' && (
         <ApplicationReviews
@@ -58,13 +67,6 @@ export default function AdminDashboardPage() {
         />
       )}
       {!loading && activeTab === 'reports' && <Reports />}
-      {!loading && activeTab === 'statistics' && (
-        <PlatformStatistics
-          stats={administration.stats}
-          organizations={administration.organizations}
-          showStatistics={administration.showStatistics}
-        />
-      )}
     </Workspace>
   )
 }

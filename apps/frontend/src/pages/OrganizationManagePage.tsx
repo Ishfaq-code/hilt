@@ -17,15 +17,15 @@ import { authEntry } from '../lib/authFlow'
 import type { ClubPermission } from '../types/clubRoles'
 
 const tabs = [
+  {
+    key: 'overview',
+    label: 'Overview',
+    permissions: ['events', 'attendance'],
+  },
   { key: 'info', label: 'Info', permissions: ['settings'] },
   { key: 'events', label: 'Events', permissions: ['events', 'attendance'] },
   { key: 'members', label: 'Members', permissions: ['members'] },
   { key: 'roles', label: 'Roles', permissions: ['roles'] },
-  {
-    key: 'statistics',
-    label: 'Statistics',
-    permissions: ['events', 'attendance'],
-  },
 ] satisfies { key: string; label: string; permissions: ClubPermission[] }[]
 
 export default function OrganizationManagePage({
@@ -96,8 +96,11 @@ function OrganizationManagementWorkspace({
   const visible = tabs.filter((tab) =>
     tab.permissions.some((permission) => permissions.includes(permission)),
   )
-  const active =
-    visible.find((tab) => tab.key === searchParams.get('tab')) ?? visible[0]
+  const requestedTab =
+    searchParams.get('tab') === 'statistics'
+      ? 'overview'
+      : searchParams.get('tab')
+  const active = visible.find((tab) => tab.key === requestedTab) ?? visible[0]
   const back = admin
     ? { title: 'Back to organizations', to: '/admin?tab=organizations' }
     : { title: 'Back to my clubs', to: '/my-organizations' }
@@ -171,7 +174,7 @@ function OrganizationManagementWorkspace({
           undo={management.undoRole}
         />
       )}
-      {active?.key === 'statistics' && (
+      {active?.key === 'overview' && (
         <section>
           <h1 className="mb-3 text-3xl font-semibold tracking-tight">
             {active.label}
