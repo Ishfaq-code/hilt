@@ -3,6 +3,7 @@ import { CheckInCodeDialog } from '../components/events/CheckInCodeDialog'
 import { EventScanDialog } from '../components/events/EventScanDialog'
 import { useAuthToken } from '../hooks/useAuthToken'
 import { authEntry, authPath } from '../lib/authDialog'
+import { isNativeApp } from '../lib/platform'
 
 export default function CheckInPage({ mode }: { mode: 'qr' | 'scan' }) {
   const location = useLocation()
@@ -13,11 +14,16 @@ export default function CheckInPage({ mode }: { mode: 'qr' | 'scan' }) {
     return <Navigate {...authEntry('login', { from: authPath(location) })} />
   }
 
-  const close = () => navigate('/my-organizations', { replace: true })
+  const returnTo = location.state?.returnTo ?? '/my-organizations'
+  const close = () => navigate(returnTo, { replace: true })
 
   return mode === 'qr' ? (
-    <CheckInCodeDialog onClose={close} />
+    <CheckInCodeDialog asPage={isNativeApp} onClose={close} />
   ) : (
-    <EventScanDialog onClose={close} linkQuery={location.search} />
+    <EventScanDialog
+      asPage={isNativeApp}
+      onClose={close}
+      linkQuery={location.search}
+    />
   )
 }

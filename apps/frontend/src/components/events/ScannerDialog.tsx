@@ -7,9 +7,11 @@ import { secondaryClass } from '../ui/styles'
 export function QrScanner({
   onScan,
   inline = false,
+  screen = false,
 }: {
   onScan: (value: string) => Promise<void>
   inline?: boolean
+  screen?: boolean
 }) {
   const video = useRef<HTMLVideoElement>(null)
   const [error, setError] = useState('')
@@ -99,15 +101,15 @@ export function QrScanner({
       />
     )
 
+  const maxHeight = screen ? 'max-h-full' : 'max-h-[calc(100dvh-8rem)]'
+
   return (
     <>
       <video
         ref={video}
         className={
           'mx-auto w-full rounded-lg bg-ink object-contain ' +
-          (inline
-            ? 'aspect-video max-h-60'
-            : 'max-h-[calc(100dvh-8rem)] max-w-3xl')
+          (inline ? 'aspect-video max-h-60' : 'max-w-3xl ' + maxHeight)
         }
         aria-label="Camera"
         playsInline
@@ -129,7 +131,7 @@ export function QrScanner({
           >
             Try again
           </button>
-          {isNativeApp && (
+          {isNativeApp && !screen && (
             <button
               type="button"
               className={secondaryClass + ' ml-2'}

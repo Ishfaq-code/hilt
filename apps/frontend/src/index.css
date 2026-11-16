@@ -44,7 +44,7 @@ body {
 }
 
 .mobile-app {
-  --native-tab-bar-height: 4rem;
+  --native-tab-bar-height: 3.5rem;
 }
 
 .mobile-app body {
@@ -56,13 +56,21 @@ body {
     env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
+.mobile-app #root:has(.native-shell) {
+  padding-bottom: 0;
+}
+
 .native-shell {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  height: calc(100dvh - env(safe-area-inset-top));
 }
 
 .native-tab-bar {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.native-tab-bar > * {
   min-height: var(--native-tab-bar-height);
 }
 

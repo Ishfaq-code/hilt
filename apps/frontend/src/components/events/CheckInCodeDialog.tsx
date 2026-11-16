@@ -47,9 +47,11 @@ function QrCode({ value }: { value: string }) {
 export function CheckInCodeDialog({
   target,
   onClose,
+  asPage = false,
 }: {
   target?: Target
   onClose: () => void
+  asPage?: boolean
 }) {
   const [qr, setQr] = useState<Code | null>(null)
   const [error, setError] = useState('')
@@ -96,14 +98,11 @@ export function CheckInCodeDialog({
     (target
       ? eventQrValue(target.clubId, target.eventId, qr.code)
       : attendeeQrValue(qr.code))
+  const title = target?.name ?? qr?.attendee?.name ?? 'My QR'
+  const subtitle = target?.clubName ?? qr?.attendee?.email
 
-  return (
-    <Dialog
-      title={target?.name ?? qr?.attendee?.name ?? 'My QR'}
-      subtitle={target?.clubName ?? qr?.attendee?.email}
-      fullScreen
-      onClose={onClose}
-    >
+  const content = (
+    <>
       {value && <QrCode value={value} />}
       {!qr && !error && <p role="status">Loading QR…</p>}
       {error && (
@@ -123,6 +122,26 @@ export function CheckInCodeDialog({
           </button>
         </div>
       )}
+    </>
+  )
+
+  if (asPage) {
+    return (
+      <section className="space-y-5 p-5">
+        <div>
+          <h1 className="text-xl font-semibold">{title}</h1>
+          {subtitle && (
+            <p className="mt-1 text-sm break-all text-muted">{subtitle}</p>
+          )}
+        </div>
+        {content}
+      </section>
+    )
+  }
+
+  return (
+    <Dialog title={title} subtitle={subtitle} fullScreen onClose={onClose}>
+      {content}
     </Dialog>
   )
 }
