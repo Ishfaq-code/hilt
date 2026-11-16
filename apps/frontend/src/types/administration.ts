@@ -40,5 +40,12 @@ export type OrgStats = {
   unpaidMembers: number
   currentRevenue: number
   projectedRevenue: number
-  eventAttendance: { eventId: string; name: string; attendance: number }[]
+  eventAttendance: {
+    eventId: string
+    name: string
+    startDatetime: string | null
+    endDatetime: string | null
+    attendance: number
+    rsvpCount: number
+  }[]
 }

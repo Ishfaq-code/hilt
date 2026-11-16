@@ -3,11 +3,9 @@ import { panelClass } from '../ui/styles'
 
 export function StatisticsChart({
   title,
-  caption,
   children,
 }: {
   title: string
-  caption: string
   children: ReactNode
 }) {
   return (
@@ -20,7 +18,6 @@ export function StatisticsChart({
         className="mx-auto mt-2 h-0.5 w-10 rounded-full bg-active"
       />
       <div className="mt-3 h-64 w-full">{children}</div>
-      <figcaption className="mt-3 text-sm text-muted">{caption}</figcaption>
     </figure>
   )
 }

@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const ClubReport = require('../models/ClubReport')
 const Membership = require('../models/Membership')
 const EventAttendance = require('../models/EventAttendance')
+const EventRsvp = require('../models/EventRsvp')
 const Organization = require('../models/Organization')
 const User = require('../models/User')
 const requireAppAdmin = require('../middleware/requireAppAdmin')
@@ -145,7 +146,7 @@ router.get(
       if (!organization)
         return res.status(404).json({ error: 'Club not found.' })
 
-      const [membershipStats, attendanceStats] = await Promise.all([
+      const [membershipStats, attendanceStats, rsvpStats] = await Promise.all([
         Membership.aggregate([
           { $match: { organizationId: organization._id } },
           {
@@ -165,10 +166,17 @@ router.get(
           },
           { $group: { _id: '$eventId', attendance: { $sum: 1 } } },
         ]),
+        EventRsvp.aggregate([
+          { $match: { organizationId: organization._id } },
+          { $group: { _id: '$eventId', rsvps: { $sum: 1 } } },
+        ]),
       ])
       const { totalMembers = 0, paidMembers = 0 } = membershipStats[0] || {}
       const eventAttendance = new Map(
         attendanceStats.map((item) => [String(item._id), item.attendance]),
+      )
+      const eventRsvps = new Map(
+        rsvpStats.map((item) => [String(item._id), item.rsvps]),
       )
       return res.status(200).json({
         organizationId: organization._id,
@@ -184,7 +192,10 @@ router.get(
           .map((event) => ({
             eventId: event._id,
             name: event.name || 'Untitled event',
+            startDatetime: event.startDatetime,
+            endDatetime: event.endDatetime,
             attendance: eventAttendance.get(String(event._id)) || 0,
+            rsvpCount: eventRsvps.get(String(event._id)) || 0,
           })),
       })
     } catch (error) {

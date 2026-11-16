@@ -191,7 +191,10 @@ test(
       {
         eventId: String(organizationA.events[0]._id),
         name: 'Published event',
+        startDatetime: null,
+        endDatetime: null,
         attendance: 1,
+        rsvpCount: 2,
       },
     ])
     assert.equal(

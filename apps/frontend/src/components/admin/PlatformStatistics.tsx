@@ -48,7 +48,7 @@ export function PlatformStatistics({ stats, organizations, moderate }: Props) {
             />
           </div>
           <div className="grid gap-4 xl:grid-cols-2">
-            <StatisticsChart title="Members in Organizations" caption="">
+            <StatisticsChart title="Members in Organizations">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -77,7 +77,7 @@ export function PlatformStatistics({ stats, organizations, moderate }: Props) {
               </ResponsiveContainer>
             </StatisticsChart>
 
-            <StatisticsChart title="Organization applications" caption="">
+            <StatisticsChart title="Organization applications">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={[

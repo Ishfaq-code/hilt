@@ -1,29 +1,15 @@
 import { Link } from 'react-router-dom'
 import { secondaryClass } from '../ui/styles'
+import { PublishedEventsTable } from './PublishedEventsTable'
 import { SortablePaginatedTable } from './SortablePaginatedTable'
 import type { Administration } from '../../hooks/useAdministration'
 import type { AdminOrganization } from '../../types/administration'
-
-type AdminEventRow = {
-  id: string
-  name: string
-  organizationName: string
-  startDatetime: string | null
-  endDatetime: string | null
-  attendanceCount: number
-  rsvpCount: number
-}
+import type { EventStatisticsRow } from './PublishedEventsTable'
 
 const money = new Intl.NumberFormat(undefined, {
   style: 'currency',
   currency: 'USD',
 })
-
-function eventStatus(endDatetime: string | null) {
-  return endDatetime && Date.parse(endDatetime) >= Date.now()
-    ? 'Upcoming'
-    : 'Prior'
-}
 
 export function AdminStatisticsTables({
   organizations,
@@ -86,7 +72,7 @@ export function AdminStatisticsTables({
     },
   ]
 
-  const events: AdminEventRow[] = organizations.flatMap((organization) =>
+  const events: EventStatisticsRow[] = organizations.flatMap((organization) =>
     organization.events.map((event) => ({
       id: organization._id + '-' + event._id,
       name: event.name || 'Untitled event',
@@ -97,51 +83,6 @@ export function AdminStatisticsTables({
       rsvpCount: event.rsvpCount,
     })),
   )
-
-  const eventColumns = [
-    {
-      key: 'name',
-      label: 'Event',
-      sortValue: (event: AdminEventRow) => event.name,
-      render: (event: AdminEventRow) => (
-        <span className="font-semibold">{event.name}</span>
-      ),
-    },
-    {
-      key: 'organization',
-      label: 'Organization',
-      sortValue: (event: AdminEventRow) => event.organizationName,
-      render: (event: AdminEventRow) => event.organizationName,
-    },
-    {
-      key: 'timeframe',
-      label: 'Time frame',
-      sortValue: (event: AdminEventRow) =>
-        event.startDatetime ? Date.parse(event.startDatetime) : null,
-      render: (event: AdminEventRow) => {
-        const status = eventStatus(event.endDatetime)
-        return (
-          <span
-            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${status === 'Upcoming' ? 'bg-[#edf2eb] text-active' : 'bg-amber-100 text-amber-800'}`}
-          >
-            {status}
-          </span>
-        )
-      },
-    },
-    {
-      key: 'rsvps',
-      label: 'RSVPs',
-      sortValue: (event: AdminEventRow) => event.rsvpCount,
-      render: (event: AdminEventRow) => event.rsvpCount,
-    },
-    {
-      key: 'attendees',
-      label: 'Attendees',
-      sortValue: (event: AdminEventRow) => event.attendanceCount,
-      render: (event: AdminEventRow) => event.attendanceCount,
-    },
-  ]
 
   return (
     <div className="mt-8 space-y-8">
@@ -160,20 +101,7 @@ export function AdminStatisticsTables({
         />
       </section>
 
-      <section>
-        <h2 className="mb-3 text-xl font-semibold">Published events</h2>
-        <p className="mb-3 text-sm text-muted">
-          RSVP totals show current sign-ups. Attendee totals include active
-          check-ins; reversed check-ins are excluded.
-        </p>
-        <SortablePaginatedTable
-          rows={events}
-          columns={eventColumns}
-          rowKey={(event) => event.id}
-          label="Published events"
-          emptyMessage="No published events yet."
-        />
-      </section>
+      <PublishedEventsTable events={events} />
     </div>
   )
 }

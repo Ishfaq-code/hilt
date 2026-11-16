@@ -11,6 +11,7 @@ import {
   Cell,
 } from 'recharts'
 import MetricCard from '../ui/MetricCard'
+import { PublishedEventsTable } from '../admin/PublishedEventsTable'
 import { StatisticsChart } from '../admin/StatisticsChart'
 import type { OrgStats } from '../../types/administration'
 
@@ -25,22 +26,33 @@ export function OrganizationStatistics({
     )
   }
 
+  const events = statistics.eventAttendance.map((event) => ({
+    id: event.eventId,
+    name: event.name,
+    organizationName: statistics.name,
+    startDatetime: event.startDatetime,
+    endDatetime: event.endDatetime,
+    rsvpCount: event.rsvpCount,
+    attendanceCount: event.attendance,
+  }))
+
   return (
     <section>
       <h1 className="text-3xl font-semibold tracking-tight">Overview</h1>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <MetricCard label="Members" value={statistics.totalMembers} />
-        <MetricCard label="Paid memberships" value={statistics.paidMembers} />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <MetricCard
-          label="Unpaid memberships"
-          value={statistics.unpaidMembers}
+          label="Total Members"
+          value={statistics.totalMembers}
+          centered
+        />
+        <MetricCard
+          label="Total Events"
+          value={statistics.eventAttendance.length}
+          centered
         />
       </div>
       <div className="mt-6 grid gap-4 xl:grid-cols-2">
-        <StatisticsChart
-          title="Paid vs. Unpaid Memberships"
-          caption="Current organization members grouped by whether their membership fee has been marked as paid."
-        >
+        <StatisticsChart title="Paid vs. Unpaid Memberships">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -63,10 +75,7 @@ export function OrganizationStatistics({
           </ResponsiveContainer>
         </StatisticsChart>
 
-        <StatisticsChart
-          title="Current vs. Projected Membership Revenue"
-          caption={`Current revenue is paid memberships × the $${statistics.membershipFee} fee. Projected revenue assumes all ${statistics.totalMembers} members pay.`}
-        >
+        <StatisticsChart title="Current vs. Projected Membership Revenue">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={[
@@ -98,33 +107,8 @@ export function OrganizationStatistics({
             </BarChart>
           </ResponsiveContainer>
         </StatisticsChart>
-
-        <StatisticsChart
-          title="Attendance by Event"
-          caption="Active check-ins recorded for each published event. Reversed check-ins are excluded; events with no attendance are shown as zero."
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={statistics.eventAttendance} margin={{ bottom: 42 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="name"
-                interval={0}
-                angle={-25}
-                textAnchor="end"
-                height={60}
-              />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Bar
-                dataKey="attendance"
-                name="Active check-ins"
-                fill="#5284c4"
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </StatisticsChart>
       </div>
+      <PublishedEventsTable events={events} showOrganization={false} />
     </section>
   )
 }
