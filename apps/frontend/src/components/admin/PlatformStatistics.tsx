@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import MetricCard from '../ui/MetricCard'
 import { AdminStatisticsTables } from './AdminStatisticsTables'
 import { StatisticsChart } from './StatisticsChart'
 
@@ -24,6 +25,28 @@ export function PlatformStatistics({ stats, organizations, moderate }: Props) {
     <section>
       {stats && (
         <>
+          <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard
+              label="Total Number of Users"
+              value={stats.users}
+              centered
+            />
+            <MetricCard
+              label="Total Number of Organizations"
+              value={stats.organizations}
+              centered
+            />
+            <MetricCard
+              label="Total Number of Events"
+              value={stats.totalEvents}
+              centered
+            />
+            <MetricCard
+              label="Total Number of Applications"
+              value={stats.applications}
+              centered
+            />
+          </div>
           <div className="grid gap-4 xl:grid-cols-2">
             <StatisticsChart title="Members in Organizations" caption="">
               <ResponsiveContainer width="100%" height="100%">

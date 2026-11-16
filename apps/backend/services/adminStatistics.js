@@ -9,6 +9,7 @@ async function getAdminStatistics() {
     organizations,
     memberships,
     applications,
+    eventCounts,
     memberIds,
     applicationCounts,
   ] = await Promise.all([
@@ -16,6 +17,11 @@ async function getAdminStatistics() {
     Organization.countDocuments(),
     Membership.countDocuments(),
     Application.countDocuments(),
+    Organization.aggregate([
+      { $unwind: '$events' },
+      { $match: { 'events.status': { $ne: 'draft' } } },
+      { $count: 'total' },
+    ]),
     Membership.distinct('userId'),
     Application.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
   ])
@@ -32,6 +38,7 @@ async function getAdminStatistics() {
     organizations,
     memberships,
     applications,
+    totalEvents: eventCounts[0]?.total || 0,
     pendingApplications: applicationStatuses.pending,
     membersWithOrganizations,
     membersWithoutOrganizations: Math.max(0, users - membersWithOrganizations),

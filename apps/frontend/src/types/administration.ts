@@ -3,6 +3,7 @@ import type { Organization } from '../types'
 export type Stats = {
   users: number
   organizations: number
+  totalEvents: number
   memberships: number
   applications: number
   pendingApplications: number

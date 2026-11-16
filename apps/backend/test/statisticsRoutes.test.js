@@ -135,6 +135,7 @@ test(
     assert.equal(platform.status, 200)
     assert.equal(platform.data.membersWithOrganizations, 2)
     assert.equal(platform.data.membersWithoutOrganizations, 2)
+    assert.equal(platform.data.totalEvents, 2)
     assert.deepEqual(platform.data.applicationStatuses, {
       approved: 1,
       denied: 1,
