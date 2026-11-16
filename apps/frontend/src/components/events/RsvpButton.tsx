@@ -9,10 +9,12 @@ export function RsvpButton({
   disabled,
   onClick,
 }: {
-  going: boolean
+  going: boolean | undefined
   disabled: boolean
   onClick: () => void
 }) {
+  if (going === undefined) return null
+
   return (
     <button
       type="button"

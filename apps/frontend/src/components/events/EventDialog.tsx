@@ -221,7 +221,7 @@ export function EventDialog({
               </p>
             )}
           </div>
-          {!previewOnly && (
+          {!previewOnly && (!signedIn || participation) && (
             <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
               {hasStarted ? (
                 <button type="button" className={secondaryClass} disabled>
@@ -230,8 +230,8 @@ export function EventDialog({
                 </button>
               ) : signedIn ? (
                 <RsvpButton
-                  going={Boolean(participation?.rsvped)}
-                  disabled={busy || !participation}
+                  going={participation?.rsvped}
+                  disabled={busy}
                   onClick={() => void rsvp(!participation?.rsvped)}
                 />
               ) : (

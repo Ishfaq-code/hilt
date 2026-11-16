@@ -95,8 +95,8 @@ export function DiscoverEventCard({ entry }: { entry: Entry }) {
     }
   }
 
-  const rsvped = participation?.token === token && participation.rsvped
-  const participationLoaded = participation?.token === token
+  const rsvped =
+    participation?.token === token ? participation.rsvped : undefined
 
   return (
     <article className={panelClass + ' overflow-visible'}>
@@ -161,15 +161,15 @@ export function DiscoverEventCard({ entry }: { entry: Entry }) {
               </p>
             )}
           </div>
-          {hasStarted ? (
+          {hasStarted && (!token || rsvped !== undefined) ? (
             <button type="button" className={secondaryClass} disabled>
               {rsvped && <Icon name="check" size={16} />}
               {rsvped ? 'Going' : 'RSVP closed'}
             </button>
           ) : token ? (
             <RsvpButton
-              going={Boolean(rsvped)}
-              disabled={busy || !participationLoaded}
+              going={rsvped}
+              disabled={busy}
               onClick={() => void rsvp(!rsvped)}
             />
           ) : (
