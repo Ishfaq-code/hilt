@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useAuthDialog } from '../../hooks/useAuthDialog'
+import { useAuthPage } from '../../hooks/useAuthPage'
 import { useAuthToken } from '../../hooks/useAuthToken'
 import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
@@ -33,7 +33,7 @@ export function EventDialog({
   previewOnly?: boolean
 }) {
   const { toast } = useToast()
-  const openLogin = useAuthDialog()
+  const openLogin = useAuthPage()
   const token = useAuthToken()
   const [participation, setParticipation] = useState<Participation | null>(null)
   const [now, setNow] = useState(Date.now)

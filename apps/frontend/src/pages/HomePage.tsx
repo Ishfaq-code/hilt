@@ -5,6 +5,7 @@ import { OrganizationRow } from '../components/organizations/OrganizationRow'
 import { panelClass } from '../components/ui/styles'
 import { useClubDirectory } from '../hooks/useClubDirectory'
 import { hasAnyTag } from '../lib/clubTags'
+import { useLocation } from 'react-router-dom'
 
 const sections = [
   { tag: 'Outdoors', title: 'Crave the outdoors?' },
@@ -13,13 +14,20 @@ const sections = [
 ]
 
 export default function HomePage() {
+  const location = useLocation()
   const { clubs, loading, error } = useClubDirectory()
+  const joinError = (location.state as { joinError?: string } | null)?.joinError
 
   return (
     <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8 sm:pt-13">
       <h1 className="max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl">
         Find clubs and events on campus.
       </h1>
+      {joinError && (
+        <p role="alert" className="mt-4 text-sm text-red-700">
+          {joinError}
+        </p>
+      )}
       <ClubSearchForm />
       {loading && (
         <p role="status" className="py-8 text-sm text-muted">

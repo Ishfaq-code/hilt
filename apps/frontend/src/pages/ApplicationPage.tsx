@@ -4,14 +4,14 @@ import { ApplicationDetails } from '../components/applications/ApplicationDetail
 import { NewApplication } from '../components/applications/NewApplication'
 import { Icon } from '../components/ui/Icon'
 import { buttonClass, panelClass } from '../components/ui/styles'
-import { useAuthDialog } from '../hooks/useAuthDialog'
+import { useAuthPage } from '../hooks/useAuthPage'
 import { useAuthToken } from '../hooks/useAuthToken'
 import { api } from '../lib/api'
 import type { Application, AuthUser } from '../types'
 
 export default function ApplicationPage() {
   const navigate = useNavigate()
-  const openLogin = useAuthDialog()
+  const openLogin = useAuthPage()
   const token = useAuthToken()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [applications, setApplications] = useState<Application[]>([])

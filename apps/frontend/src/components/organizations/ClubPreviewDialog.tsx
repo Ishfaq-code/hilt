@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useAuthDialog } from '../../hooks/useAuthDialog'
+import { useAuthPage } from '../../hooks/useAuthPage'
 import { useSiteSession } from '../../hooks/useCurrentUser'
 import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
-import { authPath, getAuthMode } from '../../lib/authDialog'
 import { joinClub, myClubPath } from '../../lib/clubs'
 import { clubPath } from '../../lib/events'
 import type { Organization } from '../../types'
@@ -31,7 +30,7 @@ export function ClubPreviewDialog({
   onCloseEvent?: () => void
 }) {
   const navigate = useNavigate()
-  const openLogin = useAuthDialog()
+  const openLogin = useAuthPage()
   const { user, token } = useSiteSession()
   const { toast } = useToast()
   const location = useLocation()
@@ -42,11 +41,9 @@ export function ClubPreviewDialog({
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
   const signedIn = Boolean(token)
-  const authOpen = Boolean(getAuthMode(location.search))
   const message = error || location.state?.joinError
 
   useEffect(() => {
-    if (authOpen) return
     const request = new AbortController()
     const options = { signal: request.signal }
     Promise.all([
@@ -75,7 +72,7 @@ export function ClubPreviewDialog({
         if (!request.signal.aborted) setLoading(false)
       })
     return () => request.abort()
-  }, [clubId, signedIn, token, authOpen])
+  }, [clubId, signedIn, token])
 
   const myClubs = myClubPath(clubId)
   const managePath = clubPath(clubId) + '/manage'
@@ -85,13 +82,11 @@ export function ClubPreviewDialog({
     location.pathname !== managePath
 
   async function join() {
-    const from = authPath(location)
     if (!signedIn) {
       openLogin({
-        from,
+        from: location.pathname + location.search + location.hash,
         joinOrganizationId: clubId,
         joinOrganizationName: club?.name,
-        afterJoin: eventId ? from : undefined,
       })
       return
     }

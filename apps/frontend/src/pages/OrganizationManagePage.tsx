@@ -13,7 +13,7 @@ import { OrganizationMembers } from '../components/organizations/OrganizationMem
 import { ClubRoles } from '../components/roles/ClubRoles'
 import { useSiteSession } from '../hooks/useCurrentUser'
 import { useOrganizationManagement } from '../hooks/useOrganizationManagement'
-import { authEntry, authPath } from '../lib/authDialog'
+import { authEntry } from '../lib/authFlow'
 import type { ClubPermission } from '../types/clubRoles'
 
 const tabs = [
@@ -37,8 +37,7 @@ export default function OrganizationManagePage({
   const location = useLocation()
   const { user, token } = useSiteSession()
 
-  if (!token)
-    return <Navigate {...authEntry('login', { from: authPath(location) })} />
+  if (!token) return <Navigate {...authEntry('login', {})} />
   if (!user?.role)
     return (
       <p className="mx-auto max-w-6xl px-4 pt-10 text-sm text-muted">

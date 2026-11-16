@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router-dom'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { RouteAuthDialog } from '../auth/RouteAuthDialog'
 import SiteFooter from './SiteFooter'
 import SiteHeader from './SiteHeader'
 
@@ -16,7 +15,6 @@ export function SiteLayout() {
         <Outlet context={session} />
       </main>
       <SiteFooter showApply={showApply} />
-      <RouteAuthDialog />
     </div>
   )
 }

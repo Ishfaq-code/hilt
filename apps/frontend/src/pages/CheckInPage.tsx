@@ -2,7 +2,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { CheckInCodeDialog } from '../components/events/CheckInCodeDialog'
 import { EventScanDialog } from '../components/events/EventScanDialog'
 import { useAuthToken } from '../hooks/useAuthToken'
-import { authEntry, authPath } from '../lib/authDialog'
+import { authEntry } from '../lib/authFlow'
 
 export default function CheckInPage({ mode }: { mode: 'qr' | 'scan' }) {
   const location = useLocation()
@@ -10,7 +10,7 @@ export default function CheckInPage({ mode }: { mode: 'qr' | 'scan' }) {
   const token = useAuthToken()
 
   if (!token) {
-    return <Navigate {...authEntry('login', { from: authPath(location) })} />
+    return <Navigate {...authEntry('login', {})} />
   }
 
   const close = () => navigate('/my-organizations', { replace: true })

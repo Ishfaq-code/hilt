@@ -1,16 +1,26 @@
-import { Navigate, useLocation } from 'react-router-dom'
-import { authEntry } from '../lib/authDialog'
-import type { AuthIntent, AuthMode } from '../lib/authDialog'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { AuthForm } from '../components/auth/AuthForm'
+import type { AuthIntent, AuthMode } from '../lib/authFlow'
 
 export default function AuthEntryPage({ mode }: { mode: AuthMode }) {
   const location = useLocation()
-  const intent = location.state as AuthIntent | null
+  const navigate = useNavigate()
+  const intent = (location.state as { authIntent?: AuthIntent } | null)
+    ?.authIntent
+
   return (
-    <Navigate
-      {...authEntry(mode, {
-        from: mode === 'login' ? '/my-organizations' : '/',
-        ...intent,
-      })}
+    <AuthForm
+      mode={mode}
+      intent={intent}
+      onModeChange={(next) =>
+        navigate('/' + next, { replace: true, state: location.state })
+      }
+      onFinish={(_destination, joinError) =>
+        navigate('/', {
+          replace: true,
+          state: joinError ? { joinError } : null,
+        })
+      }
     />
   )
 }

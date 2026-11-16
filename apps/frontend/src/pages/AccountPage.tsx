@@ -7,7 +7,7 @@ import {
   panelClass,
   secondaryClass,
 } from '../components/ui/styles'
-import { useAuthDialog } from '../hooks/useAuthDialog'
+import { useAuthPage } from '../hooks/useAuthPage'
 import { useSiteSession } from '../hooks/useCurrentUser'
 import { useToast } from '../hooks/useToast'
 import { api } from '../lib/api'
@@ -16,7 +16,7 @@ import type { AuthUser } from '../types'
 
 export default function AccountPage() {
   const { user, token, updateUser } = useSiteSession()
-  const openLogin = useAuthDialog()
+  const openLogin = useAuthPage()
   const navigate = useNavigate()
   const { toast } = useToast()
   const [saving, setSaving] = useState<'profile' | 'password' | null>(null)

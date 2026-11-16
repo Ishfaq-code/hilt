@@ -6,7 +6,7 @@ import { OrganizationSidebar } from '../components/organizations/OrganizationSid
 import { useAuthToken } from '../hooks/useAuthToken'
 import { useToast } from '../hooks/useToast'
 import { api } from '../lib/api'
-import { authEntry, authPath } from '../lib/authDialog'
+import { authEntry } from '../lib/authFlow'
 import type { Organization } from '../types'
 import type { Membership as ClubMembership } from '../types/management'
 
@@ -50,8 +50,7 @@ export default function MyOrganizationsPage() {
       active = false
     }
   }, [token])
-  if (!token)
-    return <Navigate {...authEntry('login', { from: authPath(location) })} />
+  if (!token) return <Navigate {...authEntry('login', {})} />
   const organizations = items.flatMap(
     ({ _id: membershipId, organizationId, roles, permissions }) =>
       organizationId

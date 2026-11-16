@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { SubmitEvent } from 'react'
-import { useAuthDialog } from '../../hooks/useAuthDialog'
+import { useAuthPage } from '../../hooks/useAuthPage'
 import { useAuthToken } from '../../hooks/useAuthToken'
 import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
@@ -15,7 +15,7 @@ export function ReportDialog({
   onClose: () => void
 }) {
   const token = useAuthToken()
-  const openLogin = useAuthDialog()
+  const openLogin = useAuthPage()
   const { toast } = useToast()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')

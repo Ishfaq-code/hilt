@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useAuthDialog } from '../../hooks/useAuthDialog'
+import { useAuthPage } from '../../hooks/useAuthPage'
 import { useAuthToken } from '../../hooks/useAuthToken'
 import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
@@ -21,7 +21,7 @@ type Participation = { rsvped: boolean }
 
 export function DiscoverEventCard({ entry }: { entry: Entry }) {
   const { toast } = useToast()
-  const openLogin = useAuthDialog()
+  const openLogin = useAuthPage()
   const token = useAuthToken()
   const [participation, setParticipation] = useState<{
     token: string

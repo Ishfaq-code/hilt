@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { useAuthDialog } from '../../hooks/useAuthDialog'
 import type { AuthUser } from '../../types'
 import { CheckInCodeDialog } from '../events/CheckInCodeDialog'
 import { EventScanDialog } from '../events/EventScanDialog'
@@ -13,7 +12,6 @@ function SiteHeader({
   user: AuthUser | null
   showApply: boolean
 }) {
-  const openLogin = useAuthDialog()
   const [checkInTool, setCheckInTool] = useState<'qr' | 'scan' | null>(null)
 
   const nav = [
@@ -92,14 +90,12 @@ function SiteHeader({
             </NavLink>
           </div>
         ) : (
-          <button
-            type="button"
-            aria-haspopup="dialog"
+          <Link
+            to="/login"
             className="ml-auto inline-flex min-h-8 items-center justify-center rounded-lg border border-ink bg-ink px-3 py-1 text-sm font-semibold text-white hover:bg-active"
-            onClick={() => openLogin()}
           >
             Log in
-          </button>
+          </Link>
         )}
       </div>
       {user && checkInTool === 'qr' && (
