@@ -1,5 +1,6 @@
 import { api } from './api'
 import { eventApi } from './events'
+import { parseUrl, publicUrl } from './platform'
 
 export type CheckIn = {
   checkedInAt: string
@@ -21,12 +22,12 @@ export function readAttendeeQr(value: string) {
 
 export function eventQrValue(clubId: string, eventId: string, code: string) {
   const query = new URLSearchParams({ club: clubId, event: eventId, code })
-  return new URL('/scan?' + query, window.location.origin).href
+  return publicUrl('/scan?' + query).href
 }
 
 export function readEventQr(value: string) {
-  const url = URL.parse(value)
-  if (url?.origin !== window.location.origin || url.pathname !== '/scan') {
+  const url = parseUrl(value)
+  if (url?.origin !== publicUrl('/').origin || url.pathname !== '/scan') {
     throw new Error('Scan an event QR code.')
   }
   return eventCheckInParameters(url.searchParams)

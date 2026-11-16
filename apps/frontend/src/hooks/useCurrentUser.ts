@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useOutletContext } from 'react-router-dom'
-import { clearAuthSession, getAuthToken, getStoredUser } from '../lib/auth'
+import { api, ApiError } from '../lib/api'
+import {
+  clearWebAuthSession,
+  getAuthToken,
+  getStoredUser,
+  storeUser,
+} from '../lib/auth'
+import { isNativeApp } from '../lib/platform'
 import type { AuthUser } from '../types'
 import { useAuthToken } from './useAuthToken'
 
@@ -22,7 +29,7 @@ export function useCurrentUser() {
     (currentUser: AuthUser) => {
       if (!token || getAuthToken() !== token) return
       activeRequest.current?.abort()
-      sessionStorage.setItem('authUser', JSON.stringify(currentUser))
+      storeUser(currentUser)
       setProfile({ token, user: currentUser })
     },
     [token],
@@ -33,21 +40,19 @@ export function useCurrentUser() {
 
     const request = new AbortController()
     activeRequest.current = request
-    fetch('/api/users/me', {
-      headers: { Authorization: `Bearer ${token}` },
-      signal: request.signal,
-    })
-      .then(async (response) => {
-        if (response.status === 401 && !request.signal.aborted)
-          clearAuthSession()
-        return response.ok ? (response.json() as Promise<AuthUser>) : null
-      })
+    api<AuthUser>('/api/users/me', { signal: request.signal })
       .then((currentUser) => {
-        if (request.signal.aborted || !currentUser) return
-        updateUser(currentUser)
+        if (!request.signal.aborted) updateUser(currentUser)
       })
-      .catch(() => {
-        // keep the cached profile if the request is temporarily unavailable
+      .catch((error: unknown) => {
+        if (
+          !isNativeApp &&
+          !request.signal.aborted &&
+          error instanceof ApiError &&
+          error.status === 401 &&
+          getAuthToken() === token
+        )
+          clearWebAuthSession()
       })
     return () => request.abort()
   }, [pathname, token, updateUser])

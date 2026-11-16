@@ -1,4 +1,5 @@
 import { apiFile } from '../../lib/api'
+import { downloadFile, shareCanceled } from '../../lib/deviceShare'
 import { useMediaUrl } from '../../hooks/useMediaUrl'
 import { useToast } from '../../hooks/useToast'
 import { ImageUpload } from '../ui/ImageUpload'
@@ -45,13 +46,9 @@ export function ApplicationReviews({
 
   async function downloadDocument(name: string, link: string) {
     try {
-      const url = URL.createObjectURL(await apiFile(link))
-      const download = document.createElement('a')
-      download.href = url
-      download.download = name
-      download.click()
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+      await downloadFile(await apiFile(link), name)
     } catch (cause) {
+      if (shareCanceled(cause)) return
       toast({
         title:
           cause instanceof Error ? cause.message : 'Unable to open the file.',

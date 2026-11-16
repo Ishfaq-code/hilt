@@ -1,3 +1,4 @@
+import { mediaUrl } from '../../lib/platform'
 import type { Organization } from '../../types'
 import type { Theme } from './theme'
 import { themeFor } from './theme'
@@ -27,7 +28,7 @@ export function OrganizationAvatar({
     >
       {logo ? (
         <img
-          src={logo.link}
+          src={mediaUrl(logo.link)}
           alt=""
           className="size-full object-contain p-0.5"
         />

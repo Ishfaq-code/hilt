@@ -1,4 +1,5 @@
 import type { ManagedEvent } from '../types/management'
+import { downloadFile } from './deviceShare'
 
 function dateTime(value: string | number) {
   return new Date(value).toISOString().replace(/[-:]|\.\d{3}/g, '')
@@ -17,7 +18,7 @@ export function downloadEvent(event: ManagedEvent, url: string) {
     'VERSION:2.0',
     'PRODID:-//Hilt//Events//EN',
     'BEGIN:VEVENT',
-    'UID:' + event._id + '@' + window.location.hostname,
+    'UID:' + event._id + '@' + new URL(url).hostname,
     'DTSTAMP:' + dateTime(Date.now()),
     'DTSTART:' + dateTime(event.startDatetime),
     'DTEND:' + dateTime(event.endDatetime),
@@ -29,12 +30,8 @@ export function downloadEvent(event: ManagedEvent, url: string) {
     'END:VCALENDAR',
     '',
   ].join('\r\n')
-  const file = URL.createObjectURL(
+  return downloadFile(
     new Blob([calendar], { type: 'text/calendar;charset=utf-8' }),
+    'event.ics',
   )
-  const link = document.createElement('a')
-  link.href = file
-  link.download = 'event.ics'
-  link.click()
-  window.setTimeout(() => URL.revokeObjectURL(file), 1000)
 }

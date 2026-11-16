@@ -42,3 +42,17 @@ body {
 .member-actions button:empty {
   display: none;
 }
+
+.mobile-app #root {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.mobile-app dialog {
+  scroll-padding-top: env(safe-area-inset-top);
+  scroll-padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-app dialog header {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}

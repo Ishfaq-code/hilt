@@ -11,7 +11,8 @@ import { useAuthDialog } from '../hooks/useAuthDialog'
 import { useSiteSession } from '../hooks/useCurrentUser'
 import { useToast } from '../hooks/useToast'
 import { api } from '../lib/api'
-import { clearAuthSession } from '../lib/auth'
+import { signOut } from '../lib/auth'
+import { isNativeApp } from '../lib/platform'
 import type { AuthUser } from '../types'
 
 export default function AccountPage() {
@@ -71,9 +72,16 @@ export default function AccountPage() {
       form.reset()
   }
 
-  function signOut() {
-    clearAuthSession()
-    navigate('/', { replace: true })
+  async function logOut() {
+    try {
+      await signOut()
+      navigate(isNativeApp ? '/my-organizations' : '/', { replace: true })
+    } catch {
+      toast({
+        title: 'Couldn’t sign out. Please try again.',
+        variant: 'destructive',
+      })
+    }
   }
 
   return (
@@ -188,7 +196,11 @@ export default function AccountPage() {
       )}
       {token && (
         <div className="flex justify-end">
-          <button type="button" className={secondaryClass} onClick={signOut}>
+          <button
+            type="button"
+            className={secondaryClass}
+            onClick={() => void logOut()}
+          >
             Sign out
           </button>
         </div>

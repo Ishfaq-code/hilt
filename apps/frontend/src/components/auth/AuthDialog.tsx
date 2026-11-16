@@ -1,28 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { useToast } from '../../hooks/useToast'
+import { api } from '../../lib/api'
+import { isNativeApp } from '../../lib/platform'
 import { saveAuthSession } from '../../lib/auth'
 import type { AuthIntent, AuthMode } from '../../lib/authDialog'
 import { joinClub, myClubPath } from '../../lib/clubs'
 import type { ApiResponse } from '../../types'
 import { Dialog } from '../ui/Dialog'
-import { buttonClass, inputClass } from '../ui/styles'
+import { buttonClass, inputClass, panelClass } from '../ui/styles'
 
 async function request(
   endpoint: string,
   body: Record<string, string>,
   signal: AbortSignal,
 ) {
-  const response = await fetch(`/api/auth/${endpoint}`, {
+  return api<ApiResponse>(`/api/auth/${endpoint}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ ...body, ...(isNativeApp && { mobile: true }) }),
     signal,
   })
-  const result = (await response.json()) as ApiResponse
-  if (!response.ok)
-    throw new Error(result.error || 'Something went wrong. Please try again.')
-  return result
 }
 
 export function AuthDialog({
@@ -34,7 +31,7 @@ export function AuthDialog({
 }: {
   mode: AuthMode
   intent?: AuthIntent
-  onClose: () => void
+  onClose?: () => void
   onModeChange: (mode: AuthMode) => void
   onFinish: (destination?: string, joinError?: string) => void
 }) {
@@ -96,7 +93,7 @@ export function AuthDialog({
       if (mode === 'login') {
         const result = await request('login', { email, password }, signal)
         if (signal.aborted) return
-        saveAuthSession(result)
+        await saveAuthSession(result)
         await finish(signal)
       } else {
         const result = await request(
@@ -131,7 +128,7 @@ export function AuthDialog({
     try {
       const result = await request('verify-email', { email, code }, signal)
       if (signal.aborted) return
-      saveAuthSession(result)
+      await saveAuthSession(result)
       setMessage(
         `Welcome${result.firstName ? `, ${result.firstName}` : ''}! Your email is verified.`,
       )
@@ -155,8 +152,8 @@ export function AuthDialog({
           : 'Create account'
   const textAction = 'text-sm font-medium text-accent hover:underline'
 
-  return (
-    <Dialog title={title} onClose={onClose} compact>
+  const content = (
+    <>
       {stage === 'verify' && (
         <p className="mb-4 text-sm text-muted">
           Enter the verification code sent to <strong>{email}</strong>.
@@ -296,6 +293,26 @@ export function AuthDialog({
           </button>
         </p>
       )}
-    </Dialog>
+    </>
+  )
+
+  if (onClose) {
+    return (
+      <Dialog title={title} onClose={onClose} compact>
+        {content}
+      </Dialog>
+    )
+  }
+
+  return (
+    <main className="mx-auto max-w-md px-5 py-12">
+      <p className="mb-6 text-3xl font-bold tracking-tight">
+        Hilt<span className="text-accent">.</span>
+      </p>
+      <section className={panelClass + ' p-5'}>
+        <h1 className="mb-4 text-2xl font-semibold tracking-tight">{title}</h1>
+        {content}
+      </section>
+    </main>
   )
 }

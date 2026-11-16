@@ -1,3 +1,4 @@
+import { mediaUrl } from '../lib/platform'
 import { useEffect, useState } from 'react'
 import { apiFile } from '../lib/api'
 import { useAuthToken } from './useAuthToken'
@@ -28,6 +29,6 @@ export function useMediaUrl(src?: string | null, authenticated = false) {
     }
   }, [src, managed, token])
 
-  if (!managed) return src
+  if (!managed) return src ? mediaUrl(src) : src
   if (image && image.src === src && image.token === token) return image.url
 }

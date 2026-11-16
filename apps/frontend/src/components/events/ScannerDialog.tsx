@@ -1,4 +1,6 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
+import { isNativeApp } from '../../lib/platform'
+import { NativeQrScanner } from './NativeQrScanner'
 import { Dialog } from '../ui/Dialog'
 import { secondaryClass } from '../ui/styles'
 
@@ -12,6 +14,7 @@ export function QrScanner({
   const video = useRef<HTMLVideoElement>(null)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
+  const [nativeFallback, setNativeFallback] = useState(false)
   const scan = useEffectEvent(onScan)
 
   useEffect(() => {
@@ -80,13 +83,21 @@ export function QrScanner({
       }
     }
 
-    void startCamera()
+    if (!nativeFallback) void startCamera()
     return () => {
       active = false
       stopCamera()
       if (element) element.srcObject = null
     }
-  }, [attempt])
+  }, [attempt, nativeFallback])
+
+  if (nativeFallback)
+    return (
+      <NativeQrScanner
+        onScan={onScan}
+        onCancel={() => setNativeFallback(false)}
+      />
+    )
 
   return (
     <>
@@ -118,6 +129,15 @@ export function QrScanner({
           >
             Try again
           </button>
+          {isNativeApp && (
+            <button
+              type="button"
+              className={secondaryClass + ' ml-2'}
+              onClick={() => setNativeFallback(true)}
+            >
+              Open scanner
+            </button>
+          )}
         </div>
       )}
     </>
@@ -133,7 +153,11 @@ export function ScannerDialog({
 }) {
   return (
     <Dialog title="Scan QR" fullScreen onClose={onClose}>
-      <QrScanner onScan={onScan} />
+      {isNativeApp ? (
+        <NativeQrScanner onScan={onScan} onCancel={onClose} />
+      ) : (
+        <QrScanner onScan={onScan} />
+      )}
     </Dialog>
   )
 }

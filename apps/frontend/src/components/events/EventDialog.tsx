@@ -3,6 +3,8 @@ import { useAuthDialog } from '../../hooks/useAuthDialog'
 import { useAuthToken } from '../../hooks/useAuthToken'
 import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
+import { shareCanceled, shareLink } from '../../lib/deviceShare'
+import { publicUrl } from '../../lib/platform'
 import { downloadEvent } from '../../lib/calendar'
 import { checkIn, readEventQr } from '../../lib/checkIn'
 import type { CheckIn } from '../../lib/checkIn'
@@ -44,7 +46,7 @@ export function EventDialog({
   const signedIn = Boolean(token)
   const endpoint = eventApi(club._id, event._id)
   const path = eventPath(club._id, event._id)
-  const url = new URL(path, window.location.origin).href
+  const url = publicUrl(path).href
   const start = new Date(event.startDatetime)
   const end = new Date(event.endDatetime)
   const hasStarted = now >= start.getTime()
@@ -100,16 +102,13 @@ export function EventDialog({
     setError('')
 
     try {
-      if (navigator.share) {
-        await navigator.share(
-          event.private ? { url } : { url, title: event.name },
-        )
-      } else {
-        await navigator.clipboard.writeText(url)
-        toast({ title: 'Link copied' })
-      }
+      const result = await shareLink(
+        url,
+        event.private ? undefined : event.name,
+      )
+      if (result === 'copied') toast({ title: 'Link copied' })
     } catch (cause) {
-      if (cause instanceof DOMException && cause.name === 'AbortError') return
+      if (shareCanceled(cause)) return
       setError('Couldn’t share this event.')
     }
   }
@@ -293,7 +292,12 @@ export function EventDialog({
             <button
               type="button"
               className={textActionClass}
-              onClick={() => downloadEvent(event, url)}
+              onClick={() => {
+                void downloadEvent(event, url).catch((cause: unknown) => {
+                  if (!shareCanceled(cause))
+                    setError('Couldn’t export this event.')
+                })
+              }}
             >
               Add to calendar
             </button>

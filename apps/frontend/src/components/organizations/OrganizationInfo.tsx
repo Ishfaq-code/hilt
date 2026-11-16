@@ -1,3 +1,4 @@
+import { mediaUrl } from '../../lib/platform'
 import { useState } from 'react'
 import { clubTagOptions } from '../../lib/clubTags'
 import type { Organization } from '../../types'
@@ -77,7 +78,7 @@ export function OrganizationInfo({
                   <ImageUpload name={name} label={label} />
                   {asset && (
                     <img
-                      src={asset.link}
+                      src={mediaUrl(asset.link)}
                       alt={`Current club ${name}`}
                       className={`${size} rounded-md object-cover`}
                     />

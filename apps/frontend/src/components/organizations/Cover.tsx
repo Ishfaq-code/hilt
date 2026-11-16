@@ -1,3 +1,4 @@
+import { mediaUrl } from '../../lib/platform'
 import type { Organization } from '../../types'
 import type { Theme } from './theme'
 import { themeFor } from './theme'
@@ -22,7 +23,7 @@ export function Cover({
   if (banner)
     return (
       <img
-        src={banner.link}
+        src={mediaUrl(banner.link)}
         alt=""
         className={`block w-full object-cover ${large ? 'h-40 sm:h-48' : 'h-28'}`}
       />

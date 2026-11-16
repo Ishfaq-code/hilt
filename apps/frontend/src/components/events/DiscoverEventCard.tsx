@@ -3,6 +3,8 @@ import { useAuthDialog } from '../../hooks/useAuthDialog'
 import { useAuthToken } from '../../hooks/useAuthToken'
 import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
+import { shareCanceled, shareLink } from '../../lib/deviceShare'
+import { publicUrl } from '../../lib/platform'
 import { eventApi, eventPath, rsvpChangedEvent } from '../../lib/events'
 import type { Organization } from '../../types'
 import type { ManagedEvent } from '../../types/management'
@@ -34,7 +36,7 @@ export function DiscoverEventCard({ entry }: { entry: Entry }) {
   const { club, event } = entry
   const endpoint = eventApi(club._id, event._id)
   const path = eventPath(club._id, event._id)
-  const url = new URL(path, window.location.origin).href
+  const url = publicUrl(path).href
   const start = new Date(event.startDatetime)
   const hasStarted = now >= start.getTime()
 
@@ -66,14 +68,10 @@ export function DiscoverEventCard({ entry }: { entry: Entry }) {
   async function share() {
     setError('')
     try {
-      if (navigator.share) {
-        await navigator.share({ url, title: event.name })
-      } else {
-        await navigator.clipboard.writeText(url)
-        toast({ title: 'Link copied' })
-      }
+      const result = await shareLink(url, event.name)
+      if (result === 'copied') toast({ title: 'Link copied' })
     } catch (cause) {
-      if (cause instanceof DOMException && cause.name === 'AbortError') return
+      if (shareCanceled(cause)) return
       setError('Couldn’t share this event.')
     }
   }
