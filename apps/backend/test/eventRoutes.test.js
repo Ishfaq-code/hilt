@@ -397,13 +397,77 @@ test(
           response.data.find((entry) => entry.event._id === event.id)?.kind
         assert.equal(kind(discover, saved), 'rsvp')
         assert.equal(kind(discover, unsaved), 'other')
-        assert.equal(kind(discover, privateEvent), 'joined')
+        assert.equal(kind(discover, privateEvent), undefined)
         assert.equal(kind(discover, past), undefined)
         assert.equal(kind(mine, saved), 'rsvp')
         assert.equal(kind(mine, unsaved), undefined)
         assert.equal(kind(mine, formerMemberEvent), undefined)
         assert.equal(kind(mine, nextRange), undefined)
         assert.equal(kind(mine, past), 'joined')
+      },
+    )
+
+    await t.test(
+      'discover returns filtered public events ten at a time',
+      async () => {
+        const pagedClub = await Organization.create({
+          name: 'Pagination test club',
+          tags: ['Arts'],
+          assets: [
+            { type: 'logo', link: '/logo.png' },
+            { type: 'cover', link: '/cover.png' },
+          ],
+          events: [
+            ...Array.from({ length: 12 }, (_, index) => ({
+              name: `Public listing ${index + 1}`,
+              startDatetime: now + 2_000_000 + index * 60_000,
+              endDatetime: now + 2_600_000 + index * 60_000,
+              tags: index < 11 ? ['Workshop'] : ['Social'],
+            })),
+            {
+              name: 'Private listing',
+              startDatetime: now + 3_000_000,
+              endDatetime: now + 3_600_000,
+              private: true,
+              tags: ['Workshop'],
+            },
+          ],
+        })
+        const query = new URLSearchParams({
+          scope: 'discover',
+          club: pagedClub.id,
+        })
+        const first = await call('/api/calendar?' + query)
+        assert.equal(first.status, 200)
+        assert.equal(first.data.entries.length, 10)
+        assert.equal(first.data.hasNext, true)
+        assert.deepEqual(
+          first.data.entries[0].club.assets.map(({ type, link }) => ({
+            type,
+            link,
+          })),
+          [{ type: 'logo', link: '/logo.png' }],
+        )
+        const second = await call('/api/calendar?' + query + '&page=2')
+        assert.equal(second.data.entries.length, 2)
+        assert.equal(second.data.hasNext, false)
+        assert.ok(
+          [...first.data.entries, ...second.data.entries].every(
+            ({ event }) => !event.private,
+          ),
+        )
+
+        const filtered = await call(
+          '/api/calendar?' + query + '&eventTag=Workshop&clubTag=Arts',
+        )
+        assert.equal(filtered.data.entries.length, 10)
+        assert.ok(
+          filtered.data.entries.every(
+            ({ club, event }) =>
+              club._id === pagedClub.id && event.tags.includes('Workshop'),
+          ),
+        )
+        assert.deepEqual(filtered.data.eventTags, ['Workshop', 'Social'])
       },
     )
 
