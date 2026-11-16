@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { NativeLayout } from './components/layout/NativeLayout'
 import { SiteLayout } from './components/layout/SiteLayout'
+import { isNativeApp } from './lib/platform'
 import AccountPage from './pages/AccountPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import ApplicationPage from './pages/ApplicationPage'
@@ -14,7 +16,7 @@ import OrganizationPage from './pages/OrganizationPage'
 function App() {
   return (
     <Routes>
-      <Route element={<SiteLayout />}>
+      <Route element={isNativeApp ? <NativeLayout /> : <SiteLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<ClubSearchPage />} />
         <Route path="/login" element={<AuthEntryPage mode="login" />} />

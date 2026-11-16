@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { SubmitEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { Icon } from '../components/ui/Icon'
 import {
   buttonClass,
   inputClass,
@@ -21,6 +22,12 @@ export default function AccountPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [saving, setSaving] = useState<'profile' | 'password' | null>(null)
+  const clubTools =
+    user?.role === 'admin'
+      ? { to: '/admin', label: 'Administration' }
+      : user?.role === 'user'
+        ? { to: '/application', label: 'Club applications' }
+        : null
 
   async function save(
     section: NonNullable<typeof saving>,
@@ -102,6 +109,18 @@ export default function AccountPage() {
         </p>
       ) : (
         <>
+          {isNativeApp && clubTools && (
+            <Link
+              to={clubTools.to}
+              className={
+                panelClass +
+                ' flex min-h-14 items-center justify-between gap-3 px-4 font-semibold hover:bg-paper'
+              }
+            >
+              {clubTools.label}
+              <Icon name="chevronRight" />
+            </Link>
+          )}
           <form
             className={panelClass + ' space-y-4 p-5'}
             onSubmit={saveProfile}

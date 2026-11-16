@@ -1,12 +1,22 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
+import {
+  Link,
+  Navigate,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom'
 import { EventCalendar } from '../components/events/EventCalendar'
+import { JoinedClubList } from '../components/organizations/JoinedClubList'
 import { JoinedOrganizationDetails } from '../components/organizations/JoinedOrganizationDetails'
 import { OrganizationSidebar } from '../components/organizations/OrganizationSidebar'
+import { Icon } from '../components/ui/Icon'
+import { secondaryClass } from '../components/ui/styles'
 import { useAuthToken } from '../hooks/useAuthToken'
 import { useToast } from '../hooks/useToast'
 import { api } from '../lib/api'
 import { authEntry, authPath } from '../lib/authDialog'
+import { isNativeApp } from '../lib/platform'
 import type { Organization } from '../types'
 import type { Membership as ClubMembership } from '../types/management'
 
@@ -16,6 +26,7 @@ type Membership = Omit<ClubMembership, 'organizationId'> & {
 
 export default function MyOrganizationsPage() {
   const location = useLocation()
+  const navigate = useNavigate()
   const token = useAuthToken()
   const { toast } = useToast()
   const [params, setParams] = useSearchParams()
@@ -88,11 +99,21 @@ export default function MyOrganizationsPage() {
     }
   }
 
-  return (
-    <div className="mx-auto max-w-6xl px-4 pt-9 sm:px-8 sm:pt-13">
-      <h1 className="mb-6 text-4xl font-semibold tracking-tight sm:text-5xl">
-        My clubs
-      </h1>
+  function selectClub(id: string) {
+    setParams(
+      { club: id },
+      isNativeApp ? { state: { fromClubList: true } } : undefined,
+    )
+    setTab('Home')
+  }
+
+  function backToClubs() {
+    if (location.state?.fromClubList) navigate(-1)
+    else setParams({}, { replace: true })
+  }
+
+  const status = (
+    <>
       {loading && (
         <p role="status" className="text-sm text-muted">
           Loading your clubs…
@@ -103,6 +124,69 @@ export default function MyOrganizationsPage() {
           {error}
         </p>
       )}
+    </>
+  )
+  const details = selected && (
+    <JoinedOrganizationDetails
+      key={selected._id}
+      selected={selected}
+      tab={tab}
+      setTab={setTab}
+      leaving={leaving}
+      onLeave={() => void leaveClub(selected.membershipId, selected)}
+    />
+  )
+
+  if (isNativeApp) {
+    const calendar = params.get('view') === 'calendar'
+    const drillDown = Boolean(selected) || calendar
+    return (
+      <section className="mx-auto max-w-3xl space-y-4 px-4 pt-5">
+        {drillDown ? (
+          <button
+            type="button"
+            aria-label="Back to my clubs"
+            onClick={backToClubs}
+            className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent"
+          >
+            <Icon name="back" size={18} />
+            My clubs
+          </button>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h1 className="text-3xl font-semibold tracking-tight">My clubs</h1>
+            <Link
+              to="?view=calendar"
+              state={{ fromClubList: true }}
+              className={secondaryClass + ' min-h-11'}
+            >
+              <Icon name="calendar" />
+              Calendar
+            </Link>
+          </div>
+        )}
+        {status}
+        {!loading &&
+          !error &&
+          (details ??
+            (calendar ? (
+              <EventCalendar scope="mine" />
+            ) : (
+              <JoinedClubList
+                organizations={organizations}
+                onSelect={selectClub}
+              />
+            )))}
+      </section>
+    )
+  }
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 pt-9 sm:px-8 sm:pt-13">
+      <h1 className="mb-6 text-4xl font-semibold tracking-tight sm:text-5xl">
+        My clubs
+      </h1>
+      {status}
       {!loading && !error && (
         <div className="grid gap-4 md:grid-cols-[12rem_minmax(0,1fr)] lg:grid-cols-[13rem_minmax(0,1fr)]">
           <OrganizationSidebar
@@ -110,24 +194,10 @@ export default function MyOrganizationsPage() {
             selectedId={selectedId}
             hasSelected={Boolean(selected)}
             onHome={() => setParams({})}
-            onSelect={(id) => {
-              setParams({ club: id })
-              setTab('Home')
-            }}
+            onSelect={selectClub}
           />
           <section className="min-w-0">
-            {selected ? (
-              <JoinedOrganizationDetails
-                key={selected._id}
-                selected={selected}
-                tab={tab}
-                setTab={setTab}
-                leaving={leaving}
-                onLeave={() => void leaveClub(selected.membershipId, selected)}
-              />
-            ) : (
-              <EventCalendar scope="mine" />
-            )}
+            {details ?? <EventCalendar scope="mine" />}
           </section>
         </div>
       )}

@@ -43,9 +43,33 @@ body {
   display: none;
 }
 
+.mobile-app {
+  --native-tab-bar-height: 4rem;
+}
+
+.mobile-app body {
+  min-height: 100dvh;
+}
+
 .mobile-app #root {
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.native-shell {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+
+.native-tab-bar {
+  min-height: var(--native-tab-bar-height);
+}
+
+.mobile-app:has(.native-tab-bar) .toast-stack {
+  bottom: calc(
+    1rem + var(--native-tab-bar-height) + env(safe-area-inset-bottom)
+  );
 }
 
 .mobile-app dialog {

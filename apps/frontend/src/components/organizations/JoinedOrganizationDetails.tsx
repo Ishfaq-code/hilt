@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSiteSession } from '../../hooks/useCurrentUser'
+import { isNativeApp } from '../../lib/platform'
 import { clubPath, upcomingEvent } from '../../lib/events'
 import type { JoinedOrganization } from '../../types/management'
 import { OrganizationEventList } from '../events/OrganizationEventList'
@@ -32,6 +33,7 @@ export function JoinedOrganizationDetails({
   onLeave,
 }: Props) {
   const { user } = useSiteSession()
+  const ClubTitle = isNativeApp ? 'h1' : 'h2'
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const events = [...(selected?.events || [])].sort(
     (a, b) => Date.parse(a.startDatetime) - Date.parse(b.startDatetime),
@@ -52,9 +54,9 @@ export function JoinedOrganizationDetails({
                 {selected.tags.join(' · ')}
               </p>
             )}
-            <h2 className="text-3xl font-semibold tracking-tight">
+            <ClubTitle className="text-3xl font-semibold tracking-tight break-words">
               {selected.name}
-            </h2>
+            </ClubTitle>
           </div>
           <div className="ml-auto flex gap-2">
             {user?.role === 'user' && selected.permissions.length > 0 && (

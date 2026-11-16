@@ -61,7 +61,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         ref={container}
         popover="manual"
         aria-label="Notifications"
-        className="fixed inset-auto right-4 bottom-4 m-0 w-[calc(100%-2rem)] max-w-sm space-y-2 overflow-visible border-0 bg-transparent p-0"
+        className="toast-stack fixed inset-auto right-4 bottom-4 m-0 w-[calc(100%-2rem)] max-w-sm space-y-2 overflow-visible border-0 bg-transparent p-0"
       >
         {toasts.map(({ id, title, description, variant }) => (
           <div
