@@ -4,16 +4,11 @@ import { useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { uploadBody } from '../lib/uploads'
 import type { Application } from '../types'
-import type {
-  AdminOrganization,
-  OrgStats,
-  Stats,
-} from '../types/administration'
+import type { AdminOrganization, Stats } from '../types/administration'
 
 const nav = [
   { key: 'overview', label: 'Overview' },
   { key: 'applications', label: 'Applications' },
-  { key: 'organizations', label: 'Organizations' },
   { key: 'reports', label: 'Reports' },
 ] as const
 
@@ -35,11 +30,6 @@ export function useAdministration() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [selected, setSelected] = useState<Application | null>(null)
   const [reviewing, setReviewing] = useState(false)
-  const [organizationStats, setOrganizationStats] = useState<{
-    id: string
-    details: OrgStats
-  } | null>(null)
-  const [statsLoading, setStatsLoading] = useState('')
 
   const load = useCallback(async () => {
     const [overview, orgs, apps] = await Promise.all([
@@ -132,26 +122,6 @@ export function useAdministration() {
     }
   }
 
-  async function showStatistics(organization: AdminOrganization) {
-    setSearchParams({ tab: 'organizations' })
-    setStatsLoading(organization._id)
-    setError('')
-    try {
-      const details = await api<OrgStats>(
-        `/api/organizations/${organization._id}/statistics`,
-      )
-      setOrganizationStats({ id: organization._id, details })
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : 'Unable to load organization statistics.',
-      )
-    } finally {
-      setStatsLoading('')
-    }
-  }
-
   const matchingApplications = applications.filter(
     (application) =>
       (statusFilter === 'all' || application.status === statusFilter) &&
@@ -159,18 +129,11 @@ export function useAdministration() {
         .toLowerCase()
         .includes(query.trim().toLowerCase()),
   )
-  const matchingOrganizations = organizations.filter((organization) =>
-    [organization.name, organization.description, ...organization.tags]
-      .join(' ')
-      .toLowerCase()
-      .includes(query.trim().toLowerCase()),
-  )
   const workspaceNav = nav.map((item) => ({
     title: item.label,
     onClick: () => {
       setSearchParams({ tab: item.key })
       setSelected(null)
-      setOrganizationStats(null)
       setQuery('')
     },
   }))
@@ -184,7 +147,6 @@ export function useAdministration() {
     loading,
     error,
     stats,
-    setSearchParams,
     selected,
     setSelected,
     reviewing,
@@ -194,11 +156,6 @@ export function useAdministration() {
     statusFilter,
     setStatusFilter,
     matchingApplications,
-    organizationStats,
-    setOrganizationStats,
-    matchingOrganizations,
-    statsLoading,
-    showStatistics,
     moderate,
     organizations,
   }

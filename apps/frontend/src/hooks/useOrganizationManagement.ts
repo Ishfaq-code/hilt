@@ -5,6 +5,7 @@ import { uploadBody } from '../lib/uploads'
 import type { Organization } from '../types'
 import type { ClubPermission, ClubRole, RoleChange } from '../types/clubRoles'
 import type { EditableEvent, Member } from '../types/management'
+import type { OrgStats } from '../types/administration'
 import { useToast } from './useToast'
 
 async function getWorkspace(
@@ -19,18 +20,32 @@ async function getWorkspace(
   )
   const canReadRoster =
     permissions.includes('members') || permissions.includes('roles')
-  const [organization, members, events, roles, history] = await Promise.all([
-    api<Organization>(path, options),
-    canReadRoster ? api<Member[]>(path + '/members', options) : [],
-    permissions.includes('events') || permissions.includes('attendance')
-      ? api<EditableEvent[]>(path + '/manage/events', options)
-      : [],
-    permissions.includes('roles')
-      ? api<ClubRole[]>(path + '/roles', options)
-      : [],
-    admin ? api<RoleChange[]>(path + '/roles/history', options) : undefined,
-  ])
-  return { organization, members, events, roles, permissions, history }
+  const [organization, members, events, roles, history, statistics] =
+    await Promise.all([
+      api<Organization>(path, options),
+      canReadRoster ? api<Member[]>(path + '/members', options) : [],
+      permissions.includes('events') || permissions.includes('attendance')
+        ? api<EditableEvent[]>(path + '/manage/events', options)
+        : [],
+      permissions.includes('roles')
+        ? api<ClubRole[]>(path + '/roles', options)
+        : [],
+      admin ? api<RoleChange[]>(path + '/roles/history', options) : undefined,
+      permissions.some((permission) =>
+        ['members', 'events', 'attendance'].includes(permission),
+      )
+        ? api<OrgStats>(path + '/manage/statistics', options)
+        : undefined,
+    ])
+  return {
+    organization,
+    members,
+    events,
+    roles,
+    permissions,
+    history,
+    statistics,
+  }
 }
 
 type Workspace = Awaited<ReturnType<typeof getWorkspace>>
@@ -204,6 +219,7 @@ export function useOrganizationManagement(
 
   return {
     organization: data?.organization,
+    statistics: data?.statistics,
     permissions: data?.permissions ?? [],
     roles: data?.roles ?? [],
     history: data?.history,
