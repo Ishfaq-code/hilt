@@ -413,6 +413,10 @@ test(
         const pagedClub = await Organization.create({
           name: 'Pagination test club',
           tags: ['Arts'],
+          assets: [
+            { type: 'logo', link: '/logo.png' },
+            { type: 'cover', link: '/cover.png' },
+          ],
           events: [
             ...Array.from({ length: 12 }, (_, index) => ({
               name: `Public listing ${index + 1}`,
@@ -437,6 +441,13 @@ test(
         assert.equal(first.status, 200)
         assert.equal(first.data.entries.length, 10)
         assert.equal(first.data.hasNext, true)
+        assert.deepEqual(
+          first.data.entries[0].club.assets.map(({ type, link }) => ({
+            type,
+            link,
+          })),
+          [{ type: 'logo', link: '/logo.png' }],
+        )
         const second = await call('/api/calendar?' + query + '&page=2')
         assert.equal(second.data.entries.length, 2)
         assert.equal(second.data.hasNext, false)

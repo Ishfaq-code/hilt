@@ -2,16 +2,13 @@ import { useEffect, useState } from 'react'
 import { api } from '../../lib/api'
 import type { Organization } from '../../types'
 import type { ManagedEvent } from '../../types/management'
-import { ClubPreviewDialog } from '../organizations/ClubPreviewDialog'
 import { TagPicker } from '../organizations/TagPicker'
-import { inputClass, panelClass, secondaryClass } from '../ui/styles'
-import { EventBanner } from './EventBanner'
-import { EventDialog } from './EventDialog'
+import { inputClass, secondaryClass } from '../ui/styles'
+import { DiscoverEventCard } from './DiscoverEventCard'
 
 type Entry = {
-  club: Pick<Organization, '_id' | 'name' | 'tags'>
+  club: Pick<Organization, '_id' | 'name' | 'tags' | 'assets'>
   event: ManagedEvent
-  kind: 'other' | 'joined' | 'rsvp'
 }
 
 type Result = {
@@ -34,10 +31,6 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
   const [error, setError] = useState('')
   const [errorKey, setErrorKey] = useState('')
   const [revision, setRevision] = useState(0)
-  const [opened, setOpened] = useState<{
-    entry: Entry
-    view: 'event' | 'club'
-  } | null>(null)
 
   useEffect(() => {
     const request = new AbortController()
@@ -177,59 +170,9 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
       {!loading && !currentError && currentResult?.entries.length ? (
         <ul aria-busy={loading} className="space-y-4">
           {currentResult.entries.map((entry) => {
-            const start = new Date(entry.event.startDatetime)
             return (
               <li key={entry.club._id + ':' + entry.event._id}>
-                <article className={panelClass + ' overflow-hidden'}>
-                  <button
-                    type="button"
-                    aria-haspopup="dialog"
-                    onClick={() => setOpened({ entry, view: 'event' })}
-                    className="block w-full text-left"
-                  >
-                    <EventBanner
-                      src={entry.event.banner}
-                      className="aspect-[3/1] w-full"
-                    />
-                    <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
-                      <div className="min-w-0">
-                        <h3 className="text-xl font-bold tracking-tight sm:text-2xl">
-                          {entry.event.name}
-                        </h3>
-                        {entry.event.place && (
-                          <p className="mt-1 text-sm font-bold text-ink sm:text-base">
-                            {entry.event.place}
-                          </p>
-                        )}
-                        {entry.event.description && (
-                          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">
-                            {entry.event.description}
-                          </p>
-                        )}
-                        <p className="mt-3 text-xs font-medium text-muted">
-                          Hosted by {entry.club.name}
-                        </p>
-                      </div>
-                      <time
-                        dateTime={entry.event.startDatetime}
-                        className="shrink-0 text-sm font-bold text-ink sm:min-w-40 sm:text-right sm:text-base"
-                      >
-                        {start.toLocaleDateString(undefined, {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                        <span className="mt-1 block">
-                          {start.toLocaleTimeString([], {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </time>
-                    </div>
-                  </button>
-                </article>
+                <DiscoverEventCard entry={entry} />
               </li>
             )
           })}
@@ -257,25 +200,6 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
           Next
         </button>
       </nav>
-
-      {opened?.view === 'event' && (
-        <EventDialog
-          club={opened.entry.club}
-          event={opened.entry.event}
-          onClose={() => setOpened(null)}
-          onOpenClub={() => setOpened({ entry: opened.entry, view: 'club' })}
-        />
-      )}
-      {opened?.view === 'club' && (
-        <ClubPreviewDialog
-          clubId={opened.entry.club._id}
-          initialClub={
-            clubs.find(({ _id }) => _id === opened.entry.club._id) ??
-            opened.entry.club
-          }
-          onClose={() => setOpened(null)}
-        />
-      )}
     </section>
   )
 }

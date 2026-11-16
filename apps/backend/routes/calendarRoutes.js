@@ -81,6 +81,7 @@ router.get('/', optionalAuth, async (req, res) => {
         name: 1,
         tags: 1,
         category: 1,
+        assets: 1,
         events: {
           $filter: {
             input: '$events',
@@ -113,6 +114,9 @@ router.get('/', optionalAuth, async (req, res) => {
       _id,
       name,
       tags: tagsFor(organization.tags, organization.category),
+      assets: (organization.assets ?? []).filter(({ type }) =>
+        /logo|icon/i.test(type),
+      ),
     }
     const member = joined.has(String(_id))
     for (const event of clubEvents) {
