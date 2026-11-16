@@ -19,7 +19,6 @@ import type { ClubPermission } from '../types/clubRoles'
 const tabs = [
   { key: 'info', label: 'Info', permissions: ['settings'] },
   { key: 'events', label: 'Events', permissions: ['events', 'attendance'] },
-  { key: 'pages', label: 'Pages', permissions: ['editPages', 'publishPages'] },
   { key: 'members', label: 'Members', permissions: ['members'] },
   { key: 'roles', label: 'Roles', permissions: ['roles'] },
   {
@@ -173,7 +172,7 @@ function OrganizationManagementWorkspace({
           undo={management.undoRole}
         />
       )}
-      {(active?.key === 'statistics' || active?.key === 'pages') && (
+      {active?.key === 'statistics' && (
         <section>
           <h1 className="mb-3 text-3xl font-semibold tracking-tight">
             {active.label}
