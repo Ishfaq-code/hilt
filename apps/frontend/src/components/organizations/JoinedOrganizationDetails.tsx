@@ -91,8 +91,6 @@ export function JoinedOrganizationDetails({
           <OrganizationSummary
             organization={selected}
             upcoming={upcomingEvent(events)}
-            eventCount={events.length}
-            onShowEvents={() => setTab('Events')}
           />
         )}
         <div className="flex flex-wrap justify-end gap-x-4 border-t border-line py-3">
