@@ -1,15 +1,14 @@
 const express = require('express')
-const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 const passwordService = require('../services/passwordService')
 const passwordValidationService = require('../services/passwordValidationService')
 const PendingRegistration = require('../models/PendingRegistration')
 const emailService = require('../services/emailService')
+const { signIn, renewSession, revokeSession } = require('../services/authSessions')
 const crypto = require('node:crypto')
 const { rateLimit } = require('express-rate-limit')
 
 const router = express.Router()
-const tokenLifetime = '1h'
 const verificationLifetimeMs = 10 * 60 * 1000
 const maxVerificationAttempts = 5
 const verificationRequestLimit = rateLimit({
@@ -46,13 +45,27 @@ router.post('/login', async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid email or password.' })
     }
 
-    const role = user.appRole
-    const token = jwt.sign({ sub: user.id, role }, process.env.JWT_SECRET, { expiresIn: tokenLifetime })
-
-    return res.status(200).json({ firstName: user.firstName, lastName: user.lastName, role, token })
+    const result = await signIn(user, req.body.mobile === true)
+    return res.set('Cache-Control', 'no-store').status(200).json(result)
   } catch (error) {
     return next(error)
   }
+})
+
+router.post('/mobile/refresh', async (req, res) => {
+  res.set('Cache-Control', 'no-store')
+  if (!process.env.JWT_SECRET)
+    return res.status(500).json({ error: 'Authentication is not configured.' })
+
+  const session = await renewSession(req.body?.refreshToken)
+  if (!session)
+    return res.status(401).json({ error: 'Your session ended. Log in again.' })
+  return res.json(session)
+})
+
+router.post('/mobile/logout', async (req, res) => {
+  await revokeSession(req.body?.refreshToken)
+  return res.status(204).end()
 })
 
 router.post('/register', verificationRequestLimit, async (req, res, next) => {
@@ -145,9 +158,8 @@ router.post('/verify-email', verificationRequestLimit, async (req, res, next) =>
       passwordHash: pending.passwordHash,
     })
     await PendingRegistration.deleteOne({ _id: pending._id })
-    const role = user.appRole
-    const token = jwt.sign({ sub: user.id, role }, process.env.JWT_SECRET, { expiresIn: tokenLifetime })
-    return res.status(201).json({ firstName: user.firstName, lastName: user.lastName, role, token })
+    const result = await signIn(user, req.body.mobile === true)
+    return res.set('Cache-Control', 'no-store').status(201).json(result)
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({ error: 'An account with that email already exists.' })

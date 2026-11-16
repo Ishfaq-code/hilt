@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema(
       default: 'user',
       required: true,
     },
+    mobileSessionVersion: { type: Number, default: 0 },
     passwordHash: {
       type: String,
       select: false,

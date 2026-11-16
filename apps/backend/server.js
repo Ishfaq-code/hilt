@@ -4,6 +4,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const User = require('./models/User')
 const Membership = require('./models/Membership')
+const MobileSession = require('./models/MobileSession')
 const PendingRegistration = require('./models/PendingRegistration')
 const EventRsvp = require('./models/EventRsvp')
 const EventAttendance = require('./models/EventAttendance')
@@ -18,11 +19,13 @@ const eventRoutes = require('./routes/eventRoutes')
 const clubRoleRoutes = require('./routes/clubRoleRoutes')
 const calendarRoutes = require('./routes/calendarRoutes')
 const mediaRoutes = require('./routes/mediaRoutes')
+const mobileCors = require('./middleware/mobileCors')
 
 const app = express()
 const port = process.env.PORT || 3000
 const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/HiltDB'
 app.disable('x-powered-by')
+app.use('/api', mobileCors)
 app.use(express.json())
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
@@ -69,6 +72,7 @@ async function start() {
   await Promise.all([
     User.init(),
     Membership.init(),
+    MobileSession.init(),
     PendingRegistration.init(),
     EventRsvp.init(),
     EventAttendance.init(),

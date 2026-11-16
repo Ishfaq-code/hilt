@@ -111,10 +111,12 @@ router.patch('/me', requireAuth, async (req, res, next) => {
       req.user.email = updates.email.trim().toLowerCase()
     if (Object.hasOwn(updates, 'phoneNumber'))
       req.user.phoneNumber = updates.phoneNumber?.trim() || null
-    if (Object.hasOwn(updates, 'password'))
+    if (Object.hasOwn(updates, 'password')) {
+      req.user.$inc('mobileSessionVersion', 1)
       req.user.passwordHash = await passwordService.hashPassword(
         updates.password,
       )
+    }
 
     await req.user.save()
     return res.status(200).json({
