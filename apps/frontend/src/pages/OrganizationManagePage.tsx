@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import {
   Navigate,
   useLocation,
@@ -16,16 +16,22 @@ import { useOrganizationManagement } from '../hooks/useOrganizationManagement'
 import { authEntry } from '../lib/authFlow'
 import type { ClubPermission } from '../types/clubRoles'
 
+const OrganizationStatistics = lazy(() =>
+  import('../components/organizations/OrganizationStatistics').then(
+    (module) => ({ default: module.OrganizationStatistics }),
+  ),
+)
+
 const tabs = [
+  {
+    key: 'overview',
+    label: 'Overview',
+    permissions: ['members', 'events', 'attendance'],
+  },
   { key: 'info', label: 'Info', permissions: ['settings'] },
   { key: 'events', label: 'Events', permissions: ['events', 'attendance'] },
   { key: 'members', label: 'Members', permissions: ['members'] },
   { key: 'roles', label: 'Roles', permissions: ['roles'] },
-  {
-    key: 'statistics',
-    label: 'Statistics',
-    permissions: ['events', 'attendance'],
-  },
 ] satisfies { key: string; label: string; permissions: ClubPermission[] }[]
 
 export default function OrganizationManagePage({
@@ -45,7 +51,7 @@ export default function OrganizationManagePage({
       </p>
     )
   if (user.role === 'admin' && !admin)
-    return <Navigate to="/admin?tab=organizations" replace />
+    return <Navigate to="/admin?tab=overview" replace />
   if (user.role !== 'admin' && admin)
     return (
       <Navigate
@@ -96,10 +102,13 @@ function OrganizationManagementWorkspace({
   const visible = tabs.filter((tab) =>
     tab.permissions.some((permission) => permissions.includes(permission)),
   )
-  const active =
-    visible.find((tab) => tab.key === searchParams.get('tab')) ?? visible[0]
+  const requestedTab =
+    searchParams.get('tab') === 'statistics'
+      ? 'overview'
+      : searchParams.get('tab')
+  const active = visible.find((tab) => tab.key === requestedTab) ?? visible[0]
   const back = admin
-    ? { title: 'Back to organizations', to: '/admin?tab=organizations' }
+    ? { title: 'Back to overview', to: '/admin?tab=overview' }
     : { title: 'Back to my clubs', to: '/my-organizations' }
   const nav = visible.map(({ key, label }) => ({
     title: label,
@@ -171,13 +180,12 @@ function OrganizationManagementWorkspace({
           undo={management.undoRole}
         />
       )}
-      {active?.key === 'statistics' && (
-        <section>
-          <h1 className="mb-3 text-3xl font-semibold tracking-tight">
-            {active.label}
-          </h1>
-          <p className="text-sm text-muted">Under construction</p>
-        </section>
+      {active?.key === 'overview' && (
+        <Suspense
+          fallback={<p className="text-sm text-muted">Loading charts…</p>}
+        >
+          <OrganizationStatistics statistics={management.statistics} />
+        </Suspense>
       )}
       {previewOpen && (
         <ClubPreviewDialog

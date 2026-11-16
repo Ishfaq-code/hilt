@@ -2,6 +2,8 @@ const express = require('express')
 const mongoose = require('mongoose')
 const ClubReport = require('../models/ClubReport')
 const Membership = require('../models/Membership')
+const EventAttendance = require('../models/EventAttendance')
+const EventRsvp = require('../models/EventRsvp')
 const Organization = require('../models/Organization')
 const User = require('../models/User')
 const requireAppAdmin = require('../middleware/requireAppAdmin')
@@ -126,6 +128,76 @@ router.get(
             }
           }),
       )
+    } catch (error) {
+      return next(error)
+    }
+  },
+)
+
+router.get(
+  '/:organizationId/manage/statistics',
+  requireAuth,
+  requireClubPermission('members', 'events', 'attendance'),
+  async (req, res, next) => {
+    try {
+      const organization = await Organization.findById(req.params.organizationId)
+        .select('name membershipFee events')
+        .lean()
+      if (!organization)
+        return res.status(404).json({ error: 'Club not found.' })
+
+      const [membershipStats, attendanceStats, rsvpStats] = await Promise.all([
+        Membership.aggregate([
+          { $match: { organizationId: organization._id } },
+          {
+            $group: {
+              _id: null,
+              totalMembers: { $sum: 1 },
+              paidMembers: { $sum: { $cond: ['$isPaid', 1, 0] } },
+            },
+          },
+        ]),
+        EventAttendance.aggregate([
+          {
+            $match: {
+              organizationId: organization._id,
+              $or: [{ reversedAt: null }, { reversedAt: { $exists: false } }],
+            },
+          },
+          { $group: { _id: '$eventId', attendance: { $sum: 1 } } },
+        ]),
+        EventRsvp.aggregate([
+          { $match: { organizationId: organization._id } },
+          { $group: { _id: '$eventId', rsvps: { $sum: 1 } } },
+        ]),
+      ])
+      const { totalMembers = 0, paidMembers = 0 } = membershipStats[0] || {}
+      const eventAttendance = new Map(
+        attendanceStats.map((item) => [String(item._id), item.attendance]),
+      )
+      const eventRsvps = new Map(
+        rsvpStats.map((item) => [String(item._id), item.rsvps]),
+      )
+      return res.status(200).json({
+        organizationId: organization._id,
+        name: organization.name,
+        membershipFee: organization.membershipFee || 0,
+        totalMembers,
+        paidMembers,
+        unpaidMembers: totalMembers - paidMembers,
+        currentRevenue: paidMembers * (organization.membershipFee || 0),
+        projectedRevenue: totalMembers * (organization.membershipFee || 0),
+        eventAttendance: (organization.events || [])
+          .filter((event) => event.status !== 'draft')
+          .map((event) => ({
+            eventId: event._id,
+            name: event.name || 'Untitled event',
+            startDatetime: event.startDatetime,
+            endDatetime: event.endDatetime,
+            attendance: eventAttendance.get(String(event._id)) || 0,
+            rsvpCount: eventRsvps.get(String(event._id)) || 0,
+          })),
+      })
     } catch (error) {
       return next(error)
     }

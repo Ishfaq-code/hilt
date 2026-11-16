@@ -1,11 +1,15 @@
+import { lazy, Suspense } from 'react'
 import { Workspace } from '../components/layout/Workspace'
 
-import { AdminOverview } from '../components/admin/AdminOverview'
 import { ApplicationReviews } from '../components/admin/ApplicationReviews'
-import { OrganizationModeration } from '../components/admin/OrganizationModeration'
-import { PlatformStatistics } from '../components/admin/PlatformStatistics'
 import { Reports } from '../components/admin/Reports'
 import { useAdministration } from '../hooks/useAdministration'
+
+const PlatformStatistics = lazy(() =>
+  import('../components/admin/PlatformStatistics').then((module) => ({
+    default: module.PlatformStatistics,
+  })),
+)
 
 export default function AdminDashboardPage() {
   const administration = useAdministration()
@@ -27,10 +31,17 @@ export default function AdminDashboardPage() {
         <p className="text-sm text-muted">Loading administration data…</p>
       )}
       {!loading && activeTab === 'overview' && (
-        <AdminOverview
-          stats={administration.stats}
-          setSearchParams={administration.setSearchParams}
-        />
+        <>
+          <Suspense
+            fallback={<p className="text-sm text-muted">Loading charts…</p>}
+          >
+            <PlatformStatistics
+              stats={administration.stats}
+              organizations={administration.organizations}
+              moderate={administration.moderate}
+            />
+          </Suspense>
+        </>
       )}
       {!loading && activeTab === 'applications' && (
         <ApplicationReviews
@@ -45,26 +56,7 @@ export default function AdminDashboardPage() {
           matchingApplications={administration.matchingApplications}
         />
       )}
-      {!loading && activeTab === 'organizations' && (
-        <OrganizationModeration
-          organizationStats={administration.organizationStats}
-          setOrganizationStats={administration.setOrganizationStats}
-          query={administration.query}
-          setQuery={administration.setQuery}
-          matchingOrganizations={administration.matchingOrganizations}
-          statsLoading={administration.statsLoading}
-          showStatistics={administration.showStatistics}
-          moderate={administration.moderate}
-        />
-      )}
       {!loading && activeTab === 'reports' && <Reports />}
-      {!loading && activeTab === 'statistics' && (
-        <PlatformStatistics
-          stats={administration.stats}
-          organizations={administration.organizations}
-          showStatistics={administration.showStatistics}
-        />
-      )}
     </Workspace>
   )
 }

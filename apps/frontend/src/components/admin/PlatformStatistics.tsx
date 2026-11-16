@@ -1,59 +1,123 @@
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import MetricCard from '../ui/MetricCard'
-import { panelClass } from '../ui/styles'
+import { AdminStatisticsTables } from './AdminStatisticsTables'
+import { StatisticsChart } from './StatisticsChart'
 
 import type { Administration } from '../../hooks/useAdministration'
 
-type Props = Pick<Administration, 'stats' | 'organizations' | 'showStatistics'>
+type Props = Pick<Administration, 'stats' | 'organizations' | 'moderate'>
 
-export function PlatformStatistics({
-  stats,
-  organizations,
-  showStatistics,
-}: Props) {
+const applicationColors = ['#168a73', '#c75a5a', '#e5a23d']
+
+export function PlatformStatistics({ stats, organizations, moderate }: Props) {
   return (
     <section>
-      <h1 className="text-3xl font-semibold tracking-tight">
-        Application statistics
-      </h1>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {stats && (
-          <>
+      {stats && (
+        <>
+          <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-              label="Total organizations"
+              label="Total Number of Users"
+              value={stats.users}
+              centered
+            />
+            <MetricCard
+              label="Total Number of Organizations"
               value={stats.organizations}
+              centered
             />
-            <MetricCard label="Total users" value={stats.users} />
-            <MetricCard label="Memberships" value={stats.memberships} />
-            <MetricCard label="Applications" value={stats.applications} />
             <MetricCard
-              label="Pending review"
-              value={stats.pendingApplications}
+              label="Total Number of Events"
+              value={stats.totalEvents}
+              centered
             />
-          </>
-        )}
-      </div>
-      <h2 className="mt-8 mb-3 text-xl font-semibold">Organization activity</h2>
-      <ul className={`${panelClass} divide-y divide-line`}>
-        {organizations.map((organization) => (
-          <li
-            key={organization._id}
-            className="flex flex-wrap items-center justify-between gap-3 p-4"
-          >
-            <span className="font-semibold">{organization.name}</span>
-            <span className="text-sm text-muted">
-              {organization.memberCount}{' '}
-              {organization.memberCount === 1 ? 'member' : 'members'} ·{' '}
-              {organization.events?.length || 0} events
-            </span>
-            <button
-              className="text-sm font-semibold text-accent hover:underline"
-              onClick={() => void showStatistics(organization)}
-            >
-              View statistics
-            </button>
-          </li>
-        ))}
-      </ul>
+            <MetricCard
+              label="Total Number of Applications"
+              value={stats.applications}
+              centered
+            />
+          </div>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <StatisticsChart title="Members in Organizations">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      {
+                        name: 'In an organization',
+                        value: stats.membersWithOrganizations,
+                      },
+                      {
+                        name: 'Not in an organization',
+                        value: stats.membersWithoutOrganizations,
+                      },
+                    ]}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={58}
+                    outerRadius={88}
+                    paddingAngle={3}
+                    label
+                  >
+                    <Cell fill="#168a73" />
+                    <Cell fill="#a8b2bf" />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </StatisticsChart>
+
+            <StatisticsChart title="Organization applications">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[
+                    {
+                      status: 'Approved',
+                      count: stats.applicationStatuses.approved,
+                    },
+                    {
+                      status: 'Rejected',
+                      count: stats.applicationStatuses.denied,
+                    },
+                    {
+                      status: 'Pending',
+                      count: stats.applicationStatuses.pending,
+                    },
+                  ]}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="status" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar
+                    dataKey="count"
+                    name="Applications"
+                    radius={[4, 4, 0, 0]}
+                  >
+                    {applicationColors.map((color) => (
+                      <Cell key={color} fill={color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </StatisticsChart>
+          </div>
+        </>
+      )}
+      <AdminStatisticsTables
+        organizations={organizations}
+        moderate={moderate}
+      />
     </section>
   )
 }
