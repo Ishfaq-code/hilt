@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { Organization } from '../../types'
 import { Icon } from '../ui/Icon'
 import { panelClass } from '../ui/styles'
@@ -7,9 +8,11 @@ import OrganizationCard from './OrganizationCard'
 export function OrganizationRow({
   title,
   organizations,
+  viewAllTo,
 }: {
   title: string
   organizations: Organization[]
+  viewAllTo?: string
 }) {
   const list = useRef<HTMLUListElement>(null)
   const [canScroll, setCanScroll] = useState({ back: false, forward: false })
@@ -36,7 +39,17 @@ export function OrganizationRow({
   return (
     <section className="mt-8 min-w-0">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+          {viewAllTo && (
+            <Link
+              to={viewAllTo}
+              className="text-sm font-semibold text-accent hover:underline"
+            >
+              View all
+            </Link>
+          )}
+        </div>
         {(canScroll.back || canScroll.forward) && (
           <div className="flex gap-1.5">
             {(['back', 'forward'] as const).map((direction) => (

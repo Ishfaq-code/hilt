@@ -7,6 +7,7 @@ export type Organization = {
   tags: string[]
   profile?: string | null
   membershipFee?: number
+  memberCount?: number
   assets?: { _id?: string; type: string; link: string }[]
   events?: {
     _id: string

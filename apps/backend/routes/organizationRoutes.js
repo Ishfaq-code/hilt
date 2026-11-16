@@ -37,11 +37,79 @@ const editableFields = new Set([
 
 router.get('/', async (req, res, next) => {
   try {
-    const organizations = await Organization.find(
-      {},
-      'name description tags category profile assets membershipFee',
-    ).lean()
-    return res.status(200).json(organizations.map(withClubTags))
+    const paginated =
+      req.query.page !== undefined || req.query.limit !== undefined
+    const page = Number(req.query.page ?? 1)
+    const limit = Number(req.query.limit ?? 12)
+    if (
+      paginated &&
+      (!Number.isSafeInteger(page) ||
+        page < 1 ||
+        !Number.isSafeInteger(limit) ||
+        limit !== 12)
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'Choose a valid organization page.' })
+    }
+    const search =
+      typeof req.query.search === 'string' ? req.query.search.trim() : ''
+    const category =
+      typeof req.query.category === 'string' ? req.query.category.trim() : ''
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const filter = search
+      ? {
+          $or: [
+            { name: { $regex: escapedSearch, $options: 'i' } },
+            { description: { $regex: escapedSearch, $options: 'i' } },
+          ],
+        }
+      : {}
+    if (category) {
+      const escapedCategory = category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const categoryCondition = {
+        $or: [
+          { tags: { $regex: `^${escapedCategory}$`, $options: 'i' } },
+          { category: { $regex: `^${escapedCategory}$`, $options: 'i' } },
+        ],
+      }
+      if (search) {
+        filter.$and = [{ $or: filter.$or }, categoryCondition]
+        delete filter.$or
+      }
+      else Object.assign(filter, categoryCondition)
+    }
+    const [organizations, membershipCounts, total] = await Promise.all([
+      Organization.find(
+        filter,
+        'name description tags category profile assets membershipFee',
+      )
+        .sort({ name: 1 })
+        .skip(paginated ? (page - 1) * limit : 0)
+        .limit(paginated ? limit : 0)
+        .lean(),
+      Membership.aggregate([
+        { $group: { _id: '$organizationId', memberCount: { $sum: 1 } } },
+      ]),
+      paginated ? Organization.countDocuments(filter) : 0,
+    ])
+    const membersByOrganization = new Map(
+      membershipCounts.map(({ _id, memberCount }) => [
+        String(_id),
+        memberCount,
+      ]),
+    )
+    const result = organizations.map((organization) => ({
+      ...withClubTags(organization),
+      memberCount: membersByOrganization.get(String(organization._id)) || 0,
+    }))
+    if (!paginated) return res.status(200).json(result)
+    return res.status(200).json({
+      organizations: result,
+      page,
+      total,
+      hasNext: total > page * limit,
+    })
   } catch (error) {
     return next(error)
   }

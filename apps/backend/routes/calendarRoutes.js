@@ -7,7 +7,8 @@ const { tagsFor, withEventTags } = require('../services/tags')
 
 const router = express.Router()
 const maxRange = 32 * 24 * 60 * 60 * 1000
-const pageSize = 10
+const defaultDiscoverPageSize = 5
+const allEventsPageSize = 10
 
 function readDate(value) {
   return typeof value === 'string' ? Date.parse(value) : NaN
@@ -17,6 +18,7 @@ router.get('/', optionalAuth, async (req, res) => {
   const { scope = 'discover' } = req.query
   const discover = scope === 'discover'
   const page = Number(req.query.page ?? 1)
+  const pageSize = Number(req.query.limit ?? defaultDiscoverPageSize)
   const start =
     discover && !req.query.start ? Date.now() : readDate(req.query.start)
   const end = discover && !req.query.end ? Infinity : readDate(req.query.end)
@@ -36,6 +38,13 @@ router.get('/', optionalAuth, async (req, res) => {
   if (discover && (!Number.isSafeInteger(page) || page < 1)) {
     return res.status(400).json({ error: 'Choose a valid event page.' })
   }
+  if (
+    discover &&
+    (!Number.isSafeInteger(pageSize) ||
+      ![defaultDiscoverPageSize, allEventsPageSize].includes(pageSize))
+  ) {
+    return res.status(400).json({ error: 'Choose a valid event page size.' })
+  }
   if (scope === 'mine' && !req.user) {
     return res.status(401).json({ error: 'Authentication is required.' })
   }
@@ -54,9 +63,25 @@ router.get('/', optionalAuth, async (req, res) => {
     rsvps.map(({ organizationId, eventId }) => organizationId + ':' + eventId),
   )
 
+  const dateFrom =
+    discover && typeof req.query.dateFrom === 'string'
+      ? Math.max(Date.parse(req.query.dateFrom + 'T00:00:00'), start)
+      : start
+  const dateTo =
+    discover && typeof req.query.dateTo === 'string'
+      ? Date.parse(req.query.dateTo + 'T00:00:00') + 24 * 60 * 60 * 1000
+      : end
+  if (
+    discover &&
+    ((!Number.isFinite(dateFrom) && dateFrom !== -Infinity) ||
+      (!Number.isFinite(dateTo) && dateTo !== Infinity) ||
+      dateTo <= dateFrom)
+  ) {
+    return res.status(400).json({ error: 'Choose a valid event date range.' })
+  }
   const dates = {
-    $gte: new Date(start),
-    ...(Number.isFinite(end) ? { $lt: new Date(end) } : {}),
+    $gte: new Date(dateFrom),
+    ...(Number.isFinite(dateTo) ? { $lt: new Date(dateTo) } : {}),
   }
   const window = { startDatetime: dates }
   if (discover) {
@@ -172,11 +197,38 @@ router.get('/', optionalAuth, async (req, res) => {
       )
     })
     const eventTags = [...new Set(entries.flatMap(({ event }) => event.tags))]
+    const rsvpCounts = await Rsvp.aggregate([
+      {
+        $group: {
+          _id: { organizationId: '$organizationId', eventId: '$eventId' },
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    const countsByEvent = new Map(
+      rsvpCounts.map(({ _id, count }) => [
+        String(_id.organizationId) + ':' + String(_id.eventId),
+        count,
+      ]),
+    )
+    filtered.sort((a, b) => {
+      const aCount =
+        countsByEvent.get(String(a.club._id) + ':' + a.event._id) || 0
+      const bCount =
+        countsByEvent.get(String(b.club._id) + ':' + b.event._id) || 0
+      return bCount - aCount || a.event.startDatetime - b.event.startDatetime
+    })
     const offset = (page - 1) * pageSize
     res.set('Cache-Control', 'private, no-store').json({
-      entries: filtered.slice(offset, offset + pageSize),
+      entries: filtered.slice(offset, offset + pageSize).map((entry) => ({
+        ...entry,
+        rsvpCount:
+          countsByEvent.get(String(entry.club._id) + ':' + entry.event._id) ||
+          0,
+      })),
       page,
       hasNext: filtered.length > offset + pageSize,
+      total: filtered.length,
       eventTags,
     })
     return

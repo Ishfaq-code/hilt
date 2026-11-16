@@ -7,7 +7,9 @@ import AuthEntryPage from './pages/AuthEntryPage'
 import CheckInPage from './pages/CheckInPage'
 import ClubSearchPage from './pages/ClubSearchPage'
 import HomePage from './pages/HomePage'
+import EventsPage from './pages/EventsPage'
 import MyOrganizationsPage from './pages/MyOrganizationsPage'
+import OrganizationsPage from './pages/OrganizationsPage'
 import OrganizationManagePage from './pages/OrganizationManagePage'
 import OrganizationPage from './pages/OrganizationPage'
 
@@ -17,6 +19,8 @@ function App() {
       <Route element={<SiteLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<ClubSearchPage />} />
+        <Route path="/organizations" element={<OrganizationsPage />} />
+        <Route path="/events" element={<EventsPage />} />
         <Route path="/login" element={<AuthEntryPage mode="login" />} />
         <Route path="/register" element={<AuthEntryPage mode="register" />} />
         <Route path="/qr" element={<CheckInPage key="qr" mode="qr" />} />

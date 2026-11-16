@@ -8,20 +8,38 @@ import { panelClass } from '../ui/styles'
 type Props = {
   organization: Organization
   upcoming?: ManagedEvent
-  eventCount: number
-  onShowEvents: () => void
 }
 
-export function OrganizationSummary({
-  organization,
-  upcoming,
-  eventCount,
-  onShowEvents,
-}: Props) {
+export function OrganizationSummary({ organization, upcoming }: Props) {
   return (
-    <div className="grid gap-6 py-6 sm:grid-cols-[2fr_1fr]">
+    <div className="space-y-6 py-6">
       <section>
-        <h2 className="mb-3 text-xl font-semibold">Next up</h2>
+        <h2 className="mb-3 text-xl font-semibold">About</h2>
+        <p className="text-sm leading-relaxed text-muted">
+          {organization.description ||
+            'Learn more about this organization and connect with its members.'}
+        </p>
+        {organization.profile && (
+          <a
+            href={organization.profile}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:underline"
+          >
+            Website <Icon name="arrow" size={14} />
+          </a>
+        )}
+      </section>
+      <section>
+        <h2 className="mb-3 text-xl font-semibold">Membership Fee</h2>
+        <div className="inline-flex min-w-48 items-center rounded-xl border border-accent/25 bg-soft px-5 py-4 text-2xl font-bold text-accent">
+          {organization.membershipFee
+            ? `$${organization.membershipFee}`
+            : 'Free'}
+        </div>
+      </section>
+      <section>
+        <h2 className="mb-3 text-xl font-semibold">Next Up</h2>
         {upcoming ? (
           <div className={panelClass + ' overflow-hidden'}>
             <EventBanner
@@ -58,38 +76,6 @@ export function OrganizationSummary({
           </div>
         ) : (
           <p className="text-sm text-muted">No upcoming events.</p>
-        )}
-        {eventCount > (upcoming ? 1 : 0) && (
-          <button
-            type="button"
-            onClick={onShowEvents}
-            className="mt-3 inline-block text-sm font-semibold text-accent hover:underline"
-          >
-            All events →
-          </button>
-        )}
-      </section>
-      <section>
-        <h2 className="mb-3 text-xl font-semibold">About</h2>
-        <p className="text-sm leading-relaxed text-muted">
-          {organization.description ||
-            'Learn more about this organization and connect with its members.'}
-        </p>
-        <p className="mt-4 text-sm text-muted">
-          Membership dues:{' '}
-          {organization.membershipFee
-            ? `$${organization.membershipFee}`
-            : 'Free'}
-        </p>
-        {organization.profile && (
-          <a
-            href={organization.profile}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:underline"
-          >
-            Website <Icon name="arrow" size={14} />
-          </a>
         )}
       </section>
     </div>

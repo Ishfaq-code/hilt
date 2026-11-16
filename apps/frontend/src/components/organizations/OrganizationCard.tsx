@@ -38,6 +38,12 @@ export default function OrganizationCard({
             {organization.tags.join(' · ')}
           </p>
         )}
+        {organization.memberCount !== undefined && (
+          <p className="mt-2 text-xs font-medium text-muted">
+            {organization.memberCount}{' '}
+            {organization.memberCount === 1 ? 'member' : 'members'}
+          </p>
+        )}
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">
           {organization.description ||
             'Connect with other students around shared interests and ideas.'}

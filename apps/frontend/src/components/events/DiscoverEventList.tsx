@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api } from '../../lib/api'
 import type { Organization } from '../../types'
 import type { ManagedEvent } from '../../types/management'
@@ -9,12 +10,14 @@ import { DiscoverEventCard } from './DiscoverEventCard'
 type Entry = {
   club: Pick<Organization, '_id' | 'name' | 'tags' | 'assets'>
   event: ManagedEvent
+  rsvpCount: number
 }
 
 type Result = {
   entries: Entry[]
   page: number
   hasNext: boolean
+  total: number
   eventTags: string[]
 }
 const emptyFilters = {
@@ -24,8 +27,20 @@ const emptyFilters = {
   club: '',
 }
 
-export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
+export function DiscoverEventList({
+  clubs,
+  pageSize = 5,
+  title = 'Most RSVPed upcoming events',
+  viewAllTo,
+}: {
+  clubs: Organization[]
+  pageSize?: 5 | 10
+  title?: string
+  viewAllTo?: string
+}) {
   const [filters, setFilters] = useState(emptyFilters)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
   const [result, setResult] = useState<{ key: string; data: Result }>()
   const [error, setError] = useState('')
@@ -37,9 +52,12 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
     const params = new URLSearchParams({
       scope: 'discover',
       page: String(page),
+      limit: String(pageSize),
     })
     if (filters.text.trim()) params.set('search', filters.text.trim())
     if (filters.club) params.set('club', filters.club)
+    if (dateFrom) params.set('dateFrom', dateFrom)
+    if (dateTo) params.set('dateTo', dateTo)
     filters.clubTags.forEach((tag) => params.append('clubTag', tag))
     filters.eventTags.forEach((tag) => params.append('eventTag', tag))
     const query = params.toString()
@@ -60,7 +78,7 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
         }
       })
     return () => request.abort()
-  }, [filters, page, revision])
+  }, [filters, dateFrom, dateTo, page, pageSize, revision])
 
   function updateFilter<Key extends keyof typeof emptyFilters>(
     key: Key,
@@ -71,9 +89,15 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
   }
 
   const clubTags = [...new Set(clubs.flatMap((club) => club.tags))]
-  const params = new URLSearchParams({ scope: 'discover', page: String(page) })
+  const params = new URLSearchParams({
+    scope: 'discover',
+    page: String(page),
+    limit: String(pageSize),
+  })
   if (filters.text.trim()) params.set('search', filters.text.trim())
   if (filters.club) params.set('club', filters.club)
+  if (dateFrom) params.set('dateFrom', dateFrom)
+  if (dateTo) params.set('dateTo', dateTo)
   filters.clubTags.forEach((tag) => params.append('clubTag', tag))
   filters.eventTags.forEach((tag) => params.append('eventTag', tag))
   const queryKey = params.toString() + ':' + revision
@@ -85,18 +109,28 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
   return (
     <section aria-label="Upcoming events" className="mt-10 min-w-0">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Upcoming events
-        </h2>
+        <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+        {viewAllTo && (
+          <Link
+            to={viewAllTo}
+            className="text-sm font-semibold text-accent hover:underline"
+          >
+            View all
+          </Link>
+        )}
         {(filters.text ||
           filters.clubTags.length ||
           filters.eventTags.length ||
-          filters.club) && (
+          filters.club ||
+          dateFrom ||
+          dateTo) && (
           <button
             type="button"
             className="text-sm font-semibold text-accent hover:underline"
             onClick={() => {
               setFilters(emptyFilters)
+              setDateFrom('')
+              setDateTo('')
               setPage(1)
             }}
           >
@@ -140,6 +174,36 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
               </option>
             ))}
         </select>
+        {pageSize === 10 && (
+          <>
+            <label className="col-span-1 text-xs text-muted">
+              From
+              <input
+                type="date"
+                aria-label="Events from date"
+                className={inputClass + ' mt-1'}
+                value={dateFrom}
+                onChange={(change) => {
+                  setDateFrom(change.target.value)
+                  setPage(1)
+                }}
+              />
+            </label>
+            <label className="col-span-1 text-xs text-muted">
+              Through
+              <input
+                type="date"
+                aria-label="Events through date"
+                className={inputClass + ' mt-1'}
+                value={dateTo}
+                onChange={(change) => {
+                  setDateTo(change.target.value)
+                  setPage(1)
+                }}
+              />
+            </label>
+          </>
+        )}
       </div>
 
       {currentError && (
@@ -178,28 +242,35 @@ export function DiscoverEventList({ clubs }: { clubs: Organization[] }) {
           })}
         </ul>
       ) : null}
-      <nav
-        aria-label="Event pages"
-        className="mt-5 flex items-center justify-between"
-      >
-        <button
-          type="button"
-          className={secondaryClass}
-          disabled={page <= 1 || loading}
-          onClick={() => setPage((current) => current - 1)}
+      {pageSize === 10 && (
+        <nav
+          aria-label="Event pages"
+          className="mt-5 flex items-center justify-between"
         >
-          Previous
-        </button>
-        <span className="text-sm text-muted">Page {page}</span>
-        <button
-          type="button"
-          className={secondaryClass}
-          disabled={!currentResult?.hasNext || loading}
-          onClick={() => setPage((current) => current + 1)}
-        >
-          Next
-        </button>
-      </nav>
+          <button
+            type="button"
+            className={secondaryClass}
+            disabled={page <= 1 || loading}
+            onClick={() => setPage((value) => value - 1)}
+          >
+            Previous
+          </button>
+          <span className="text-sm text-muted">
+            Page {page}
+            {currentResult
+              ? ` of ${Math.max(1, Math.ceil(currentResult.total / 10))}`
+              : ''}
+          </span>
+          <button
+            type="button"
+            className={secondaryClass}
+            disabled={!currentResult?.hasNext || loading}
+            onClick={() => setPage((value) => value + 1)}
+          >
+            Next
+          </button>
+        </nav>
+      )}
     </section>
   )
 }

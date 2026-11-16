@@ -7,16 +7,13 @@ import { useClubDirectory } from '../hooks/useClubDirectory'
 import { hasAnyTag } from '../lib/clubTags'
 import { useLocation } from 'react-router-dom'
 
-const sections = [
-  { tag: 'Outdoors', title: 'Crave the outdoors?' },
-  { tag: 'Technology', title: 'Techies' },
-  { tag: 'Arts', title: 'For the artists' },
-]
-
 export default function HomePage() {
   const location = useLocation()
   const { clubs, loading, error } = useClubDirectory()
   const joinError = (location.state as { joinError?: string } | null)?.joinError
+  const trendingClubs = [...clubs]
+    .sort((a, b) => (b.memberCount ?? 0) - (a.memberCount ?? 0))
+    .slice(0, 10)
 
   return (
     <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8 sm:pt-13">
@@ -44,20 +41,28 @@ export default function HomePage() {
       )}
       {!loading && !error && (
         <>
-          <OrganizationRow title="Popular" organizations={clubs} />
-          {sections.map(({ tag, title }) => {
-            const matches = clubs.filter((club) => hasAnyTag(club.tags, [tag]))
-            return matches.length ? (
-              <OrganizationRow
-                key={tag}
-                title={title}
-                organizations={matches}
-              />
-            ) : null
-          })}
+          <OrganizationRow
+            title="Trending Organizations"
+            organizations={trendingClubs}
+            viewAllTo="/organizations"
+          />
+          {[...new Set(trendingClubs.flatMap((club) => club.tags))].map(
+            (tag) => {
+              const matches = trendingClubs.filter((club) =>
+                hasAnyTag(club.tags, [tag]),
+              )
+              return matches.length ? (
+                <OrganizationRow
+                  key={tag}
+                  title={tag}
+                  organizations={matches}
+                />
+              ) : null
+            },
+          )}
         </>
       )}
-      <DiscoverEventList clubs={clubs} />
+      <DiscoverEventList clubs={clubs} viewAllTo="/events" />
       <ClubPreviewFromUrl clubs={clubs} />
     </section>
   )

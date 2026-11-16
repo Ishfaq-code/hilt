@@ -15,6 +15,7 @@ import { OrganizationAvatar } from '../organizations/OrganizationAvatar'
 type Entry = {
   club: Pick<Organization, '_id' | 'name' | 'tags' | 'assets'>
   event: ManagedEvent
+  rsvpCount: number
 }
 
 type Participation = { rsvped: boolean }
@@ -120,6 +121,9 @@ export function DiscoverEventCard({ entry }: { entry: Entry }) {
               <h3 className="mt-1 text-xl font-bold tracking-tight text-ink sm:text-2xl">
                 {event.name}
               </h3>
+              <p className="mt-1 text-xs font-medium text-muted">
+                {entry.rsvpCount} {entry.rsvpCount === 1 ? 'RSVP' : 'RSVPs'}
+              </p>
               {event.description && (
                 <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
                   {event.description}
