@@ -44,6 +44,7 @@ export default function HomePage() {
           <OrganizationRow
             title="Trending Organizations"
             organizations={trendingClubs}
+            viewAllTo="/organizations"
           />
           {[...new Set(trendingClubs.flatMap((club) => club.tags))].map(
             (tag) => {
@@ -61,7 +62,7 @@ export default function HomePage() {
           )}
         </>
       )}
-      <DiscoverEventList clubs={clubs} />
+      <DiscoverEventList clubs={clubs} viewAllTo="/events" />
       <ClubPreviewFromUrl clubs={clubs} />
     </section>
   )
