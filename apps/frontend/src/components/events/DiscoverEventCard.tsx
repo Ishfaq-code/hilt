@@ -118,11 +118,6 @@ export function DiscoverEventCard({ entry }: { entry: Entry }) {
               <h3 className="mt-1 text-xl font-bold tracking-tight text-ink sm:text-2xl">
                 {event.name}
               </h3>
-              {event.description && (
-                <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
-                  {event.description}
-                </p>
-              )}
             </div>
           </div>
           <button
@@ -135,6 +130,12 @@ export function DiscoverEventCard({ entry }: { entry: Entry }) {
             <Icon name="share" />
           </button>
         </div>
+
+        {event.description && (
+          <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
+            {event.description}
+          </p>
+        )}
 
         <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 space-y-2 text-sm text-muted sm:text-base">
