@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuthPage } from '../../hooks/useAuthPage'
 import { useSiteSession } from '../../hooks/useCurrentUser'
 import { api } from '../../lib/api'
-import { joinClub } from '../../lib/clubs'
+import { joinClub, myClubPath } from '../../lib/clubs'
 import { clubPath } from '../../lib/events'
 import type { Organization } from '../../types'
 import type { Membership } from '../../types/management'
@@ -39,9 +39,15 @@ export function ClubPreviewDialog({
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
   const [openedEvent, setOpenedEvent] = useState<string | null>(null)
+  const [now, setNow] = useState(Date.now)
   const activeEventId = eventId || openedEvent
   const signedIn = Boolean(token)
   const message = error || location.state?.joinError
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 30_000)
+    return () => window.clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     const request = new AbortController()
@@ -108,9 +114,9 @@ export function ClubPreviewDialog({
   }
 
   const club = details ?? initialClub
-  const events = [...(details?.events ?? [])].sort(
-    (a, b) => Date.parse(a.startDatetime) - Date.parse(b.startDatetime),
-  )
+  const events = (details?.events ?? [])
+    .filter((event) => Date.parse(event.startDatetime) >= now)
+    .sort((a, b) => Date.parse(a.startDatetime) - Date.parse(b.startDatetime))
 
   if (activeEventId && club) {
     return (
@@ -200,12 +206,37 @@ export function ClubPreviewDialog({
       )}
       {details && (
         <section className="mt-5 border-t border-line pt-5">
-          <h3 className="font-semibold">Events</h3>
-          <OrganizationEventList
-            club={details}
-            events={events}
-            onOpenEvent={(event) => setOpenedEvent(event._id)}
-          />
+          <h3 className="font-semibold">Upcoming events</h3>
+          {events.length ? (
+            <OrganizationEventList
+              club={details}
+              events={events.slice(0, 3)}
+              onOpenEvent={(event) => setOpenedEvent(event._id)}
+            />
+          ) : (
+            <p className="py-5 text-sm text-muted">No upcoming events.</p>
+          )}
+          {events.length > 3 && (
+            <div className="pb-5 text-sm text-muted">
+              {joined ? (
+                <Link
+                  to={myClubPath(clubId)}
+                  className="underline underline-offset-4 hover:text-ink"
+                >
+                  See more in My clubs
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled={busy}
+                  className="underline underline-offset-4 hover:text-ink disabled:cursor-wait disabled:opacity-50"
+                  onClick={() => void join()}
+                >
+                  Join club to see more
+                </button>
+              )}
+            </div>
+          )}
         </section>
       )}
       {club && (

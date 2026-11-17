@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { useSiteSession } from '../../hooks/useCurrentUser'
 import { clubPath, upcomingEvent } from '../../lib/events'
 import type { JoinedOrganization } from '../../types/management'
-import { OrganizationEventList } from '../events/OrganizationEventList'
 import { Dialog } from '../ui/Dialog'
 import { OrganizationSummary } from './OrganizationSummary'
 import {
@@ -15,6 +14,7 @@ import {
 import { ClubReportButton } from './ClubReportButton'
 import { Cover } from './Cover'
 import { OrganizationAvatar } from './OrganizationAvatar'
+import { UpcomingClubEvents } from './UpcomingClubEvents'
 
 type Props = {
   selected: JoinedOrganization
@@ -86,7 +86,7 @@ export function JoinedOrganizationDetails({
           </button>
         </div>
         {tab === 'Events' ? (
-          <OrganizationEventList club={selected} events={events} />
+          <UpcomingClubEvents club={selected} />
         ) : (
           <OrganizationSummary
             organization={selected}
