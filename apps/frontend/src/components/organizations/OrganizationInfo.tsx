@@ -35,7 +35,7 @@ export function OrganizationInfo({
           />
         </label>
         <TagPicker
-          options={clubTagOptions}
+          options={[...clubTagOptions, ...organization.tags]}
           selected={tags}
           onChange={setTags}
           name="tags"

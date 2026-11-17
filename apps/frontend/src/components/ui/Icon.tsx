@@ -1,4 +1,5 @@
 const paths = {
+  chevronDown: 'm6 9 6 6 6-6',
   check: 'm5 12 4 4L19 6',
   close: 'm6 6 12 12M18 6 6 18',
   edit: 'm4 16-1 5 5-1L21 7l-4-4L4 16Zm11-11 4 4',

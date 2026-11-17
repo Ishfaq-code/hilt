@@ -166,6 +166,7 @@ export function NewApplication({
               />
             </label>
             <TagPicker
+              placeholder="Choose tags"
               options={clubTagOptions}
               selected={details.tags}
               onChange={(tags) => set('tags', tags)}
