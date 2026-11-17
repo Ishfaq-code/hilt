@@ -115,9 +115,7 @@ export function useAdministration() {
       toast({ title: `${organization.name} was removed.` })
     } catch (cause) {
       setError(
-        cause instanceof Error
-          ? cause.message
-          : 'Unable to moderate organization.',
+        cause instanceof Error ? cause.message : 'Unable to moderate club.',
       )
     }
   }

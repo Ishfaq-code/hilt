@@ -16,7 +16,7 @@ function SiteHeader({
 
   const nav = [
     { to: '/', label: 'Discover', end: true },
-    { to: '/organizations', label: 'Organizations', end: false },
+    { to: '/organizations', label: 'Clubs', end: false },
     { to: '/events', label: 'Events', end: false },
     ...(user
       ? [{ to: '/my-organizations', label: 'My clubs', end: false }]

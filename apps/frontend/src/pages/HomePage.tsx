@@ -42,7 +42,7 @@ export default function HomePage() {
       {!loading && !error && (
         <>
           <OrganizationRow
-            title="Trending Organizations"
+            title="Trending clubs"
             organizations={trendingClubs}
             viewAllTo="/organizations"
           />

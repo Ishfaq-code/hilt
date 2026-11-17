@@ -50,7 +50,7 @@ router.get('/', async (req, res, next) => {
     ) {
       return res
         .status(400)
-        .json({ error: 'Choose a valid organization page.' })
+        .json({ error: 'Choose a valid club page.' })
     }
     const search =
       typeof req.query.search === 'string' ? req.query.search.trim() : ''
@@ -117,13 +117,13 @@ router.get('/', async (req, res, next) => {
 
 router.get('/:organizationId', optionalAuth, async (req, res, next) => {
   if (!mongoose.isValidObjectId(req.params.organizationId)) {
-    return res.status(404).json({ error: 'Organization not found.' })
+    return res.status(404).json({ error: 'Club not found.' })
   }
 
   try {
     const organization = await Organization.findById(req.params.organizationId)
     if (!organization) {
-      return res.status(404).json({ error: 'Organization not found.' })
+      return res.status(404).json({ error: 'Club not found.' })
     }
 
     const result = withClubTags(organization.toObject())
@@ -422,7 +422,7 @@ router.post(
       if (!body || typeof body !== 'object' || Array.isArray(body)) {
         return res
           .status(400)
-          .json({ error: 'Organization details are required.' })
+          .json({ error: 'Club details are required.' })
       }
       const initialUserId = body.initialMemberUserId ?? body.ownerUserId
       if (
@@ -467,7 +467,7 @@ router.post(
       if (error.name === 'ValidationError' || error.name === 'CastError') {
         return res
           .status(400)
-          .json({ error: 'Organization details are invalid.' })
+          .json({ error: 'Club details are invalid.' })
       }
       return next(error)
     }
@@ -485,19 +485,19 @@ router.patch(
       if (!updates || typeof updates !== 'object' || Array.isArray(updates)) {
         return res
           .status(400)
-          .json({ error: 'A valid organization update is required.' })
+          .json({ error: 'A valid club update is required.' })
       }
 
       const fields = Object.keys(updates)
       if (fields.length === 0 && !Object.keys(req.uploads).length) {
         return res
           .status(400)
-          .json({ error: 'At least one organization field must be provided.' })
+          .json({ error: 'At least one club field must be provided.' })
       }
       if (fields.some((field) => !editableFields.has(field))) {
         return res
           .status(400)
-          .json({ error: 'One or more organization fields cannot be updated.' })
+          .json({ error: 'One or more club fields cannot be updated.' })
       }
       if (Object.hasOwn(updates, 'tags')) {
         updates.tags = parseTags(updates.tags)
@@ -513,7 +513,7 @@ router.patch(
           !/^https?:\/\//i.test(updates.profile))
       ) {
         return res.status(400).json({
-          error: 'Organization website must start with http:// or https://.',
+          error: 'Club website must start with http:// or https://.',
         })
       }
       if (
@@ -529,7 +529,7 @@ router.patch(
         req.params.organizationId,
       )
       if (!organization) {
-        return res.status(404).json({ error: 'Organization not found.' })
+        return res.status(404).json({ error: 'Club not found.' })
       }
 
       for (const field of fields) organization.set(field, updates[field])
@@ -551,7 +551,7 @@ router.patch(
       if (error.name === 'ValidationError' || error.name === 'CastError') {
         return res
           .status(400)
-          .json({ error: 'Organization details are invalid.' })
+          .json({ error: 'Club details are invalid.' })
       }
       return next(error)
     }
@@ -564,7 +564,7 @@ router.delete(
   requireAppAdmin,
   async (req, res, next) => {
     if (!mongoose.isValidObjectId(req.params.organizationId)) {
-      return res.status(404).json({ error: 'Organization not found.' })
+      return res.status(404).json({ error: 'Club not found.' })
     }
 
     try {
@@ -572,7 +572,7 @@ router.delete(
         req.params.organizationId,
       )
       if (!organization) {
-        return res.status(404).json({ error: 'Organization not found.' })
+        return res.status(404).json({ error: 'Club not found.' })
       }
       await Membership.deleteMany({ organizationId: organization._id })
       await ClubAccess.deleteOne({ _id: organization._id })

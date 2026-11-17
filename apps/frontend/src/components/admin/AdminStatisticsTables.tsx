@@ -21,7 +21,7 @@ export function AdminStatisticsTables({
   const organizationColumns = [
     {
       key: 'name',
-      label: 'Organization',
+      label: 'Club',
       sortValue: (organization: AdminOrganization) => organization.name,
       render: (organization: AdminOrganization) => (
         <span className="font-semibold">{organization.name}</span>
@@ -87,17 +87,17 @@ export function AdminStatisticsTables({
   return (
     <div className="mt-8 space-y-8">
       <section>
-        <h2 className="mb-3 text-xl font-semibold">Organizations</h2>
+        <h2 className="mb-3 text-xl font-semibold">Clubs</h2>
         <p className="mb-3 text-sm text-muted">
-          Collected dues are paid membership count multiplied by the
-          organization’s membership fee.
+          Collected dues are paid membership count multiplied by the club’s
+          membership fee.
         </p>
         <SortablePaginatedTable
           rows={organizations}
           columns={organizationColumns}
           rowKey={(organization) => organization._id}
-          label="Organizations"
-          emptyMessage="No organizations yet."
+          label="Clubs"
+          emptyMessage="No clubs yet."
         />
       </section>
 

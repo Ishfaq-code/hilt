@@ -17,7 +17,7 @@ export function OrganizationSummary({ organization, upcoming }: Props) {
         <h2 className="mb-3 text-xl font-semibold">About</h2>
         <p className="text-sm leading-relaxed text-muted">
           {organization.description ||
-            'Learn more about this organization and connect with its members.'}
+            'Learn more about this club and connect with its members.'}
         </p>
         {organization.profile && (
           <a

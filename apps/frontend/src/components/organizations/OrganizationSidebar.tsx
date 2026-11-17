@@ -22,7 +22,7 @@ export function OrganizationSidebar({
   return (
     <aside className={`${panelClass} min-w-0 self-start md:sticky md:top-4`}>
       <nav
-        aria-label="Joined organizations"
+        aria-label="Joined clubs"
         className="flex items-center gap-1 overflow-x-auto p-2 md:block"
       >
         <button

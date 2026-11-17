@@ -94,7 +94,7 @@ router.post('/', requireAuth, async (req, res, next) => {
   ) {
     return res
       .status(400)
-      .json({ error: 'A valid organizationId is required.' })
+      .json({ error: 'Choose a valid club.' })
   }
   const organization = await Organization.findById(body.organizationId)
   if (!organization) return res.status(404).json({ error: 'Club not found.' })

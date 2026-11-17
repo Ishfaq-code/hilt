@@ -32,7 +32,7 @@ export function PlatformStatistics({ stats, organizations, moderate }: Props) {
               centered
             />
             <MetricCard
-              label="Total Number of Organizations"
+              label="Total number of clubs"
               value={stats.organizations}
               centered
             />
@@ -48,17 +48,17 @@ export function PlatformStatistics({ stats, organizations, moderate }: Props) {
             />
           </div>
           <div className="grid gap-4 xl:grid-cols-2">
-            <StatisticsChart title="Members in Organizations">
+            <StatisticsChart title="Members in clubs">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={[
                       {
-                        name: 'In an organization',
+                        name: 'In a club',
                         value: stats.membersWithOrganizations,
                       },
                       {
-                        name: 'Not in an organization',
+                        name: 'Not in a club',
                         value: stats.membersWithoutOrganizations,
                       },
                     ]}
@@ -77,7 +77,7 @@ export function PlatformStatistics({ stats, organizations, moderate }: Props) {
               </ResponsiveContainer>
             </StatisticsChart>
 
-            <StatisticsChart title="Organization applications">
+            <StatisticsChart title="Club applications">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={[

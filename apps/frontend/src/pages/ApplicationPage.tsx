@@ -62,7 +62,7 @@ export default function ApplicationPage() {
       {!token && (
         <div className={`${panelClass} p-5`}>
           <p className="mb-4 text-sm text-muted">
-            Sign in to submit an organization application and track its review.
+            Sign in to submit a club application and track its review.
           </p>
           <button
             type="button"

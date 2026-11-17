@@ -103,13 +103,13 @@ export function ApplicationReviews({
           </p>
           <div className={`${panelClass} space-y-4 p-5`}>
             <div>
-              <h3 className="font-semibold">About this organization</h3>
+              <h3 className="font-semibold">About this club</h3>
               <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-muted">
                 {selected.organizationDescription || 'No description provided.'}
               </p>
             </div>
             <div className="border-t border-line pt-4">
-              <h3 className="font-semibold">Organization details</h3>
+              <h3 className="font-semibold">Club details</h3>
               {selected.tags.length > 0 && (
                 <p className="mt-2 text-sm text-muted">
                   {selected.tags.join(' · ')}
@@ -271,7 +271,7 @@ export function ApplicationReviews({
             </ul>
           ) : (
             <p className={`${panelClass} mt-4 p-5 text-sm text-muted`}>
-              No organization applications yet.
+              No club applications yet.
             </p>
           )}
         </>

@@ -42,7 +42,7 @@ export function OrganizationMembers({
         >
           <table
             className="w-full min-w-[38rem] text-left text-sm"
-            aria-label="Organization members"
+            aria-label="Club members"
           >
             <thead className="bg-paper text-xs text-muted">
               <tr>

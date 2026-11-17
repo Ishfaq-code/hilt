@@ -207,9 +207,7 @@ export function NewApplication({
         )}
         {step === 1 && (
           <div className={`${panelClass} space-y-4 p-5`}>
-            <p className="text-sm font-medium">
-              Organization contact information
-            </p>
+            <p className="text-sm font-medium">Club contact information</p>
             <label className="block text-sm font-medium">
               Contact email
               <input

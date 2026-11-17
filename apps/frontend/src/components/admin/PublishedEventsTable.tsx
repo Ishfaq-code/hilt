@@ -35,7 +35,7 @@ export function PublishedEventsTable({
       ? [
           {
             key: 'organization',
-            label: 'Organization',
+            label: 'Club',
             sortValue: (event: EventStatisticsRow) => event.organizationName,
             render: (event: EventStatisticsRow) => event.organizationName,
           },

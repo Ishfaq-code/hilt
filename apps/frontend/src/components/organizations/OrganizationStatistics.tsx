@@ -21,9 +21,7 @@ export function OrganizationStatistics({
   statistics?: OrgStats
 }) {
   if (!statistics) {
-    return (
-      <p className="text-sm text-muted">Loading organization statistics…</p>
-    )
+    return <p className="text-sm text-muted">Loading club statistics…</p>
   }
 
   const events = statistics.eventAttendance.map((event) => ({

@@ -9,7 +9,7 @@ export default function SiteFooter({ showApply }: { showApply: boolean }) {
             Hilt<span className="text-accent">.</span>
           </Link>
           <p className="mt-2 max-w-52 text-sm leading-relaxed text-muted">
-            Find organizations and connect with your campus community.
+            Find clubs and connect with your campus community.
           </p>
         </div>
         <nav aria-label="Discover footer links">
@@ -20,13 +20,13 @@ export default function SiteFooter({ showApply }: { showApply: boolean }) {
                 to="/"
                 className="text-sm text-muted hover:text-ink hover:underline"
               >
-                Browse organizations
+                Browse clubs
               </Link>
             </li>
           </ul>
         </nav>
-        <nav aria-label="For organizations footer links">
-          <h2 className="mb-3 text-sm font-semibold">For organizations</h2>
+        <nav aria-label="For clubs footer links">
+          <h2 className="mb-3 text-sm font-semibold">For clubs</h2>
           <ul className="space-y-2.5">
             {showApply && (
               <li>
@@ -34,7 +34,7 @@ export default function SiteFooter({ showApply }: { showApply: boolean }) {
                   to="/application"
                   className="text-sm text-muted hover:text-ink hover:underline"
                 >
-                  Apply to create an organization
+                  Apply to create a club
                 </Link>
               </li>
             )}

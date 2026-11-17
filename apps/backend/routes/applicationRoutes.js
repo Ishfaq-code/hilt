@@ -115,7 +115,7 @@ router.post(
       typeof body.organizationName !== 'string' ||
       !body.organizationName.trim()
     ) {
-      return res.status(400).json({ error: 'Organization name is required.' })
+      return res.status(400).json({ error: 'Club name is required.' })
     }
     if (
       body.contactEmail &&

@@ -46,9 +46,7 @@ export default function OrganizationsPage() {
       .catch((cause: unknown) => {
         if (!request.signal.aborted) {
           setError(
-            cause instanceof Error
-              ? cause.message
-              : 'Couldn’t load organizations.',
+            cause instanceof Error ? cause.message : 'Couldn’t load clubs.',
           )
           setErrorKey(requestKey)
         }
@@ -72,14 +70,12 @@ export default function OrganizationsPage() {
 
   return (
     <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8 sm:pt-13">
-      <h1 className="text-4xl font-semibold tracking-tight">
-        All organizations
-      </h1>
+      <h1 className="text-4xl font-semibold tracking-tight">All clubs</h1>
       <div className="mt-5 grid gap-2 sm:grid-cols-[minmax(0,1fr)_14rem]">
         <input
           type="search"
-          aria-label="Search organizations"
-          placeholder="Search organizations"
+          aria-label="Search clubs"
+          placeholder="Search clubs"
           className={inputClass}
           value={search}
           onChange={(change) => updateSearch(change.target.value)}
@@ -101,7 +97,7 @@ export default function OrganizationsPage() {
 
       {loading && (
         <p role="status" className="py-8 text-sm text-muted">
-          Loading organizations…
+          Loading clubs…
         </p>
       )}
       {currentError && (
@@ -125,8 +121,7 @@ export default function OrganizationsPage() {
         (current.organizations.length ? (
           <>
             <p className="mt-6 mb-3 text-sm text-muted">
-              {current.total}{' '}
-              {current.total === 1 ? 'organization' : 'organizations'}
+              {current.total} {current.total === 1 ? 'club' : 'clubs'}
             </p>
             <ul className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {current.organizations.map((organization) => (
@@ -141,7 +136,7 @@ export default function OrganizationsPage() {
             role="status"
             className={panelClass + ' mt-6 p-5 text-sm text-muted'}
           >
-            No organizations match those filters.
+            No clubs match those filters.
           </p>
         ))}
       <nav
