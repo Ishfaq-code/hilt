@@ -7,9 +7,11 @@ import { EventPreviewButton } from './EventPreviewButton'
 export function OrganizationEventList({
   club,
   events,
+  onOpenEvent,
 }: {
   club: Pick<Organization, '_id' | 'name'>
   events: ManagedEvent[]
+  onOpenEvent?: (event: ManagedEvent) => void
 }) {
   return (
     <div className="py-5">
@@ -29,11 +31,22 @@ export function OrganizationEventList({
                 </span>
                 <div className="min-w-0 wrap-anywhere">
                   <h2 className="font-semibold">
-                    <EventPreviewButton
-                      club={club}
-                      event={event}
-                      className="text-left hover:underline"
-                    />
+                    {onOpenEvent ? (
+                      <button
+                        type="button"
+                        aria-haspopup="dialog"
+                        className="text-left hover:underline"
+                        onClick={() => onOpenEvent(event)}
+                      >
+                        {event.name}
+                      </button>
+                    ) : (
+                      <EventPreviewButton
+                        club={club}
+                        event={event}
+                        className="text-left hover:underline"
+                      />
+                    )}
                   </h2>
                   <p className="mt-1 text-sm text-muted">
                     {new Date(event.startDatetime).toLocaleString()} –{' '}

@@ -21,7 +21,7 @@ export function ClubPreviewFromUrl({ clubs }: { clubs: Organization[] }) {
       eventId={params.get('event')}
       initialClub={clubs.find((club) => club._id === clubId)}
       onClose={() => close(true)}
-      onCloseEvent={() => close(false)}
+      onOpenClub={() => close(false)}
     />
   )
 }

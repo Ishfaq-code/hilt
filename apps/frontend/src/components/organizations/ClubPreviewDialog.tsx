@@ -21,13 +21,13 @@ export function ClubPreviewDialog({
   eventId,
   initialClub,
   onClose,
-  onCloseEvent = onClose,
+  onOpenClub,
 }: {
   clubId: string
   eventId?: string | null
   initialClub?: Organization
   onClose: () => void
-  onCloseEvent?: () => void
+  onOpenClub?: () => void
 }) {
   const openLogin = useAuthPage()
   const { user, token } = useSiteSession()
@@ -38,6 +38,8 @@ export function ClubPreviewDialog({
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [openedEvent, setOpenedEvent] = useState<string | null>(null)
+  const activeEventId = eventId || openedEvent
   const signedIn = Boolean(token)
   const message = error || location.state?.joinError
 
@@ -82,7 +84,7 @@ export function ClubPreviewDialog({
     if (!signedIn) {
       const params = new URLSearchParams(location.search)
       params.set('club', clubId)
-      if (eventId) params.set('event', eventId)
+      if (activeEventId) params.set('event', activeEventId)
       openLogin({
         from: location.pathname + '?' + params + location.hash,
         joinOrganizationId: clubId,
@@ -109,6 +111,36 @@ export function ClubPreviewDialog({
   const events = [...(details?.events ?? [])].sort(
     (a, b) => Date.parse(a.startDatetime) - Date.parse(b.startDatetime),
   )
+
+  if (activeEventId && club) {
+    return (
+      <SharedEventDialog
+        key={activeEventId}
+        club={club}
+        eventId={activeEventId}
+        join={() => void join()}
+        busy={busy}
+        message={message}
+        onClose={onClose}
+        onOpenClub={() => {
+          setOpenedEvent(null)
+          if (eventId) onOpenClub?.()
+        }}
+      />
+    )
+  }
+
+  if (activeEventId) {
+    return (
+      <Dialog title="Event" onClose={onClose}>
+        {message ? (
+          <p role="alert">{message}</p>
+        ) : (
+          <p role="status">Loading event…</p>
+        )}
+      </Dialog>
+    )
+  }
 
   return (
     <Dialog title={club?.name ?? 'Club'} onClose={onClose}>
@@ -169,24 +201,17 @@ export function ClubPreviewDialog({
       {details && (
         <section className="mt-5 border-t border-line pt-5">
           <h3 className="font-semibold">Events</h3>
-          <OrganizationEventList club={details} events={events} />
+          <OrganizationEventList
+            club={details}
+            events={events}
+            onOpenEvent={(event) => setOpenedEvent(event._id)}
+          />
         </section>
       )}
       {club && (
         <div className="flex justify-end border-t border-line pt-3">
           <ClubReportButton clubId={clubId} />
         </div>
-      )}
-      {details && eventId && (
-        <SharedEventDialog
-          key={eventId}
-          club={details}
-          eventId={eventId}
-          join={() => void join()}
-          busy={busy}
-          message={message}
-          onClose={onCloseEvent}
-        />
       )}
     </Dialog>
   )

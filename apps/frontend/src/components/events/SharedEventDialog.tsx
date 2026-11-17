@@ -16,6 +16,7 @@ export function SharedEventDialog({
   busy,
   message,
   onClose,
+  onOpenClub,
 }: {
   club: Organization
   eventId: string
@@ -23,6 +24,7 @@ export function SharedEventDialog({
   busy: boolean
   message: string
   onClose: () => void
+  onOpenClub: () => void
 }) {
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState('')
@@ -56,7 +58,7 @@ export function SharedEventDialog({
         club={club}
         event={event}
         onClose={onClose}
-        onOpenClub={onClose}
+        onOpenClub={onOpenClub}
       />
     )
   }
@@ -69,7 +71,7 @@ export function SharedEventDialog({
           <button
             type="button"
             className="cursor-pointer font-medium text-accent underline underline-offset-4 hover:text-ink"
-            onClick={onClose}
+            onClick={onOpenClub}
           >
             {club.name}
           </button>{' '}
