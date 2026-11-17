@@ -1,19 +1,21 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { OrganizationManagement } from '../../hooks/useOrganizationManagement'
+import { usePagination } from '../../hooks/usePagination'
 import type { Organization } from '../../types'
 import type { EditableEvent, ManagedEvent } from '../../types/management'
 import { AttendanceDialog } from '../events/AttendanceDialog'
 import { EventEditor } from '../events/EventEditor'
-import { EventPreviewButton } from '../events/EventPreviewButton'
 import { Dialog } from '../ui/Dialog'
-import { Icon } from '../ui/Icon'
-import { buttonClass, panelClass, secondaryClass } from '../ui/styles'
+import { Pagination } from '../ui/Pagination'
+import { buttonClass, inputClass, panelClass } from '../ui/styles'
+import { ManagedEventRow } from './ManagedEventRow'
 
 type Props = Pick<
   OrganizationManagement,
-  'events' | 'saved' | 'deleteEvent'
+  'events' | 'saved' | 'deleteEvent' | 'updateEventTotals'
 > & {
   club: Pick<Organization, '_id' | 'name'>
+  totals?: NonNullable<OrganizationManagement['statistics']>['eventAttendance']
   canEdit: boolean
   canCheckIn: boolean
   onOpenClub: () => void
@@ -24,18 +26,91 @@ type EventAction =
   | { kind: 'edit'; event: EditableEvent }
   | { kind: 'attendance'; event: ManagedEvent }
 
+const filters = [
+  { id: 'upcoming', label: 'Upcoming', empty: 'No upcoming events.' },
+  { id: 'draft', label: 'Drafts', empty: 'No drafts.' },
+  { id: 'past', label: 'Past', empty: 'No past events.' },
+  { id: 'all', label: 'All', empty: 'No events yet.' },
+] as const
+
+type EventFilter = (typeof filters)[number]
+const eventOrder = { live: 0, upcoming: 1, draft: 2, past: 3 }
+
+function eventPhase(
+  event: EditableEvent,
+  now: number,
+): keyof typeof eventOrder {
+  if (event.status === 'draft') return 'draft'
+  const start = Date.parse(event.startDatetime)
+  const end = Date.parse(event.endDatetime)
+  if (start > now) return 'upcoming'
+  return Number.isFinite(start) && end > now ? 'live' : 'past'
+}
+
+function compareEventTimes(
+  left: EditableEvent,
+  right: EditableEvent,
+  descending: boolean,
+) {
+  const first = Date.parse(left.startDatetime ?? '')
+  const second = Date.parse(right.startDatetime ?? '')
+  if (!Number.isFinite(first)) return Number.isFinite(second) ? 1 : 0
+  if (!Number.isFinite(second)) return -1
+  return descending ? second - first : first - second
+}
+
 export function OrganizationEvents({
   club,
   events,
+  totals,
   canEdit,
   canCheckIn,
   onOpenClub,
   saved,
   deleteEvent,
+  updateEventTotals,
 }: Props) {
   const [action, setAction] = useState<EventAction | null>(null)
+  const [query, setQuery] = useState('')
+  const [selectedFilter, setFilter] = useState<EventFilter>(filters[0])
+  const [now, setNow] = useState(Date.now)
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 15_000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const filter =
+    !canEdit && selectedFilter.id === 'draft' ? filters[0] : selectedFilter
+  const search = query.trim().toLowerCase()
+  const matchingEvents = events
+    .map((event) => ({ event, phase: eventPhase(event, now) }))
+    .filter(({ event, phase }) => {
+      const matchesFilter =
+        filter.id === 'all' ||
+        filter.id === phase ||
+        (filter.id === 'upcoming' && phase === 'live')
+      if (!matchesFilter || !search) return matchesFilter
+
+      return [
+        event.name || 'Untitled event',
+        event.description,
+        event.place,
+        ...event.tags,
+        phase === 'draft' ? 'draft' : '',
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(search)
+    })
+    .sort(
+      (left, right) =>
+        eventOrder[left.phase] - eventOrder[right.phase] ||
+        compareEventTimes(left.event, right.event, left.phase === 'past'),
+    )
+  const { pageItems, page, pageCount, setPage } = usePagination(matchingEvents)
+  const totalsByEvent = new Map(totals?.map((item) => [item.eventId, item]))
   const close = () => setAction(null)
-  const rowButton = secondaryClass + ' size-10 p-0!'
 
   async function save(message: string) {
     close()
@@ -43,7 +118,7 @@ export function OrganizationEvents({
   }
 
   return (
-    <section>
+    <section className="@container">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold tracking-tight">Events</h1>
         {canEdit && (
@@ -57,102 +132,83 @@ export function OrganizationEvents({
           </button>
         )}
       </div>
-      {events.length ? (
-        <ul className={panelClass + ' mt-4 divide-y divide-line'}>
-          {events.map((event) => (
-            <li
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line">
+        <div role="group" aria-label="Filter events" className="flex gap-x-4">
+          {filters
+            .filter((option) => option.id !== 'draft' || canEdit)
+            .map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                aria-pressed={filter.id === option.id}
+                className="min-h-11 border-b-2 border-transparent text-sm font-medium text-muted hover:text-ink aria-pressed:border-accent aria-pressed:text-ink"
+                onClick={() => {
+                  setFilter(option)
+                  setPage(1)
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+        </div>
+        <label className="w-full pb-2 @min-[36rem]:max-w-60">
+          <span className="sr-only">Search events</span>
+          <input
+            type="search"
+            className={inputClass}
+            placeholder="Search events"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value)
+              setPage(1)
+            }}
+          />
+        </label>
+      </div>
+      {pageItems.length ? (
+        <ul
+          aria-label="Managed events"
+          className={panelClass + ' mt-4 divide-y divide-line'}
+        >
+          {pageItems.map(({ event, phase }) => (
+            <ManagedEventRow
               key={event._id}
-              className="flex flex-wrap items-center justify-between gap-3 p-4"
-            >
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-semibold">
-                    {event.status === 'draft' ? (
-                      <button
-                        type="button"
-                        className="text-left hover:underline"
-                        onClick={() => setAction({ kind: 'edit', event })}
-                      >
-                        {event.name || 'Untitled event'}
-                      </button>
-                    ) : (
-                      <EventPreviewButton
-                        club={club}
-                        event={event}
-                        previewOnly
-                        onOpenClub={onOpenClub}
-                        className="text-left hover:underline"
-                      />
-                    )}
-                  </h2>
-                  {event.status === 'draft' && (
-                    <span className="rounded bg-soft px-2 py-0.5 text-xs font-semibold text-accent">
-                      Draft
-                    </span>
-                  )}
-                  {event.private && (
-                    <span className="rounded bg-paper px-2 py-0.5 text-xs font-semibold text-muted">
-                      Members only
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1 text-sm text-muted">
-                  {event.startDatetime &&
-                    new Date(event.startDatetime).toLocaleString(undefined, {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  {event.place && ' · ' + event.place}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {canCheckIn && event.status !== 'draft' && (
-                  <button
-                    type="button"
-                    className={rowButton}
-                    aria-label="Attendance"
-                    title="Attendance"
-                    aria-haspopup="dialog"
-                    onClick={() => setAction({ kind: 'attendance', event })}
-                  >
-                    <Icon name="people" size={17} />
-                  </button>
-                )}
-                {canEdit && (
-                  <>
-                    <button
-                      type="button"
-                      className={rowButton}
-                      aria-label="Edit"
-                      title="Edit"
-                      aria-haspopup="dialog"
-                      onClick={() => setAction({ kind: 'edit', event })}
-                    >
-                      <Icon name="edit" size={17} />
-                    </button>
-                    <button
-                      type="button"
-                      className={secondaryClass + ' text-red-700'}
-                      onClick={() => void deleteEvent(event)}
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
-              </div>
-            </li>
+              club={club}
+              event={event}
+              live={phase === 'live'}
+              showDraftStatus={filter.id !== 'draft'}
+              totals={totalsByEvent.get(event._id)}
+              onOpenClub={onOpenClub}
+              onEdit={
+                canEdit ? () => setAction({ kind: 'edit', event }) : undefined
+              }
+              onAttendance={
+                canCheckIn && event.status !== 'draft'
+                  ? () => setAction({ kind: 'attendance', event })
+                  : undefined
+              }
+              onDelete={canEdit ? () => void deleteEvent(event) : undefined}
+            />
           ))}
         </ul>
       ) : (
         <p className={panelClass + ' mt-4 p-4 text-sm text-muted'}>
-          No events yet.
+          {search ? 'No events match your search.' : filter.empty}
         </p>
       )}
+      <Pagination
+        label="Events"
+        page={page}
+        pageCount={pageCount}
+        onPageChange={setPage}
+      />
       {action?.kind === 'attendance' && (
-        <AttendanceDialog club={club} event={action.event} onClose={close} />
+        <AttendanceDialog
+          club={club}
+          event={action.event}
+          onClose={close}
+          onTotalsChange={updateEventTotals}
+        />
       )}
       {(action?.kind === 'new' || action?.kind === 'edit') && (
         <Dialog

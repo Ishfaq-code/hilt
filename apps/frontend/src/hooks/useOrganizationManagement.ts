@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { api } from '../lib/api'
 import { uploadBody } from '../lib/uploads'
@@ -200,11 +200,35 @@ export function useOrganizationManagement(
     }
   }
 
-  const events = [...(data?.events ?? [])].sort((a, b) => {
-    const first = a.startDatetime ? Date.parse(a.startDatetime) : Infinity
-    const second = b.startDatetime ? Date.parse(b.startDatetime) : Infinity
-    return first === second ? 0 : first - second
-  })
+  const updateEventTotals = useCallback(
+    (eventId: string, totals: { rsvpCount: number; attendance: number }) => {
+      setState((current) => {
+        const data = current?.data
+        const statistics = data?.statistics
+        if (current?.path !== path || !data || !statistics) return current
+
+        const event = statistics.eventAttendance.find(
+          (entry) => entry.eventId === eventId,
+        )
+        if (
+          !event ||
+          (event.attendance === totals.attendance &&
+            event.rsvpCount === totals.rsvpCount)
+        )
+          return current
+
+        const eventAttendance = statistics.eventAttendance.map((entry) =>
+          entry.eventId === eventId ? { ...entry, ...totals } : entry,
+        )
+        return {
+          path,
+          data: { ...data, statistics: { ...statistics, eventAttendance } },
+        }
+      })
+    },
+    [path],
+  )
+
   const matchingMembers = (data?.members ?? []).filter(({ userId, roles }) =>
     [
       userId.firstName,
@@ -228,7 +252,8 @@ export function useOrganizationManagement(
     error: current?.error,
     query,
     setQuery,
-    events,
+    events: data?.events ?? [],
+    updateEventTotals,
     saved,
     deleteEvent,
     matchingMembers,

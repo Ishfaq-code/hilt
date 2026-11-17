@@ -198,11 +198,13 @@ function OrganizationManagementWorkspace({
               <OrganizationEvents
                 club={organization}
                 events={management.events}
+                totals={management.statistics?.eventAttendance}
                 canEdit={permissions.includes('events')}
                 canCheckIn={permissions.includes('attendance')}
                 onOpenClub={() => setPreviewOpen(true)}
                 saved={management.saved}
                 deleteEvent={management.deleteEvent}
+                updateEventTotals={management.updateEventTotals}
               />
             </div>
           )}

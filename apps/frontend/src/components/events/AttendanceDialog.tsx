@@ -37,10 +37,15 @@ export function AttendanceDialog({
   club,
   event,
   onClose,
+  onTotalsChange,
 }: {
   club: { _id: string; name: string }
   event: ManagedEvent
   onClose: () => void
+  onTotalsChange: (
+    eventId: string,
+    totals: { rsvpCount: number; attendance: number },
+  ) => void
 }) {
   const { toast } = useToast()
   const [query, setQuery] = useState('')
@@ -68,6 +73,10 @@ export function AttendanceDialog({
         )
         if (request.signal.aborted) return
         setAttendance(data)
+        onTotalsChange(event._id, {
+          rsvpCount: data.rsvps,
+          attendance: data.withRsvp + data.walkIns,
+        })
         setLoadedQuery(search)
         setLoadError('')
       } catch (cause) {
@@ -89,7 +98,7 @@ export function AttendanceDialog({
       request.abort()
       window.clearTimeout(poll)
     }
-  }, [endpoint, search, revision])
+  }, [endpoint, event._id, onTotalsChange, search, revision])
 
   function changed(message: string) {
     toast({ title: message })
