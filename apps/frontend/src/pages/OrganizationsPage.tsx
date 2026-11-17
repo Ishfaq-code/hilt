@@ -113,24 +113,19 @@ function OrganizationResults({ filters }: { filters: string }) {
     <>
       {result &&
         (result.organizations.length ? (
-          <>
-            <p className="mt-6 mb-3 text-sm text-muted">
-              {result.total} {result.total === 1 ? 'club' : 'clubs'}
-            </p>
-            <ul
-              aria-busy={loading}
-              className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-            >
-              {result.organizations.map((organization) => (
-                <li key={organization._id} className="[&>a]:h-full">
-                  <OrganizationCard
-                    organization={organization}
-                    to={'?' + new URLSearchParams({ club: organization._id })}
-                  />
-                </li>
-              ))}
-            </ul>
-          </>
+          <ul
+            aria-busy={loading}
+            className="mt-6 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+          >
+            {result.organizations.map((organization) => (
+              <li key={organization._id} className="[&>a]:h-full">
+                <OrganizationCard
+                  organization={organization}
+                  to={'?' + new URLSearchParams({ club: organization._id })}
+                />
+              </li>
+            ))}
+          </ul>
         ) : (
           <p
             role="status"

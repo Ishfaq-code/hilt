@@ -10,16 +10,8 @@ export default function EventsPage() {
   const [filters, setFilters] = useSearchParams()
   const { clubs } = useClubDirectory()
   const query = eventDirectoryQuery(filters)
-  const {
-    entries,
-    eventTags,
-    total,
-    loading,
-    error,
-    nextPage,
-    hasNext,
-    retry,
-  } = useEventDirectory(query, 10)
+  const { entries, eventTags, loading, error, nextPage, hasNext, retry } =
+    useEventDirectory(query, 10)
 
   function updateFilters(updates: Record<string, string | string[]>) {
     const next = new URLSearchParams(filters)
@@ -40,11 +32,6 @@ export default function EventsPage() {
         onChange={updateFilters}
       />
 
-      {total !== undefined && (
-        <p className="mt-6 mb-3 text-sm text-muted">
-          {total} {total === 1 ? 'event' : 'events'}
-        </p>
-      )}
       <ul
         aria-label="Events"
         aria-busy={loading}
