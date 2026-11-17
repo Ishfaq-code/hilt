@@ -57,9 +57,8 @@ export default function MyOrganizationsPage() {
         ? [{ ...organizationId, membershipId, roles, permissions }]
         : [],
   )
-  const selectedId = requested ?? ''
   const selected = organizations.find(
-    (organization) => organization._id === selectedId,
+    (organization) => organization._id === requested,
   )
 
   async function leaveClub(membershipId: string, club: Organization) {
@@ -88,33 +87,31 @@ export default function MyOrganizationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-9 sm:px-8 sm:pt-13">
-      <h1 className="mb-6 text-4xl font-semibold tracking-tight sm:text-5xl">
+    <div className="mx-auto grid max-w-6xl grid-cols-[auto_minmax(0,1fr)] gap-4 px-4 pt-9 sm:px-8 sm:pt-13 md:grid-cols-[12rem_minmax(0,1fr)] lg:grid-cols-[13rem_minmax(0,1fr)]">
+      <h1 className="self-center text-3xl font-semibold tracking-tight sm:text-5xl md:col-span-full md:mb-2">
         My clubs
       </h1>
       {loading && (
-        <p role="status" className="text-sm text-muted">
+        <p role="status" className="col-span-full text-sm text-muted">
           Loading your clubs…
         </p>
       )}
       {error && (
-        <p role="alert" className="text-sm text-muted">
+        <p role="alert" className="col-span-full text-sm text-muted">
           {error}
         </p>
       )}
       {!loading && !error && (
-        <div className="grid gap-4 md:grid-cols-[12rem_minmax(0,1fr)] lg:grid-cols-[13rem_minmax(0,1fr)]">
+        <>
           <OrganizationSidebar
             organizations={organizations}
-            selectedId={selectedId}
-            hasSelected={Boolean(selected)}
-            onHome={() => setParams({})}
+            selected={selected}
             onSelect={(id) => {
-              setParams({ club: id })
+              setParams(id ? { club: id } : {})
               setTab('Home')
             }}
           />
-          <section className="min-w-0">
+          <section className="col-span-full min-w-0 md:col-span-1">
             {selected ? (
               <JoinedOrganizationDetails
                 key={selected._id}
@@ -128,7 +125,7 @@ export default function MyOrganizationsPage() {
               <EventCalendar scope="mine" />
             )}
           </section>
-        </div>
+        </>
       )}
     </div>
   )
