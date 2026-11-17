@@ -22,7 +22,9 @@ type Person = {
 type Attendance = {
   rsvps: number
   people: Person[]
-} & ({ tracked: false } | { tracked: true; withRsvp: number; walkIns: number })
+  withRsvp: number
+  walkIns: number
+}
 
 const methods: Record<CheckIn['method'], string> = {
   self: 'Self check-in',
@@ -136,42 +138,34 @@ export function AttendanceDialog({
           {attendance && (
             <p className="text-sm text-muted">
               {attendance.rsvps} RSVPs
-              {attendance.tracked
-                ? ' · ' +
-                  (attendance.withRsvp + attendance.walkIns) +
-                  ' checked in (' +
-                  attendance.withRsvp +
-                  ' with RSVPs, ' +
-                  attendance.walkIns +
-                  ' walk-ins)'
-                : ' · Attendance not tracked'}
+              {' · ' +
+                (attendance.withRsvp + attendance.walkIns) +
+                ' checked in (' +
+                attendance.withRsvp +
+                ' with RSVPs, ' +
+                attendance.walkIns +
+                ' walk-ins)'}
             </p>
           )}
         </div>
-        {attendance?.tracked && (
-          <div className="flex flex-wrap gap-2">
-            {event.attendance?.eventQr && (
-              <button
-                type="button"
-                className={secondaryClass}
-                aria-haspopup="dialog"
-                onClick={() => setTool('event-qr')}
-              >
-                Show event QR
-              </button>
-            )}
-            {event.attendance?.attendeeQr && (
-              <button
-                type="button"
-                className={secondaryClass}
-                aria-expanded={tool === 'scan'}
-                onClick={() => setTool(tool === 'scan' ? null : 'scan')}
-              >
-                Scan QR
-              </button>
-            )}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={secondaryClass}
+            aria-haspopup="dialog"
+            onClick={() => setTool('event-qr')}
+          >
+            Show event QR
+          </button>
+          <button
+            type="button"
+            className={secondaryClass}
+            aria-expanded={tool === 'scan'}
+            onClick={() => setTool(tool === 'scan' ? null : 'scan')}
+          >
+            Scan QR
+          </button>
+        </div>
         {tool === 'scan' && <QrScanner inline onScan={scan} />}
         <input
           type="search"
@@ -225,21 +219,14 @@ export function AttendanceDialog({
                         : 'No RSVP'}
                   </p>
                 </div>
-                {(attendance?.tracked || person.checkIn) && (
-                  <button
-                    type="button"
-                    className={secondaryClass}
-                    disabled={
-                      busy ||
-                      (!person.checkIn &&
-                        !person.rsvped &&
-                        !event.attendance?.walkIns)
-                    }
-                    onClick={() => void update(person)}
-                  >
-                    {person.checkIn ? 'Undo check-in' : 'Check in'}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className={secondaryClass}
+                  disabled={busy}
+                  onClick={() => void update(person)}
+                >
+                  {person.checkIn ? 'Undo check-in' : 'Check in'}
+                </button>
               </li>
             ))}
           </ul>

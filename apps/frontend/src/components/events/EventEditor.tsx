@@ -24,9 +24,6 @@ export function EventEditor({
   const [busy, setBusy] = useState(false)
   const [removeBanner, setRemoveBanner] = useState(false)
   const [tags, setTags] = useState(event?.tags ?? [])
-  const [trackAttendance, setTrackAttendance] = useState(
-    event?.attendance?.enabled ?? false,
-  )
 
   async function submit(formEvent: SubmitEvent<HTMLFormElement>) {
     formEvent.preventDefault()
@@ -67,10 +64,10 @@ export function EventEditor({
       private: data.get('visibility') === 'members',
       ...(removeBanner ? { banner: null } : {}),
       attendance: {
-        enabled: trackAttendance,
+        enabled: true,
         self: data.has('self'),
-        eventQr: data.has('eventQr'),
-        attendeeQr: data.has('attendeeQr'),
+        eventQr: true,
+        attendeeQr: true,
         walkIns: data.has('walkIns'),
       },
     }
@@ -226,34 +223,27 @@ export function EventEditor({
         />
       </label>
       <fieldset className="space-y-2 border-t border-line pt-4">
-        <legend className="pr-2 text-sm font-semibold">Attendance</legend>
+        <legend className="pr-2 text-sm font-semibold">
+          Attendee check-in
+        </legend>
         <label className="flex items-center gap-2 text-sm font-medium">
           <input
             type="checkbox"
-            checked={trackAttendance}
-            onChange={(change) => setTrackAttendance(change.target.checked)}
+            name="self"
+            defaultChecked={Boolean(
+              event?.attendance?.enabled && event.attendance.self,
+            )}
           />
-          Track attendance
+          Allow self check-in
         </label>
-        <div hidden={!trackAttendance} className="space-y-2 pl-5">
-          {(
-            [
-              ['self', 'I am here'],
-              ['eventQr', 'Event QR'],
-              ['attendeeQr', 'Attendee QR'],
-              ['walkIns', 'Allow walk-ins'],
-            ] as const
-          ).map(([name, label]) => (
-            <label key={name} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                name={name}
-                defaultChecked={event?.attendance?.[name]}
-              />
-              {label}
-            </label>
-          ))}
-        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="walkIns"
+            defaultChecked={event?.attendance?.walkIns}
+          />
+          Allow attendee check-in without an RSVP
+        </label>
       </fieldset>
       {error && (
         <p role="alert" className="text-sm text-red-700">

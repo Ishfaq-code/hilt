@@ -48,8 +48,7 @@ export function EventDialog({
   const start = new Date(event.startDatetime)
   const end = new Date(event.endDatetime)
   const hasStarted = now >= start.getTime()
-  const canCheckIn =
-    hasStarted && now < end.getTime() && event.attendance?.enabled
+  const canCheckIn = hasStarted && now < end.getTime()
   const startDate = start.toLocaleDateString(undefined, {
     weekday: 'long',
     month: 'short',
@@ -265,7 +264,7 @@ export function EventDialog({
           !participation.checkIn &&
           (participation.rsvped || event.attendance?.walkIns) && (
             <div className="flex flex-wrap gap-2">
-              {event.attendance?.self && (
+              {event.attendance?.enabled && event.attendance.self && (
                 <button
                   type="button"
                   className={buttonClass}
@@ -275,19 +274,17 @@ export function EventDialog({
                   I am here
                 </button>
               )}
-              {event.attendance?.eventQr && (
-                <button
-                  type="button"
-                  className={secondaryClass}
-                  aria-expanded={dialog === 'scan'}
-                  onClick={() => setDialog(dialog === 'scan' ? null : 'scan')}
-                >
-                  Scan QR
-                </button>
-              )}
+              <button
+                type="button"
+                className={secondaryClass}
+                aria-expanded={dialog === 'scan'}
+                onClick={() => setDialog(dialog === 'scan' ? null : 'scan')}
+              >
+                Scan QR
+              </button>
             </div>
           )}
-        {dialog === 'scan' && <QrScanner inline onScan={scan} />}
+        {dialog === 'scan' && canCheckIn && <QrScanner inline onScan={scan} />}
         {!previewOnly && (
           <div className="flex flex-wrap justify-end gap-x-4 border-t border-line pt-3">
             <button

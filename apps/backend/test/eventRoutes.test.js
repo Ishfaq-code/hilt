@@ -556,7 +556,13 @@ test(
         const result = await call(eventPath(untracked, '/attendance'), {
           user: officer,
         })
-        assert.deepEqual(result.data, { tracked: false, rsvps: 0, people: [] })
+        assert.deepEqual(result.data, {
+          tracked: true,
+          rsvps: 0,
+          withRsvp: 0,
+          walkIns: 0,
+          people: [],
+        })
       },
     )
 
@@ -640,6 +646,151 @@ test(
           user: student,
         })
         assert.deepEqual(participation.data, { rsvped: true, checkIn: null })
+      },
+    )
+
+    await t.test(
+      'staff can use manual and QR check-in before and after events with methods disabled',
+      async () => {
+        const sample = await Organization.create({
+          name: 'Always available staff tools',
+          events: [
+            {
+              name: 'Before',
+              startDatetime: now + 60_000,
+              endDatetime: now + 120_000,
+            },
+            {
+              name: 'After',
+              startDatetime: now - 120_000,
+              endDatetime: now - 60_000,
+            },
+            {
+              name: 'During',
+              startDatetime: now - 60_000,
+              endDatetime: now + 60_000,
+            },
+          ],
+        })
+        const member = await Membership.create({
+          organizationId: sample._id,
+          userId: officer._id,
+        })
+        await ClubAccess.create({
+          _id: sample._id,
+          roles: [
+            {
+              name: 'Check-in',
+              permissions: ['attendance'],
+              memberIds: [member._id],
+            },
+          ],
+        })
+        const path = (event, suffix) =>
+          '/api/organizations/' + sample.id + '/events/' + event.id + suffix
+
+        for (const event of sample.events) {
+          assert.equal(
+            (await call(path(event, '/check-in-code'), { user: officer }))
+              .status,
+            200,
+          )
+          assert.equal(
+            (await call(path(event, '/check-in-code'), { user: student }))
+              .status,
+            403,
+          )
+          const manual = await call(path(event, '/attendance'), {
+            user: officer,
+            method: 'POST',
+            body: { userId: visitor.id },
+          })
+          assert.equal(manual.status, 200)
+          assert.equal(manual.data.method, 'staff-manual')
+          assert.equal(manual.data.hadRsvp, false)
+          const found = await call(
+            path(event, '/attendance?q=visitor@example.edu'),
+            {
+              user: officer,
+            },
+          )
+          assert.equal(found.data.people[0].checkIn.method, 'staff-manual')
+          assert.equal(
+            (
+              await call(path(event, '/attendance'), {
+                user: student,
+                method: 'POST',
+                body: { userId: visitor.id },
+              })
+            ).status,
+            403,
+          )
+          const { code } = (
+            await call('/api/users/me/check-in-code', { user: officer })
+          ).data
+          const scanned = await call(path(event, '/attendance'), {
+            user: officer,
+            method: 'POST',
+            body: { code },
+          })
+          assert.equal(scanned.status, 200)
+          assert.equal(scanned.data.method, 'attendee-qr')
+        }
+
+        const active = sample.events[2]
+        await Rsvp.create({
+          organizationId: sample._id,
+          eventId: active._id,
+          userId: student._id,
+        })
+        const { code } = (
+          await call(path(active, '/check-in-code'), { user: officer })
+        ).data
+        const eventScan = await call(path(active, '/check-in'), {
+          user: student,
+          method: 'POST',
+          body: { method: 'event-qr', code },
+        })
+        assert.equal(eventScan.status, 200)
+        assert.equal(eventScan.data.method, 'event-qr')
+        assert.equal(
+          (
+            await call(path(active, '/check-in'), {
+              user: student,
+              method: 'POST',
+              body: { method: 'self' },
+            })
+          ).status,
+          409,
+        )
+      },
+    )
+
+    await t.test(
+      'self check-in includes the start time and excludes the end time',
+      async (t) => {
+        let time = future.startDatetime.getTime() - 1
+        t.mock.method(Date, 'now', () => time)
+        const self = { user: student, method: 'POST', body: { method: 'self' } }
+        assert.equal(
+          (await call(eventPath(future, '/check-in'), self)).status,
+          409,
+        )
+        time += 1
+        assert.equal(
+          (await call(eventPath(future, '/check-in'), self)).status,
+          200,
+        )
+        time = future.endDatetime.getTime() - 1
+        assert.equal(
+          (await call(eventPath(future, '/check-in'), self)).status,
+          200,
+        )
+        time += 1
+        assert.equal(
+          (await call(eventPath(future, '/check-in'), self)).status,
+          409,
+        )
       },
     )
 

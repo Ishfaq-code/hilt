@@ -54,15 +54,6 @@ async function requireEventAccess(req, res, next) {
   next()
 }
 
-function requireTracking(req, res, next) {
-  if (!req.event.attendance.enabled) {
-    return res
-      .status(409)
-      .json({ error: 'Attendance is not tracked for this event.' })
-  }
-  next()
-}
-
 function checkInDetails(record) {
   if (!record) return null
   const { checkedInAt, method, hadRsvp } = record
@@ -75,7 +66,8 @@ async function recordCheckIn(req, res, userId, method) {
   if (existing) return res.json(checkInDetails(existing))
 
   const hadRsvp = Boolean(await Rsvp.exists(filter))
-  if (!hadRsvp && !req.event.attendance.walkIns) {
+  const staff = method === 'staff-manual' || method === 'attendee-qr'
+  if (!staff && !hadRsvp && !req.event.attendance.walkIns) {
     return res
       .status(409)
       .json({ error: 'This event only checks in people who RSVPed.' })
@@ -185,7 +177,6 @@ router.post(
   requireAuth,
   loadEvent,
   requireEventAccess,
-  requireTracking,
   async (req, res) => {
     const now = Date.now()
     if (
@@ -196,7 +187,7 @@ router.post(
     }
 
     const { method, code } = req.body || {}
-    if (method === 'event-qr' && req.event.attendance.eventQr) {
+    if (method === 'event-qr') {
       const token = readCode(code, 'event')
       if (
         token?.eventId !== String(req.event._id) ||
@@ -206,6 +197,10 @@ router.post(
           .status(400)
           .json({ error: 'This event QR code is invalid or expired.' })
       }
+    } else if (method === 'self' && !req.event.attendance.enabled) {
+      return res
+        .status(409)
+        .json({ error: 'Self check-in is unavailable for this event.' })
     } else if (method !== 'self' || !req.event.attendance.self) {
       return res
         .status(403)
@@ -220,13 +215,7 @@ router.get(
   requireAuth,
   requireClubPermission('attendance'),
   loadEvent,
-  requireTracking,
   (req, res) => {
-    if (!req.event.attendance.eventQr) {
-      return res
-        .status(403)
-        .json({ error: 'Event QR check-in is unavailable.' })
-    }
     res.set('Cache-Control', 'no-store').json(
       issueCode({
         kind: 'event',
@@ -246,7 +235,7 @@ async function findAttendees(event, organizationId, search) {
   const eligible = [{ 'memberships.0': { $exists: true } }]
   if (!event.private) {
     eligible.push({ 'rsvps.0': { $exists: true } })
-    if (event.attendance.walkIns) eligible.push({ email: search.toLowerCase() })
+    eligible.push({ email: search.toLowerCase() })
   }
 
   return User.aggregate([
@@ -307,10 +296,6 @@ router.get(
     const { organizationId } = filter
     const rsvps = await Rsvp.countDocuments(filter)
     const people = await findAttendees(event, organizationId, search)
-    if (!event.attendance.enabled) {
-      return res.json({ tracked: false, rsvps, people })
-    }
-
     const active = { ...filter, reversedAt: null }
     const [withRsvp, walkIns, records] = await Promise.all([
       Attendance.countDocuments({ ...active, hadRsvp: true }),
@@ -351,16 +336,10 @@ router.post(
   requireAuth,
   requireClubPermission('attendance'),
   loadEvent,
-  requireTracking,
   async (req, res) => {
     const { code, userId } = req.body || {}
     const scanned = code !== undefined
     const target = scanned ? readCode(code, 'attendee')?.userId : userId
-    if (scanned && !req.event.attendance.attendeeQr) {
-      return res
-        .status(403)
-        .json({ error: 'Attendee QR check-in is unavailable.' })
-    }
     if (
       typeof target !== 'string' ||
       !isValidObjectId(target) ||
