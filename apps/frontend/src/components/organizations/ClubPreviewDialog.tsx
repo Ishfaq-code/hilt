@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuthPage } from '../../hooks/useAuthPage'
 import { useSiteSession } from '../../hooks/useCurrentUser'
-import { useToast } from '../../hooks/useToast'
 import { api } from '../../lib/api'
-import { joinClub, myClubPath } from '../../lib/clubs'
+import { joinClub } from '../../lib/clubs'
 import { clubPath } from '../../lib/events'
 import type { Organization } from '../../types'
 import type { Membership } from '../../types/management'
 import { OrganizationEventList } from '../events/OrganizationEventList'
 import { SharedEventDialog } from '../events/SharedEventDialog'
 import { Dialog } from '../ui/Dialog'
-import { buttonClass, secondaryClass } from '../ui/styles'
+import { secondaryClass } from '../ui/styles'
+import { ClubJoinControl } from './ClubJoinControl'
 import { ClubReportButton } from './ClubReportButton'
 import { Cover } from './Cover'
 import { OrganizationAvatar } from './OrganizationAvatar'
@@ -29,10 +29,8 @@ export function ClubPreviewDialog({
   onClose: () => void
   onCloseEvent?: () => void
 }) {
-  const navigate = useNavigate()
   const openLogin = useAuthPage()
   const { user, token } = useSiteSession()
-  const { toast } = useToast()
   const location = useLocation()
   const [details, setDetails] = useState<Organization | null>(null)
   const [joined, setJoined] = useState(false)
@@ -74,7 +72,6 @@ export function ClubPreviewDialog({
     return () => request.abort()
   }, [clubId, signedIn, token])
 
-  const myClubs = myClubPath(clubId)
   const managePath = clubPath(clubId) + '/manage'
   const canManage =
     user?.role === 'user' &&
@@ -83,10 +80,12 @@ export function ClubPreviewDialog({
 
   async function join() {
     if (!signedIn) {
+      const params = new URLSearchParams(location.search)
+      params.set('club', clubId)
+      if (eventId) params.set('event', eventId)
       openLogin({
-        from: location.pathname + location.search + location.hash,
+        from: location.pathname + '?' + params + location.hash,
         joinOrganizationId: clubId,
-        joinOrganizationName: club?.name,
       })
       return
     }
@@ -94,14 +93,9 @@ export function ClubPreviewDialog({
     setBusy(true)
     setError('')
     try {
-      const added = await joinClub(clubId)
-      if (added) toast({ title: 'Club joined', description: club?.name })
-      if (eventId) {
-        setDetails(await api<Organization>('/api' + clubPath(clubId)))
-        setJoined(true)
-      } else {
-        navigate(myClubs, { replace: true })
-      }
+      await joinClub(clubId)
+      setJoined(true)
+      setDetails(await api<Organization>('/api' + clubPath(clubId)))
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Couldn’t join the club.',
@@ -145,36 +139,31 @@ export function ClubPreviewDialog({
         </p>
       )}
       {details && (
-        <div className="mt-5 flex flex-wrap justify-end gap-2">
-          {details.profile && (
-            <a
-              href={details.profile}
-              target="_blank"
-              rel="noreferrer"
-              className={secondaryClass}
-            >
-              Website
-            </a>
-          )}
-          {canManage && (
-            <Link to={managePath} className={secondaryClass}>
-              Manage
-            </Link>
-          )}
-          {joined ? (
-            <Link to={myClubs} className={buttonClass}>
-              My clubs
-            </Link>
-          ) : (
-            <button
-              type="button"
-              className={buttonClass}
-              disabled={busy}
-              onClick={() => void join()}
-            >
-              {busy ? 'Joining…' : 'Interested'}
-            </button>
-          )}
+        <div className="mt-5 flex items-start justify-between gap-4">
+          <div className="flex min-h-10 flex-wrap items-center gap-4">
+            {details.profile && (
+              <a
+                href={details.profile}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink hover:underline hover:underline-offset-4"
+              >
+                Website
+                <span aria-hidden="true">↗</span>
+              </a>
+            )}
+            {canManage && (
+              <Link to={managePath} className={secondaryClass}>
+                Manage
+              </Link>
+            )}
+          </div>
+          <ClubJoinControl
+            clubId={clubId}
+            joined={joined}
+            busy={busy}
+            onJoin={() => void join()}
+          />
         </div>
       )}
       {details && (

@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SubmitEvent } from 'react'
-import { useToast } from '../../hooks/useToast'
 import { saveAuthSession } from '../../lib/auth'
 import type { AuthIntent, AuthMode } from '../../lib/authFlow'
-import { joinClub, myClubPath } from '../../lib/clubs'
+import { clubPreviewPath, joinClub } from '../../lib/clubs'
 import type { ApiResponse } from '../../types'
 import { buttonClass, inputClass } from '../ui/styles'
 
@@ -35,7 +34,6 @@ export function AuthForm({
   onModeChange: (mode: AuthMode) => void
   onFinish: (destination?: string, joinError?: string) => void
 }) {
-  const { toast } = useToast()
   const pending = useRef<AbortController>(null)
   const [stage, setStage] = useState<'form' | 'verify' | 'complete'>('form')
   const [firstName, setFirstName] = useState('')
@@ -64,14 +62,9 @@ export function AuthForm({
     }
 
     try {
-      const added = await joinClub(clubId)
+      await joinClub(clubId)
       if (!signal.aborted) {
-        if (added)
-          toast({
-            title: 'Club joined',
-            description: intent?.joinOrganizationName,
-          })
-        onFinish(intent?.afterJoin || myClubPath(clubId))
+        onFinish(intent?.from || clubPreviewPath(clubId))
       }
     } catch (cause) {
       if (!signal.aborted) {
