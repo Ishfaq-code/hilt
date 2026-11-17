@@ -19,6 +19,7 @@ router.get('/', optionalAuth, async (req, res) => {
   const discover = scope === 'discover'
   const page = Number(req.query.page ?? 1)
   const pageSize = Number(req.query.limit ?? defaultDiscoverPageSize)
+  const sort = req.query.sort ?? 'popular'
   const start =
     discover && !req.query.start ? Date.now() : readDate(req.query.start)
   const end = discover && !req.query.end ? Infinity : readDate(req.query.end)
@@ -37,6 +38,9 @@ router.get('/', optionalAuth, async (req, res) => {
   }
   if (discover && (!Number.isSafeInteger(page) || page < 1)) {
     return res.status(400).json({ error: 'Choose a valid event page.' })
+  }
+  if (discover && !['popular', 'soonest'].includes(sort)) {
+    return res.status(400).json({ error: 'Choose a valid event sort order.' })
   }
   if (
     discover &&
@@ -168,6 +172,9 @@ router.get('/', optionalAuth, async (req, res) => {
   if (discover && !req.query.start && !req.query.end) {
     const clubTagFilters = [].concat(req.query.clubTag ?? []).filter(Boolean)
     const eventTagFilters = [].concat(req.query.eventTag ?? []).filter(Boolean)
+    const eventCategoryFilters = []
+      .concat(req.query.eventCategory ?? [])
+      .filter(Boolean)
     const selectedClub =
       typeof req.query.club === 'string' ? req.query.club : ''
     const search =
@@ -175,13 +182,27 @@ router.get('/', optionalAuth, async (req, res) => {
         ? req.query.search.trim().toLowerCase()
         : ''
     const filtered = entries.filter(({ club, event }) => {
-      const searchable = [event.name, event.place, club.name]
+      const searchable = [
+        event.name,
+        event.place,
+        event.description,
+        club.name,
+        ...club.tags,
+        ...event.tags,
+      ]
         .join(' ')
         .toLowerCase()
       const clubTags = tagsFor(club.tags)
       return (
         (!selectedClub || String(club._id) === selectedClub) &&
-        (!search || searchable.includes(search)) &&
+        (!search ||
+          search.split(/\s+/).every((term) => searchable.includes(term))) &&
+        (!eventCategoryFilters.length ||
+          event.tags.some((tag) =>
+            eventCategoryFilters.some(
+              (filter) => tag.toLowerCase() === filter.toLowerCase(),
+            ),
+          )) &&
         (!clubTagFilters.length ||
           clubTags.some((tag) =>
             clubTagFilters.some(
@@ -216,7 +237,11 @@ router.get('/', optionalAuth, async (req, res) => {
         countsByEvent.get(String(a.club._id) + ':' + a.event._id) || 0
       const bCount =
         countsByEvent.get(String(b.club._id) + ':' + b.event._id) || 0
-      return bCount - aCount || a.event.startDatetime - b.event.startDatetime
+      const chronological =
+        a.event.startDatetime - b.event.startDatetime ||
+        String(a.event._id).localeCompare(String(b.event._id))
+      if (sort === 'soonest') return chronological
+      return bCount - aCount || chronological
     })
     const offset = (page - 1) * pageSize
     res.set('Cache-Control', 'private, no-store').json({

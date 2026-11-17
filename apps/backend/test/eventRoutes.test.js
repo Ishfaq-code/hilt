@@ -420,9 +420,10 @@ test(
           events: [
             ...Array.from({ length: 12 }, (_, index) => ({
               name: `Public listing ${index + 1}`,
+              place: 'Library · Room 204',
               startDatetime: now + 2_000_000 + index * 60_000,
               endDatetime: now + 2_600_000 + index * 60_000,
-              tags: index < 11 ? ['Workshop'] : ['Social'],
+              tags: index < 11 ? ['Workshop', 'Arts'] : ['Social', 'Music'],
             })),
             {
               name: 'Private listing',
@@ -436,6 +437,7 @@ test(
         const query = new URLSearchParams({
           scope: 'discover',
           club: pagedClub.id,
+          limit: '10',
         })
         const first = await call('/api/calendar?' + query)
         assert.equal(first.status, 200)
@@ -467,7 +469,43 @@ test(
               club._id === pagedClub.id && event.tags.includes('Workshop'),
           ),
         )
-        assert.deepEqual(filtered.data.eventTags, ['Workshop', 'Social'])
+        assert.deepEqual(
+          new Set(filtered.data.eventTags),
+          new Set(['Workshop', 'Arts', 'Social', 'Music']),
+        )
+        const category = await call(
+          '/api/calendar?' + query + '&eventCategory=Music&eventTag=Social',
+        )
+        assert.equal(category.data.total, 1)
+        assert.equal(category.data.entries[0].event.name, 'Public listing 12')
+        const mismatch = await call(
+          '/api/calendar?' + query + '&eventCategory=Music&eventTag=Workshop',
+        )
+        assert.equal(mismatch.data.total, 0)
+
+        const searched = await call(
+          '/api/calendar?' + query + '&search=Pagination%20Library%20Workshop',
+        )
+        assert.equal(searched.data.total, 11)
+        assert.ok(
+          searched.data.entries.every(({ event }) =>
+            event.tags.includes('Workshop'),
+          ),
+        )
+
+        await Rsvp.create({
+          organizationId: pagedClub._id,
+          eventId: pagedClub.events[11]._id,
+          userId: student._id,
+        })
+        const popular = await call('/api/calendar?' + query + '&sort=popular')
+        assert.equal(popular.data.entries[0].event._id, pagedClub.events[11].id)
+        const soonest = await call('/api/calendar?' + query + '&sort=soonest')
+        assert.equal(soonest.data.entries[0].event._id, pagedClub.events[0].id)
+        assert.equal(
+          (await call('/api/calendar?' + query + '&sort=unknown')).status,
+          400,
+        )
       },
     )
 
