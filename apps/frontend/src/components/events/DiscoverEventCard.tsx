@@ -41,6 +41,9 @@ export function DiscoverEventCard({
   const [now, setNow] = useState(Date.now)
 
   const { club, event } = entry
+  const imageSource =
+    event.banner ||
+    club.assets?.find((asset) => /logo|icon/i.test(asset.type))?.link
   const endpoint = eventApi(club._id, event._id)
   const url = new URL(eventPath(club._id, event._id), window.location.origin)
   const start = new Date(event.startDatetime)
@@ -132,8 +135,8 @@ export function DiscoverEventCard({
             (vertical ? 'h-28 shrink-0' : 'aspect-[4/3] rounded-md')
           }
         >
-          {event.banner ? (
-            <EventBanner src={event.banner} className="h-full w-full" />
+          {imageSource ? (
+            <EventBanner src={imageSource} className="h-full w-full" />
           ) : (
             <OrganizationAvatar
               organization={club}
