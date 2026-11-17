@@ -1,14 +1,13 @@
 import type { SubmitEvent } from 'react'
 import { useState } from 'react'
 import { api } from '../../lib/api'
+import { eventCategoryOptions, eventTagOptions } from '../../lib/eventFilters'
 import { uploadBody } from '../../lib/uploads'
 import { EventBanner } from './EventBanner'
 import { ImageUpload } from '../ui/ImageUpload'
 import type { EditableEvent } from '../../types/management'
 import { TagPicker } from '../organizations/TagPicker'
 import { buttonClass, inputClass, secondaryClass } from '../ui/styles'
-
-const eventTagOptions = ['Workshop', 'Social', 'Meeting', 'Outdoors']
 
 export function EventEditor({
   organizationId,
@@ -195,7 +194,11 @@ export function EventEditor({
       </label>
       <div className="grid items-start gap-4 sm:grid-cols-2">
         <TagPicker
-          options={[...eventTagOptions, ...(event?.tags ?? [])]}
+          options={[
+            ...eventCategoryOptions,
+            ...eventTagOptions,
+            ...(event?.tags ?? []),
+          ]}
           selected={tags}
           onChange={setTags}
           showLabel

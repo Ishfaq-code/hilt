@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAuthPage } from '../../hooks/useAuthPage'
 import { useAuthToken } from '../../hooks/useAuthToken'
 import { useToast } from '../../hooks/useToast'
@@ -20,10 +21,17 @@ type Entry = {
 
 type Participation = { rsvped: boolean }
 
-export function DiscoverEventCard({ entry }: { entry: Entry }) {
+export function DiscoverEventCard({
+  entry,
+  layout = 'row',
+}: {
+  entry: Entry
+  layout?: 'row' | 'card'
+}) {
   const { toast } = useToast()
   const openLogin = useAuthPage()
   const token = useAuthToken()
+  const [params] = useSearchParams()
   const [participation, setParticipation] = useState<{
     token: string
     rsvped: boolean
@@ -34,8 +42,7 @@ export function DiscoverEventCard({ entry }: { entry: Entry }) {
 
   const { club, event } = entry
   const endpoint = eventApi(club._id, event._id)
-  const path = eventPath(club._id, event._id)
-  const url = new URL(path, window.location.origin).href
+  const url = new URL(eventPath(club._id, event._id), window.location.origin)
   const start = new Date(event.startDatetime)
   const hasStarted = now >= start.getTime()
 
@@ -68,9 +75,9 @@ export function DiscoverEventCard({ entry }: { entry: Entry }) {
     setError('')
     try {
       if (navigator.share) {
-        await navigator.share({ url, title: event.name })
+        await navigator.share({ url: url.href, title: event.name })
       } else {
-        await navigator.clipboard.writeText(url)
+        await navigator.clipboard.writeText(url.href)
         toast({ title: 'Link copied' })
       }
     } catch (cause) {
@@ -100,72 +107,102 @@ export function DiscoverEventCard({ entry }: { entry: Entry }) {
 
   const rsvped = participation?.token === token && participation.rsvped
   const participationLoaded = participation?.token === token
+  const vertical = layout === 'card'
+  const preview = new URLSearchParams(params)
+  preview.set('club', club._id)
+  preview.set('event', event._id)
 
   return (
-    <article className={panelClass + ' overflow-visible'}>
-      <EventBanner
-        src={event.banner}
-        className="aspect-[3/1] w-full rounded-t-xl"
-      />
-      <div className="p-4 sm:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+    <article
+      className={
+        panelClass +
+        (vertical ? ' flex h-full flex-col overflow-hidden' : ' p-3')
+      }
+    >
+      <div
+        className={
+          vertical
+            ? 'flex flex-1 flex-col'
+            : 'grid grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 sm:grid-cols-[6.5rem_minmax(0,1fr)_auto]'
+        }
+      >
+        <div
+          className={
+            'relative grid place-items-center overflow-hidden bg-paper ' +
+            (vertical ? 'h-28 shrink-0' : 'aspect-[4/3] rounded-md')
+          }
+        >
+          {event.banner ? (
+            <EventBanner src={event.banner} className="h-full w-full" />
+          ) : (
             <OrganizationAvatar
               organization={club}
-              className="size-12 shrink-0 text-xs"
+              className="size-10 text-xs sm:size-12"
             />
-            <div className="min-w-0">
-              <p className="text-xs font-bold tracking-[0.12em] text-accent uppercase sm:text-sm">
-                {club.name}
-              </p>
-              <h3 className="mt-1 text-xl font-bold tracking-tight text-ink sm:text-2xl">
-                {event.name}
-              </h3>
-              <p className="mt-1 text-xs font-medium text-muted">
-                {entry.rsvpCount} {entry.rsvpCount === 1 ? 'RSVP' : 'RSVPs'}
-              </p>
-              {event.description && (
-                <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
-                  {event.description}
-                </p>
-              )}
-            </div>
-          </div>
-          <button
-            type="button"
-            aria-label="Share event"
-            title="Share event"
-            className={secondaryClass + ' size-10 shrink-0 p-0!'}
-            onClick={() => void share()}
+          )}
+          <div
+            aria-hidden="true"
+            className={
+              'absolute grid min-w-11 justify-items-center rounded-md border border-line bg-white px-2 py-1 shadow-sm ' +
+              (vertical
+                ? 'top-2.5 left-2.5'
+                : 'inset-y-1 left-1 content-center')
+            }
           >
-            <Icon name="share" />
-          </button>
+            <span className="text-[10px] font-bold tracking-wider text-accent uppercase">
+              {start.toLocaleDateString(undefined, { month: 'short' })}
+            </span>
+            <span className="text-2xl leading-7 font-semibold tabular-nums">
+              {start.getDate()}
+            </span>
+          </div>
         </div>
 
-        <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0 space-y-2 text-sm text-muted sm:text-base">
-            <p className="flex items-start gap-3">
-              <Icon name="calendar" size={20} />
-              <time dateTime={event.startDatetime}>
-                {start.toLocaleDateString(undefined, {
-                  weekday: 'long',
-                  month: 'short',
-                  day: 'numeric',
-                })}{' '}
-                @{' '}
-                {start.toLocaleTimeString([], {
-                  hour: 'numeric',
-                  minute: '2-digit',
-                })}
-              </time>
+        <div className={'min-w-0' + (vertical ? ' flex-1 px-4 pt-3' : '')}>
+          <p className="line-clamp-1 text-xs text-muted">{club.name}</p>
+          <h3 className="mt-0.5 font-semibold leading-snug text-ink">
+            <Link
+              to={{ search: '?' + preview }}
+              aria-haspopup="dialog"
+              className="hover:text-accent hover:underline"
+            >
+              {event.name}
+            </Link>
+          </h3>
+          {event.tags.length > 0 && (
+            <p className="mt-1 text-[11px] font-medium text-accent">
+              {event.tags.slice(0, 2).join(' · ')}
             </p>
-            {event.place && (
-              <p className="flex items-start gap-3">
-                <Icon name="pin" size={20} />
-                <span>{event.place}</span>
-              </p>
-            )}
+          )}
+          <div
+            className={
+              'mt-1 flex gap-x-3 gap-y-0.5 text-xs text-muted ' +
+              (vertical ? 'flex-col' : 'flex-wrap')
+            }
+          >
+            <time dateTime={event.startDatetime}>
+              {start.toLocaleDateString(undefined, {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+              })}{' '}
+              @{' '}
+              {start.toLocaleTimeString([], {
+                hour: 'numeric',
+                minute: '2-digit',
+              })}
+            </time>
+            {event.place && <span className="line-clamp-1">{event.place}</span>}
+            <span>{entry.rsvpCount} going</span>
           </div>
+        </div>
+
+        <div
+          className={
+            'flex items-center justify-end gap-2 ' +
+            (vertical ? 'px-4 pt-3 pb-4' : 'col-span-full sm:col-span-1')
+          }
+        >
           {hasStarted ? (
             <button type="button" className={secondaryClass} disabled>
               {rsvped && <Icon name="check" size={16} />}
@@ -180,21 +217,33 @@ export function DiscoverEventCard({ entry }: { entry: Entry }) {
           ) : (
             <button
               type="button"
-              aria-haspopup="dialog"
               className={buttonClass}
               onClick={() => openLogin()}
             >
               Log in to RSVP
             </button>
           )}
+          <button
+            type="button"
+            aria-label="Share event"
+            title="Share event"
+            className={secondaryClass + ' size-10 shrink-0 p-0!'}
+            onClick={() => void share()}
+          >
+            <Icon name="share" />
+          </button>
         </div>
-
-        {error && (
-          <p role="alert" className="mt-3 text-sm text-red-700">
-            {error}
-          </p>
-        )}
       </div>
+      {error && (
+        <p
+          role="alert"
+          className={
+            'mt-2 text-sm text-red-700' + (vertical ? 'px-4 pb-4' : '')
+          }
+        >
+          {error}
+        </p>
+      )}
     </article>
   )
 }
