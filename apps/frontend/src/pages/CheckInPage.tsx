@@ -10,7 +10,12 @@ export default function CheckInPage({ mode }: { mode: 'qr' | 'scan' }) {
   const token = useAuthToken()
 
   if (!token) {
-    return <Navigate {...authEntry('login', {})} />
+    return (
+      <Navigate
+        {...authEntry('login', { from: location.pathname + location.search })}
+        replace
+      />
+    )
   }
 
   const close = () => navigate('/my-organizations', { replace: true })

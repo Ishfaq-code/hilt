@@ -15,8 +15,8 @@ export default function AuthEntryPage({ mode }: { mode: AuthMode }) {
       onModeChange={(next) =>
         navigate('/' + next, { replace: true, state: location.state })
       }
-      onFinish={(_destination, joinError) =>
-        navigate('/', {
+      onFinish={(destination, joinError) =>
+        navigate(destination || '/', {
           replace: true,
           state: joinError ? { joinError } : null,
         })
