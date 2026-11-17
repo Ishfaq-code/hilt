@@ -1,3 +1,5 @@
+import { usePagination } from '../../hooks/usePagination'
+import { Pagination } from '../ui/Pagination'
 import { inputClass, panelClass } from '../ui/styles'
 
 import type { OrganizationManagement } from '../../hooks/useOrganizationManagement'
@@ -20,6 +22,8 @@ export function OrganizationMembers({
   removeMember,
   permissions,
 }: Props) {
+  const { pageItems, page, pageCount, setPage } = usePagination(matchingMembers)
+
   return (
     <section>
       <h1 className="mb-5 text-3xl font-semibold tracking-tight">Members</h1>
@@ -30,7 +34,10 @@ export function OrganizationMembers({
           className={inputClass}
           placeholder="Search members"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            setQuery(event.target.value)
+            setPage(1)
+          }}
         />
       </label>
       {matchingMembers.length ? (
@@ -53,7 +60,7 @@ export function OrganizationMembers({
               </tr>
             </thead>
             <tbody className="divide-y divide-line border-t border-line">
-              {matchingMembers.map((member) => (
+              {pageItems.map((member) => (
                 <tr key={member._id} className="hover:bg-paper">
                   <th scope="row" className="px-4 py-3">
                     <span className="font-semibold">
@@ -103,6 +110,12 @@ export function OrganizationMembers({
           No members match your search.
         </p>
       )}
+      <Pagination
+        label="Members"
+        page={page}
+        pageCount={pageCount}
+        onPageChange={setPage}
+      />
     </section>
   )
 }
