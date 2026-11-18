@@ -11,7 +11,7 @@ import EventsPage from './pages/EventsPage'
 import MyOrganizationsPage from './pages/MyOrganizationsPage'
 import OrganizationsPage from './pages/OrganizationsPage'
 import OrganizationManagePage from './pages/OrganizationManagePage'
-import OrganizationPage from './pages/OrganizationPage'
+import ClubPreviewRedirect from './pages/ClubPreviewRedirect'
 
 function App() {
   return (
@@ -30,7 +30,7 @@ function App() {
         <Route path="/my-organizations" element={<MyOrganizationsPage />} />
         <Route
           path="/organizations/:organizationId"
-          element={<OrganizationPage />}
+          element={<ClubPreviewRedirect />}
         />
         <Route
           path="/organizations/:organizationId/manage"

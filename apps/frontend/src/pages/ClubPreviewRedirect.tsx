@@ -1,7 +1,7 @@
 import { Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { clubPreviewPath } from '../lib/clubs'
 
-export default function OrganizationPage() {
+export default function ClubPreviewRedirect() {
   const { organizationId = '' } = useParams()
   const [params] = useSearchParams()
   return (
