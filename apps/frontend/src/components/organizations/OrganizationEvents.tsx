@@ -7,7 +7,12 @@ import type { EditableEvent, ManagedEvent } from '../../types/management'
 import { EventEditor } from '../events/EventEditor'
 import { Dialog } from '../ui/Dialog'
 import { Pagination } from '../ui/Pagination'
-import { buttonClass, inputClass, panelClass } from '../ui/styles'
+import {
+  buttonClass,
+  inputClass,
+  panelClass,
+  textActionClass,
+} from '../ui/styles'
 import { ManagedEventRow } from './ManagedEventRow'
 
 type Props = Pick<
@@ -24,11 +29,12 @@ type Props = Pick<
 
 type EventAction = { kind: 'new' } | { kind: 'edit'; event: EditableEvent }
 
+const allEvents = { id: 'all', label: 'All', empty: 'No events yet.' } as const
 const filters = [
   { id: 'upcoming', label: 'Upcoming', empty: 'No upcoming events.' },
   { id: 'draft', label: 'Drafts', empty: 'No drafts.' },
   { id: 'past', label: 'Past', empty: 'No past events.' },
-  { id: 'all', label: 'All', empty: 'No events yet.' },
+  allEvents,
 ] as const
 
 type EventFilter = (typeof filters)[number]
@@ -67,12 +73,16 @@ export function OrganizationEvents({
   deleteEvent,
 }: Props) {
   const heading = useRef<HTMLHeadingElement>(null)
+  const searchInput = useRef<HTMLInputElement>(null)
   const [action, setAction] = useState<EventAction | null>(null)
   const [query, setQuery] = useState('')
   const [selectedFilter, setFilter] = useState<EventFilter>(filters[0])
 
   const filter =
     !canEdit && selectedFilter.id === 'draft' ? filters[0] : selectedFilter
+  const searchScope = filter.id === 'draft' ? 'drafts' : `${filter.id} events`
+  const searchLabel = 'Search ' + searchScope
+  const noMatches = filter.id === 'all' ? 'events' : searchScope
   const search = query.trim().toLowerCase()
   const matchingEvents = events
     .map((event) => ({ event, phase: eventPhase(event, now) }))
@@ -102,6 +112,11 @@ export function OrganizationEvents({
   const { pageItems, page, pageCount, setPage } = usePagination(matchingEvents)
   const totalsByEvent = new Map(totals?.map((item) => [item.eventId, item]))
   const close = () => setAction(null)
+
+  function selectFilter(option: EventFilter) {
+    setFilter(option)
+    setPage(1)
+  }
 
   async function save(message: string) {
     close()
@@ -139,21 +154,19 @@ export function OrganizationEvents({
                 type="button"
                 aria-pressed={filter.id === option.id}
                 className="min-h-11 border-b-2 border-transparent text-sm font-medium text-muted hover:text-ink aria-pressed:border-accent aria-pressed:text-ink"
-                onClick={() => {
-                  setFilter(option)
-                  setPage(1)
-                }}
+                onClick={() => selectFilter(option)}
               >
                 {option.label}
               </button>
             ))}
         </div>
         <label className="w-full pb-2 @min-[36rem]:max-w-60">
-          <span className="sr-only">Search events</span>
+          <span className="sr-only">{searchLabel}</span>
           <input
+            ref={searchInput}
             type="search"
             className={inputClass}
-            placeholder="Search events"
+            placeholder={searchLabel}
             value={query}
             onChange={(event) => {
               setQuery(event.target.value)
@@ -189,9 +202,21 @@ export function OrganizationEvents({
           ))}
         </ul>
       ) : (
-        <p className={panelClass + ' mt-4 p-4 text-sm text-muted'}>
-          {search ? 'No events match your search.' : filter.empty}
-        </p>
+        <div className={panelClass + ' mt-4 p-4 text-sm text-muted'}>
+          <p>{search ? `No ${noMatches} match your search.` : filter.empty}</p>
+          {search && filter.id !== 'all' && (
+            <button
+              type="button"
+              className={textActionClass}
+              onClick={() => {
+                selectFilter(allEvents)
+                searchInput.current?.focus()
+              }}
+            >
+              Search all events
+            </button>
+          )}
+        </div>
       )}
       <Pagination
         label="Events"
