@@ -13,6 +13,7 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router-dom'
+import { AttendanceDialog } from '../components/events/AttendanceDialog'
 import { Workspace } from '../components/layout/Workspace'
 import { ClubPreviewDialog } from '../components/organizations/ClubPreviewDialog'
 import { OrganizationEvents } from '../components/organizations/OrganizationEvents'
@@ -22,7 +23,9 @@ import { ClubRoles } from '../components/roles/ClubRoles'
 import { useSiteSession } from '../hooks/useCurrentUser'
 import { useOrganizationManagement } from '../hooks/useOrganizationManagement'
 import { authEntry } from '../lib/authFlow'
+import { isEventInProgress } from '../lib/events'
 import type { ClubPermission } from '../types/clubRoles'
+import type { ManagedEvent } from '../types/management'
 
 const OrganizationStatistics = lazy(() =>
   import('../components/organizations/OrganizationStatistics').then(
@@ -87,9 +90,19 @@ function OrganizationManagementWorkspace({
   const [searchParams, setSearchParams] = useSearchParams()
   const [previewOpen, setPreviewOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('')
+  const [attendanceEvent, setAttendanceEvent] = useState<ManagedEvent | null>(
+    null,
+  )
+  const [now, setNow] = useState(Date.now)
   const scrollPane = useRef<HTMLDivElement>(null)
   const management = useOrganizationManagement(organizationId, admin)
   const { organization, loading, error, permissions } = management
+  const canCheckIn = permissions.includes('attendance')
+  const liveEvent = canCheckIn
+    ? management.events.find(
+        (event) => event.status !== 'draft' && isEventInProgress(event, now),
+      )
+    : undefined
   const visible = useMemo(
     () =>
       tabs.filter((tab) =>
@@ -110,6 +123,11 @@ function OrganizationManagementWorkspace({
     },
     [targetSection],
   )
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 15_000)
+    return () => window.clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     function updateActiveSection(event: Event) {
@@ -202,7 +220,17 @@ function OrganizationManagementWorkspace({
         >
           {visible.some(({ key }) => key === 'overview') && (
             <div data-section="overview">
-              <OrganizationStatistics statistics={management.statistics} />
+              <OrganizationStatistics
+                statistics={management.statistics}
+                checkIn={
+                  liveEvent && liveEvent.status !== 'draft'
+                    ? {
+                        eventName: liveEvent.name,
+                        onClick: () => setAttendanceEvent(liveEvent),
+                      }
+                    : undefined
+                }
+              />
             </div>
           )}
           {permissions.includes('settings') && (
@@ -222,11 +250,11 @@ function OrganizationManagementWorkspace({
                 events={management.events}
                 totals={management.statistics?.eventAttendance}
                 canEdit={permissions.includes('events')}
-                canCheckIn={permissions.includes('attendance')}
+                now={now}
+                onAttendance={canCheckIn ? setAttendanceEvent : undefined}
                 onOpenClub={() => setPreviewOpen(true)}
                 saved={management.saved}
                 deleteEvent={management.deleteEvent}
-                updateEventTotals={management.updateEventTotals}
               />
             </div>
           )}
@@ -257,6 +285,14 @@ function OrganizationManagementWorkspace({
           )}
         </div>
       </Suspense>
+      {canCheckIn && attendanceEvent && (
+        <AttendanceDialog
+          club={organization}
+          event={attendanceEvent}
+          onClose={() => setAttendanceEvent(null)}
+          onTotalsChange={management.updateEventTotals}
+        />
+      )}
       {previewOpen && (
         <ClubPreviewDialog
           clubId={organizationId}

@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import type { OrganizationManagement } from '../../hooks/useOrganizationManagement'
 import { usePagination } from '../../hooks/usePagination'
+import { isEventInProgress } from '../../lib/events'
 import type { Organization } from '../../types'
 import type { EditableEvent, ManagedEvent } from '../../types/management'
-import { AttendanceDialog } from '../events/AttendanceDialog'
 import { EventEditor } from '../events/EventEditor'
 import { Dialog } from '../ui/Dialog'
 import { Pagination } from '../ui/Pagination'
@@ -12,19 +12,17 @@ import { ManagedEventRow } from './ManagedEventRow'
 
 type Props = Pick<
   OrganizationManagement,
-  'events' | 'saved' | 'deleteEvent' | 'updateEventTotals'
+  'events' | 'saved' | 'deleteEvent'
 > & {
   club: Pick<Organization, '_id' | 'name'>
   totals?: NonNullable<OrganizationManagement['statistics']>['eventAttendance']
   canEdit: boolean
-  canCheckIn: boolean
+  now: number
+  onAttendance?: (event: ManagedEvent) => void
   onOpenClub: () => void
 }
 
-type EventAction =
-  | { kind: 'new' }
-  | { kind: 'edit'; event: EditableEvent }
-  | { kind: 'attendance'; event: ManagedEvent }
+type EventAction = { kind: 'new' } | { kind: 'edit'; event: EditableEvent }
 
 const filters = [
   { id: 'upcoming', label: 'Upcoming', empty: 'No upcoming events.' },
@@ -41,10 +39,8 @@ function eventPhase(
   now: number,
 ): keyof typeof eventOrder {
   if (event.status === 'draft') return 'draft'
-  const start = Date.parse(event.startDatetime)
-  const end = Date.parse(event.endDatetime)
-  if (start > now) return 'upcoming'
-  return Number.isFinite(start) && end > now ? 'live' : 'past'
+  if (Date.parse(event.startDatetime) > now) return 'upcoming'
+  return isEventInProgress(event, now) ? 'live' : 'past'
 }
 
 function compareEventTimes(
@@ -64,22 +60,16 @@ export function OrganizationEvents({
   events,
   totals,
   canEdit,
-  canCheckIn,
+  now,
+  onAttendance,
   onOpenClub,
   saved,
   deleteEvent,
-  updateEventTotals,
 }: Props) {
   const heading = useRef<HTMLHeadingElement>(null)
   const [action, setAction] = useState<EventAction | null>(null)
   const [query, setQuery] = useState('')
   const [selectedFilter, setFilter] = useState<EventFilter>(filters[0])
-  const [now, setNow] = useState(Date.now)
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 15_000)
-    return () => window.clearInterval(timer)
-  }, [])
 
   const filter =
     !canEdit && selectedFilter.id === 'draft' ? filters[0] : selectedFilter
@@ -190,8 +180,8 @@ export function OrganizationEvents({
                 canEdit ? () => setAction({ kind: 'edit', event }) : undefined
               }
               onAttendance={
-                canCheckIn && event.status !== 'draft'
-                  ? () => setAction({ kind: 'attendance', event })
+                onAttendance && event.status !== 'draft'
+                  ? () => onAttendance(event)
                   : undefined
               }
               onDelete={canEdit ? () => void deleteEvent(event) : undefined}
@@ -210,14 +200,6 @@ export function OrganizationEvents({
         onPageChange={setPage}
         headingRef={heading}
       />
-      {action?.kind === 'attendance' && (
-        <AttendanceDialog
-          club={club}
-          event={action.event}
-          onClose={close}
-          onTotalsChange={updateEventTotals}
-        />
-      )}
       {(action?.kind === 'new' || action?.kind === 'edit') && (
         <Dialog
           title={action.kind === 'new' ? 'New event' : 'Edit'}

@@ -13,12 +13,15 @@ import {
 import MetricCard from '../ui/MetricCard'
 import { PublishedEventsTable } from '../admin/PublishedEventsTable'
 import { StatisticsChart } from '../admin/StatisticsChart'
+import { buttonClass, panelClass } from '../ui/styles'
 import type { OrgStats } from '../../types/administration'
 
 export function OrganizationStatistics({
   statistics,
+  checkIn,
 }: {
   statistics?: OrgStats
+  checkIn?: { eventName: string; onClick: () => void }
 }) {
   if (!statistics) {
     return <p className="text-sm text-muted">Loading club statistics…</p>
@@ -37,6 +40,27 @@ export function OrganizationStatistics({
   return (
     <section>
       <h1 className="text-3xl font-semibold tracking-tight">Overview</h1>
+      {checkIn && (
+        <div
+          className={
+            panelClass +
+            ' mt-5 flex flex-wrap items-center justify-between gap-3 p-4'
+          }
+        >
+          <div>
+            <p className="text-xs font-medium text-active">In progress</p>
+            <h2 className="font-semibold">{checkIn.eventName}</h2>
+          </div>
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            className={buttonClass}
+            onClick={checkIn.onClick}
+          >
+            Check in
+          </button>
+        </div>
+      )}
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <MetricCard
           label="Total Members"
