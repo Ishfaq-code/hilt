@@ -89,7 +89,7 @@ export function SharedEventDialog({
             disabled={busy}
             onClick={join}
           >
-            {busy ? 'Joining…' : 'Interested'}
+            {busy ? 'Joining…' : 'Join to view event'}
           </button>
         </div>
       </Dialog>

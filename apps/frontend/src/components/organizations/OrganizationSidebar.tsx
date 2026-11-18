@@ -21,10 +21,10 @@ function ClubSwitcher({ organizations, selected, onSelect }: Props) {
           className="size-6 text-xs"
         />
       ) : (
-        <Icon name="home" size={17} />
+        <Icon name="calendar" size={17} />
       )}
       <span aria-hidden="true" className="truncate">
-        {selected?.name ?? 'Home'}
+        {selected?.name ?? 'Your calendar'}
       </span>
       <Icon name="chevronDown" size={16} />
       <select
@@ -37,7 +37,7 @@ function ClubSwitcher({ organizations, selected, onSelect }: Props) {
           else onSelect(value)
         }}
       >
-        <option value="">Home</option>
+        <option value="">Your calendar</option>
         {organizations.map((club) => (
           <option key={club._id} value={club._id}>
             {club.name}
@@ -73,8 +73,8 @@ export function OrganizationSidebar({
           onClick={() => onSelect('')}
           className={`mb-2 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm ${!selected ? 'bg-soft font-semibold text-accent' : 'text-muted hover:bg-paper'}`}
         >
-          <Icon name="home" size={18} />
-          Home
+          <Icon name="calendar" size={18} />
+          Your calendar
         </button>
         {organizations.map((organization) => (
           <button
