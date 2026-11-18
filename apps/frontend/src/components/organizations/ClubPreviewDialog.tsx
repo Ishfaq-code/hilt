@@ -220,7 +220,7 @@ export function ClubPreviewDialog({
             <div className="pb-5 text-sm text-muted">
               {joined ? (
                 <Link
-                  to={myClubPath(clubId)}
+                  to={myClubPath(clubId, 'events')}
                   className="underline underline-offset-4 hover:text-ink"
                 >
                   See more in My clubs

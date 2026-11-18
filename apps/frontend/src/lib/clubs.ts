@@ -7,8 +7,10 @@ export function clubPreviewPath(clubId: string, eventId?: string) {
   return '/?' + params
 }
 
-export function myClubPath(clubId: string) {
-  return '/my-organizations?' + new URLSearchParams({ club: clubId })
+export function myClubPath(clubId: string, tab?: 'events') {
+  const params = new URLSearchParams({ club: clubId })
+  if (tab) params.set('tab', tab)
+  return '/my-organizations?' + params
 }
 
 export async function joinClub(clubId: string) {

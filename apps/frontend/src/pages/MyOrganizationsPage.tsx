@@ -20,8 +20,8 @@ export default function MyOrganizationsPage() {
   const { toast } = useToast()
   const [params, setParams] = useSearchParams()
   const requested = params.get('club')
+  const tab = params.get('tab') === 'events' ? 'Events' : 'Home'
   const [items, setItems] = useState<Membership[]>([])
-  const [tab, setTab] = useState<'Home' | 'Events'>('Home')
   const [loading, setLoading] = useState(true)
   const [leaving, setLeaving] = useState(false)
   const [error, setError] = useState('')
@@ -60,6 +60,13 @@ export default function MyOrganizationsPage() {
   const selected = organizations.find(
     (organization) => organization._id === requested,
   )
+
+  function selectTab(tab: 'Home' | 'Events') {
+    const next = new URLSearchParams(params)
+    if (tab === 'Events') next.set('tab', 'events')
+    else next.delete('tab')
+    setParams(next)
+  }
 
   async function leaveClub(membershipId: string, club: Organization) {
     setLeaving(true)
@@ -106,10 +113,7 @@ export default function MyOrganizationsPage() {
           <OrganizationSidebar
             organizations={organizations}
             selected={selected}
-            onSelect={(id) => {
-              setParams(id ? { club: id } : {})
-              setTab('Home')
-            }}
+            onSelect={(id) => setParams(id ? { club: id } : {})}
           />
           <section className="col-span-full min-w-0 md:col-span-1">
             {selected ? (
@@ -117,7 +121,7 @@ export default function MyOrganizationsPage() {
                 key={selected._id}
                 selected={selected}
                 tab={tab}
-                setTab={setTab}
+                setTab={selectTab}
                 leaving={leaving}
                 onLeave={() => void leaveClub(selected.membershipId, selected)}
               />
