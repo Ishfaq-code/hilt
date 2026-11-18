@@ -243,7 +243,7 @@ export function ClubPreviewDialog({
                   to={myClubPath(clubId, 'events')}
                   className="underline underline-offset-4 hover:text-ink"
                 >
-                  See more in My clubs
+                  More upcoming events
                 </Link>
               ) : (
                 <button
