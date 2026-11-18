@@ -127,7 +127,7 @@ export function ClubPreviewDialog({
         join={() => void join()}
         busy={busy}
         message={message}
-        onClose={onClose}
+        onClose={eventId ? onClose : () => setOpenedEvent(null)}
         onOpenClub={() => {
           setOpenedEvent(null)
           if (eventId) onOpenClub?.()
