@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useAuthPage } from '../../hooks/useAuthPage'
 import { useAuthToken } from '../../hooks/useAuthToken'
 import { useToast } from '../../hooks/useToast'
@@ -34,6 +35,7 @@ export function EventDialog({
 }) {
   const { toast } = useToast()
   const openLogin = useAuthPage()
+  const location = useLocation()
   const token = useAuthToken()
   const [participation, setParticipation] = useState<Participation | null>(null)
   const [now, setNow] = useState(Date.now)
@@ -58,6 +60,17 @@ export function EventDialog({
     hour: 'numeric',
     minute: '2-digit',
   })
+
+  function logInForRsvp() {
+    const params = new URLSearchParams(location.search)
+    const eventIsInUrl =
+      params.get('club') === club._id && params.get('event') === event._id
+    openLogin({
+      from: eventIsInUrl
+        ? location.pathname + location.search + location.hash
+        : path,
+    })
+  }
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 1000)
@@ -237,8 +250,7 @@ export function EventDialog({
               ) : (
                 <button
                   type="button"
-                  aria-haspopup="dialog"
-                  onClick={() => openLogin()}
+                  onClick={logInForRsvp}
                   className={buttonClass}
                 >
                   Log in to RSVP

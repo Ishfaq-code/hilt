@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuthPage } from '../../hooks/useAuthPage'
 import { useSiteSession } from '../../hooks/useCurrentUser'
@@ -39,6 +39,7 @@ export function ClubPreviewDialog({
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
   const [openedEvent, setOpenedEvent] = useState<string | null>(null)
+  const returnToEvent = useRef<{ id: string; scrollTop: number } | null>(null)
   const [now, setNow] = useState(Date.now)
   const activeEventId = eventId || openedEvent
   const signedIn = Boolean(token)
@@ -149,7 +150,20 @@ export function ClubPreviewDialog({
   }
 
   return (
-    <Dialog title={club?.name ?? 'Club'} onClose={onClose}>
+    <Dialog
+      title={club?.name ?? 'Club'}
+      onClose={onClose}
+      onOpen={(dialog) => {
+        const position = returnToEvent.current
+        if (!position) return
+        dialog.scrollTop = position.scrollTop
+        dialog
+          .querySelector<HTMLButtonElement>(
+            `[data-event-id="${CSS.escape(position.id)}"]`,
+          )
+          ?.focus({ preventScroll: true })
+      }}
+    >
       {club && (
         <>
           <div className="overflow-hidden rounded-lg">
@@ -211,7 +225,13 @@ export function ClubPreviewDialog({
             <OrganizationEventList
               club={details}
               events={events.slice(0, 3)}
-              onOpenEvent={(event) => setOpenedEvent(event._id)}
+              onOpenEvent={(event, trigger) => {
+                returnToEvent.current = {
+                  id: event._id,
+                  scrollTop: trigger.closest('dialog')?.scrollTop ?? 0,
+                }
+                setOpenedEvent(event._id)
+              }}
             />
           ) : (
             <p className="py-5 text-sm text-muted">No upcoming events.</p>

@@ -1,10 +1,11 @@
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { Icon } from './Icon'
 
 export function Dialog({
   title,
   subtitle,
+  onOpen,
   onClose,
   children,
   fullScreen = false,
@@ -12,6 +13,7 @@ export function Dialog({
 }: {
   title: string
   subtitle?: string
+  onOpen?: (element: HTMLDialogElement) => void
   onClose: () => void
   children: ReactNode
   fullScreen?: boolean
@@ -19,13 +21,18 @@ export function Dialog({
 }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const titleId = useId()
+  const opened = useEffectEvent((element: HTMLDialogElement) =>
+    onOpen?.(element),
+  )
 
   useEffect(() => {
     const element = dialog.current
+    if (!element) return
     const trigger = document.activeElement
-    element?.showModal()
+    element.showModal()
+    opened(element)
     return () => {
-      element?.close()
+      element.close()
       if (trigger instanceof HTMLElement && trigger.isConnected) {
         trigger.focus({ preventScroll: true })
       }

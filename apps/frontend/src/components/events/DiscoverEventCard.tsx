@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuthPage } from '../../hooks/useAuthPage'
 import { useAuthToken } from '../../hooks/useAuthToken'
 import { useToast } from '../../hooks/useToast'
@@ -31,7 +31,7 @@ export function DiscoverEventCard({
   const { toast } = useToast()
   const openLogin = useAuthPage()
   const token = useAuthToken()
-  const [params] = useSearchParams()
+  const location = useLocation()
   const [participation, setParticipation] = useState<{
     token: string
     rsvped: boolean
@@ -111,7 +111,7 @@ export function DiscoverEventCard({
   const rsvped = participation?.token === token && participation.rsvped
   const participationLoaded = participation?.token === token
   const vertical = layout === 'card'
-  const preview = new URLSearchParams(params)
+  const preview = new URLSearchParams(location.search)
   preview.set('club', club._id)
   preview.set('event', event._id)
 
@@ -221,7 +221,11 @@ export function DiscoverEventCard({
             <button
               type="button"
               className={buttonClass}
-              onClick={() => openLogin()}
+              onClick={() =>
+                openLogin({
+                  from: location.pathname + '?' + preview + location.hash,
+                })
+              }
             >
               Log in to RSVP
             </button>

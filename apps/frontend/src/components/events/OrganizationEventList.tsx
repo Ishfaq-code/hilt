@@ -11,7 +11,7 @@ export function OrganizationEventList({
 }: {
   club: Pick<Organization, '_id' | 'name'>
   events: ManagedEvent[]
-  onOpenEvent?: (event: ManagedEvent) => void
+  onOpenEvent?: (event: ManagedEvent, trigger: HTMLButtonElement) => void
 }) {
   return (
     <div className="py-5">
@@ -35,8 +35,11 @@ export function OrganizationEventList({
                       <button
                         type="button"
                         aria-haspopup="dialog"
+                        data-event-id={event._id}
                         className="text-left hover:underline"
-                        onClick={() => onOpenEvent(event)}
+                        onClick={(click) =>
+                          onOpenEvent(event, click.currentTarget)
+                        }
                       >
                         {event.name}
                       </button>
