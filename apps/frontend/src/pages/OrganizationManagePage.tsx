@@ -1,12 +1,4 @@
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Navigate,
   useLocation,
@@ -19,6 +11,7 @@ import { ClubPreviewDialog } from '../components/organizations/ClubPreviewDialog
 import { OrganizationEvents } from '../components/organizations/OrganizationEvents'
 import { OrganizationInfo } from '../components/organizations/OrganizationInfo'
 import { OrganizationMembers } from '../components/organizations/OrganizationMembers'
+import { ClubOverview } from '../components/organizations/manage/ClubOverview'
 import { ClubRoles } from '../components/roles/ClubRoles'
 import { useSiteSession } from '../hooks/useCurrentUser'
 import { useOrganizationManagement } from '../hooks/useOrganizationManagement'
@@ -26,12 +19,6 @@ import { authEntry } from '../lib/authFlow'
 import { isEventInProgress } from '../lib/events'
 import type { ClubPermission } from '../types/clubRoles'
 import type { ManagedEvent } from '../types/management'
-
-const OrganizationStatistics = lazy(() =>
-  import('../components/organizations/OrganizationStatistics').then(
-    (module) => ({ default: module.OrganizationStatistics }),
-  ),
-)
 
 const tabs = [
   {
@@ -210,81 +197,79 @@ function OrganizationManagementWorkspace({
           No management tools are available for your permissions.
         </p>
       )}
-      <Suspense fallback={<p className="text-sm text-muted">Loading club…</p>}>
-        <div
-          ref={attachScrollPane}
-          role="region"
-          aria-label="Club management sections"
-          tabIndex={0}
-          className="relative space-y-12 tall:h-full tall:overflow-y-auto tall:overscroll-contain tall:pr-3 tall:[&>[data-section]:last-child]:min-h-full"
-        >
-          {visible.some(({ key }) => key === 'overview') && (
-            <div data-section="overview">
-              <OrganizationStatistics
-                statistics={management.statistics}
-                checkIn={
-                  liveEvent && liveEvent.status !== 'draft'
-                    ? {
-                        eventName: liveEvent.name,
-                        onClick: () => setAttendanceEvent(liveEvent),
-                      }
-                    : undefined
-                }
-              />
-            </div>
-          )}
-          {permissions.includes('settings') && (
-            <div data-section="info">
-              <OrganizationInfo
-                organization={organization}
-                saveOrganization={management.saveOrganization}
-                saving={management.saving}
-              />
-            </div>
-          )}
-          {(permissions.includes('events') ||
-            permissions.includes('attendance')) && (
-            <div data-section="events">
-              <OrganizationEvents
-                club={organization}
-                events={management.events}
-                totals={management.statistics?.eventAttendance}
-                canEdit={permissions.includes('events')}
-                now={now}
-                onAttendance={canCheckIn ? setAttendanceEvent : undefined}
-                onOpenClub={() => setPreviewOpen(true)}
-                saved={management.saved}
-                deleteEvent={management.deleteEvent}
-              />
-            </div>
-          )}
-          {permissions.includes('members') && (
-            <div data-section="members">
-              <OrganizationMembers
-                matchingMembers={management.matchingMembers}
-                query={management.query}
-                setQuery={management.setQuery}
-                updateMember={management.updateMember}
-                removeMember={management.removeMember}
-                permissions={permissions}
-              />
-            </div>
-          )}
-          {permissions.includes('roles') && (
-            <div data-section="roles">
-              <ClubRoles
-                roles={management.roles}
-                members={management.members}
-                permissions={permissions}
-                history={management.history}
-                save={management.saveRole}
-                remove={management.deleteRole}
-                undo={management.undoRole}
-              />
-            </div>
-          )}
-        </div>
-      </Suspense>
+      <div
+        ref={attachScrollPane}
+        role="region"
+        aria-label="Club management sections"
+        tabIndex={0}
+        className="relative space-y-12 tall:h-full tall:overflow-y-auto tall:overscroll-contain tall:pr-3 tall:[&>[data-section]:last-child]:min-h-full"
+      >
+        {visible.some(({ key }) => key === 'overview') && (
+          <div data-section="overview">
+            <ClubOverview
+              statistics={management.statistics}
+              checkIn={
+                liveEvent && liveEvent.status !== 'draft'
+                  ? {
+                      eventName: liveEvent.name,
+                      onClick: () => setAttendanceEvent(liveEvent),
+                    }
+                  : undefined
+              }
+            />
+          </div>
+        )}
+        {permissions.includes('settings') && (
+          <div data-section="info">
+            <OrganizationInfo
+              organization={organization}
+              saveOrganization={management.saveOrganization}
+              saving={management.saving}
+            />
+          </div>
+        )}
+        {(permissions.includes('events') ||
+          permissions.includes('attendance')) && (
+          <div data-section="events">
+            <OrganizationEvents
+              club={organization}
+              events={management.events}
+              totals={management.statistics?.eventAttendance}
+              canEdit={permissions.includes('events')}
+              now={now}
+              onAttendance={canCheckIn ? setAttendanceEvent : undefined}
+              onOpenClub={() => setPreviewOpen(true)}
+              saved={management.saved}
+              deleteEvent={management.deleteEvent}
+            />
+          </div>
+        )}
+        {permissions.includes('members') && (
+          <div data-section="members">
+            <OrganizationMembers
+              matchingMembers={management.matchingMembers}
+              query={management.query}
+              setQuery={management.setQuery}
+              updateMember={management.updateMember}
+              removeMember={management.removeMember}
+              permissions={permissions}
+            />
+          </div>
+        )}
+        {permissions.includes('roles') && (
+          <div data-section="roles">
+            <ClubRoles
+              roles={management.roles}
+              members={management.members}
+              permissions={permissions}
+              history={management.history}
+              save={management.saveRole}
+              remove={management.deleteRole}
+              undo={management.undoRole}
+            />
+          </div>
+        )}
+      </div>
       {canCheckIn && attendanceEvent && (
         <AttendanceDialog
           club={organization}

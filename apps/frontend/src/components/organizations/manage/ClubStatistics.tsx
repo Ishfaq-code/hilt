@@ -10,23 +10,16 @@ import {
   YAxis,
   Cell,
 } from 'recharts'
-import MetricCard from '../ui/MetricCard'
-import { PublishedEventsTable } from '../events/PublishedEventsTable'
-import { StatisticsChart } from '../ui/StatisticsChart'
-import { buttonClass, panelClass } from '../ui/styles'
-import type { OrgStats } from '../../types/administration'
+import type { OrgStats } from '../../../types/administration'
+import { PublishedEventsTable } from '../../events/PublishedEventsTable'
+import MetricCard from '../../ui/MetricCard'
+import { StatisticsChart } from '../../ui/StatisticsChart'
 
-export function OrganizationStatistics({
+export default function ClubStatistics({
   statistics,
-  checkIn,
 }: {
-  statistics?: OrgStats
-  checkIn?: { eventName: string; onClick: () => void }
+  statistics: OrgStats
 }) {
-  if (!statistics) {
-    return <p className="text-sm text-muted">Loading club statistics…</p>
-  }
-
   const events = statistics.eventAttendance.map((event) => ({
     id: event.eventId,
     name: event.name,
@@ -38,29 +31,7 @@ export function OrganizationStatistics({
   }))
 
   return (
-    <section>
-      <h1 className="text-3xl font-semibold tracking-tight">Overview</h1>
-      {checkIn && (
-        <div
-          className={
-            panelClass +
-            ' mt-5 flex flex-wrap items-center justify-between gap-3 p-4'
-          }
-        >
-          <div>
-            <p className="text-xs font-medium text-active">In progress</p>
-            <h2 className="font-semibold">{checkIn.eventName}</h2>
-          </div>
-          <button
-            type="button"
-            aria-haspopup="dialog"
-            className={buttonClass}
-            onClick={checkIn.onClick}
-          >
-            Check in
-          </button>
-        </div>
-      )}
+    <>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <MetricCard
           label="Total Members"
@@ -131,6 +102,6 @@ export function OrganizationStatistics({
         </StatisticsChart>
       </div>
       <PublishedEventsTable events={events} showOrganization={false} />
-    </section>
+    </>
   )
 }
