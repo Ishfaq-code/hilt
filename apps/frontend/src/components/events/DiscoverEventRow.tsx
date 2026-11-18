@@ -2,7 +2,7 @@ import { useEventDirectory } from '../../hooks/useEventDirectory'
 import { HorizontalCardRow } from '../ui/HorizontalCardRow'
 import { DiscoverEventCard } from './DiscoverEventCard'
 
-export function DiscoverEventList({
+export function DiscoverEventRow({
   title = 'Popular',
   category,
 }: {

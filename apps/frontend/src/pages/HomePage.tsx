@@ -1,4 +1,4 @@
-import { DiscoverEventList } from '../components/events/DiscoverEventList'
+import { DiscoverEventRow } from '../components/events/DiscoverEventRow'
 import { BrowsePreviewFromUrl } from '../components/organizations/BrowsePreviewFromUrl'
 import { ClubSearchForm } from '../components/organizations/ClubSearchForm'
 import { OrganizationRow } from '../components/organizations/OrganizationRow'
@@ -52,7 +52,7 @@ export default function HomePage() {
       {!loading && !error && (
         <>
           <OrganizationRow title="Trending" organizations={trendingClubs} />
-          <DiscoverEventList />
+          <DiscoverEventRow />
           {[...new Set(trendingClubs.flatMap((club) => club.tags))].map(
             (tag, index) => {
               const matches = trendingClubs.filter((club) =>
@@ -62,7 +62,7 @@ export default function HomePage() {
                 <Fragment key={tag}>
                   <OrganizationRow title={tag} organizations={matches} />
                   {eventSections[index] && (
-                    <DiscoverEventList
+                    <DiscoverEventRow
                       title={eventSections[index].title}
                       category={eventSections[index].category}
                     />
