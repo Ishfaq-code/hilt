@@ -1,15 +1,28 @@
+import type { RefObject } from 'react'
+
 export function Pagination({
   label,
   page,
   pageCount,
   onPageChange,
+  headingRef,
 }: {
   label: string
   page: number
   pageCount: number
   onPageChange: (page: number) => void
+  headingRef: RefObject<HTMLHeadingElement | null>
 }) {
   if (pageCount <= 1) return null
+
+  function goToPage(nextPage: number) {
+    onPageChange(nextPage)
+    headingRef.current?.focus({ preventScroll: true })
+    headingRef.current?.scrollIntoView({
+      block: 'nearest',
+      behavior: 'instant',
+    })
+  }
 
   const buttonClass =
     'min-h-10 text-sm text-accent disabled:cursor-not-allowed disabled:opacity-50'
@@ -23,7 +36,7 @@ export function Pagination({
         type="button"
         className={buttonClass}
         disabled={page <= 1}
-        onClick={() => onPageChange(page - 1)}
+        onClick={() => goToPage(page - 1)}
       >
         Previous
       </button>
@@ -34,7 +47,7 @@ export function Pagination({
         type="button"
         className={buttonClass}
         disabled={page >= pageCount}
-        onClick={() => onPageChange(page + 1)}
+        onClick={() => goToPage(page + 1)}
       >
         Next
       </button>

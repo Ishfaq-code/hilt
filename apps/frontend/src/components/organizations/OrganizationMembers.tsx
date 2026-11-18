@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { usePagination } from '../../hooks/usePagination'
 import { Pagination } from '../ui/Pagination'
 import { inputClass, panelClass } from '../ui/styles'
@@ -22,11 +23,18 @@ export function OrganizationMembers({
   removeMember,
   permissions,
 }: Props) {
+  const heading = useRef<HTMLHeadingElement>(null)
   const { pageItems, page, pageCount, setPage } = usePagination(matchingMembers)
 
   return (
     <section>
-      <h1 className="mb-5 text-3xl font-semibold tracking-tight">Members</h1>
+      <h1
+        ref={heading}
+        tabIndex={-1}
+        className="mb-5 text-3xl font-semibold tracking-tight"
+      >
+        Members
+      </h1>
       <label className="block sm:max-w-sm">
         <span className="sr-only">Search members</span>
         <input
@@ -115,6 +123,7 @@ export function OrganizationMembers({
         page={page}
         pageCount={pageCount}
         onPageChange={setPage}
+        headingRef={heading}
       />
     </section>
   )

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { OrganizationManagement } from '../../hooks/useOrganizationManagement'
 import { usePagination } from '../../hooks/usePagination'
 import type { Organization } from '../../types'
@@ -70,6 +70,7 @@ export function OrganizationEvents({
   deleteEvent,
   updateEventTotals,
 }: Props) {
+  const heading = useRef<HTMLHeadingElement>(null)
   const [action, setAction] = useState<EventAction | null>(null)
   const [query, setQuery] = useState('')
   const [selectedFilter, setFilter] = useState<EventFilter>(filters[0])
@@ -120,7 +121,13 @@ export function OrganizationEvents({
   return (
     <section className="@container">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-semibold tracking-tight">Events</h1>
+        <h1
+          ref={heading}
+          tabIndex={-1}
+          className="text-3xl font-semibold tracking-tight"
+        >
+          Events
+        </h1>
         {canEdit && (
           <button
             type="button"
@@ -201,6 +208,7 @@ export function OrganizationEvents({
         page={page}
         pageCount={pageCount}
         onPageChange={setPage}
+        headingRef={heading}
       />
       {action?.kind === 'attendance' && (
         <AttendanceDialog
