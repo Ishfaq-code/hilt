@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router-dom'
 import { DiscoverEventCard } from '../components/events/DiscoverEventCard'
 import { EventFilters } from '../components/events/EventFilters'
-import { ClubPreviewFromUrl } from '../components/organizations/ClubPreviewFromUrl'
+import { BrowsePreviewFromUrl } from '../components/organizations/BrowsePreviewFromUrl'
 import { useClubDirectory } from '../hooks/useClubDirectory'
 import { useEventDirectory } from '../hooks/useEventDirectory'
 import { eventDirectoryQuery } from '../lib/eventFilters'
@@ -68,7 +68,7 @@ export default function EventsPage() {
           No events match those filters.
         </p>
       )}
-      <ClubPreviewFromUrl clubs={clubs} />
+      <BrowsePreviewFromUrl clubs={clubs} />
     </section>
   )
 }

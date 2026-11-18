@@ -4,7 +4,7 @@ import { api } from '../../lib/api'
 import { hasAnyTag } from '../../lib/clubTags'
 import { rsvpChangedEvent } from '../../lib/events'
 import type { Organization } from '../../types'
-import { ClubPreviewDialog } from '../organizations/ClubPreviewDialog'
+import { ClubPreview } from '../organizations/ClubPreview'
 import { TagPicker } from '../ui/TagPicker'
 import { inputClass, panelClass } from '../ui/styles'
 import { CalendarMonth } from './CalendarMonth'
@@ -324,7 +324,7 @@ export function EventCalendar({
         />
       )}
       {opened?.view === 'club' && (
-        <ClubPreviewDialog
+        <ClubPreview
           clubId={opened.entry.club._id}
           initialClub={
             clubs.find(({ _id }) => _id === opened.entry.club._id) ??

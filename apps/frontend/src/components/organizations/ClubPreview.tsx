@@ -1,22 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useAuthPage } from '../../hooks/useAuthPage'
 import { useSiteSession } from '../../hooks/useCurrentUser'
 import { api } from '../../lib/api'
-import { joinClub, myClubPath } from '../../lib/clubs'
+import { joinClub } from '../../lib/clubs'
 import { clubPath } from '../../lib/events'
 import type { Organization } from '../../types'
 import type { Membership } from '../../types/management'
-import { OrganizationEventList } from '../events/OrganizationEventList'
 import { SharedEventDialog } from '../events/SharedEventDialog'
 import { Dialog } from '../ui/Dialog'
-import { secondaryClass } from '../ui/styles'
-import { ClubJoinControl } from './ClubJoinControl'
-import { ClubReportButton } from './ClubReportButton'
-import { Cover } from './Cover'
-import { OrganizationAvatar } from './OrganizationAvatar'
 
-export function ClubPreviewDialog({
+import { ClubDetailsDialog } from './ClubDetailsDialog'
+
+export function ClubPreview({
   clubId,
   eventId,
   initialClub,
@@ -40,15 +36,9 @@ export function ClubPreviewDialog({
   const [loading, setLoading] = useState(true)
   const [openedEvent, setOpenedEvent] = useState<string | null>(null)
   const returnToEvent = useRef<{ id: string; scrollTop: number } | null>(null)
-  const [now, setNow] = useState(Date.now)
   const activeEventId = eventId || openedEvent
   const signedIn = Boolean(token)
   const message = error || location.state?.joinError
-
-  useEffect(() => {
-    const interval = window.setInterval(() => setNow(Date.now()), 30_000)
-    return () => window.clearInterval(interval)
-  }, [])
 
   useEffect(() => {
     const request = new AbortController()
@@ -115,10 +105,6 @@ export function ClubPreviewDialog({
   }
 
   const club = details ?? initialClub
-  const events = (details?.events ?? [])
-    .filter((event) => Date.parse(event.startDatetime) >= now)
-    .sort((a, b) => Date.parse(a.startDatetime) - Date.parse(b.startDatetime))
-
   if (activeEventId && club) {
     return (
       <SharedEventDialog
@@ -150,9 +136,22 @@ export function ClubPreviewDialog({
   }
 
   return (
-    <Dialog
-      title={club?.name ?? 'Club'}
-      onClose={onClose}
+    <ClubDetailsDialog
+      club={club}
+      detailsLoaded={Boolean(details)}
+      joined={joined}
+      managePath={canManage ? managePath : undefined}
+      busy={busy}
+      loading={loading}
+      message={message}
+      onJoin={() => void join()}
+      onOpenEvent={(event, trigger) => {
+        returnToEvent.current = {
+          id: event._id,
+          scrollTop: trigger.closest('dialog')?.scrollTop ?? 0,
+        }
+        setOpenedEvent(event._id)
+      }}
       onOpen={(dialog) => {
         const position = returnToEvent.current
         if (!position) return
@@ -163,107 +162,7 @@ export function ClubPreviewDialog({
           )
           ?.focus({ preventScroll: true })
       }}
-    >
-      {club && (
-        <>
-          <div className="overflow-hidden rounded-lg">
-            <Cover organization={club} large />
-          </div>
-          <OrganizationAvatar
-            organization={club}
-            className="relative -mt-6 ml-3 size-12 text-xs"
-          />
-          {club.description && (
-            <p className="mt-3 text-sm leading-relaxed text-muted">
-              {club.description}
-            </p>
-          )}
-        </>
-      )}
-      {loading && (
-        <p role="status" className="mt-4 text-sm text-muted">
-          Loading club…
-        </p>
-      )}
-      {message && (
-        <p role="alert" className="mt-4 text-sm text-red-700">
-          {message}
-        </p>
-      )}
-      {details && (
-        <div className="mt-5 flex items-start justify-between gap-4">
-          <div className="flex min-h-10 flex-wrap items-center gap-4">
-            {details.profile && (
-              <a
-                href={details.profile}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink hover:underline hover:underline-offset-4"
-              >
-                Website
-                <span aria-hidden="true">↗</span>
-              </a>
-            )}
-            {canManage && (
-              <Link to={managePath} className={secondaryClass}>
-                Manage
-              </Link>
-            )}
-          </div>
-          <ClubJoinControl
-            clubId={clubId}
-            joined={joined}
-            busy={busy}
-            onJoin={() => void join()}
-          />
-        </div>
-      )}
-      {details && (
-        <section className="mt-5 border-t border-line pt-5">
-          <h3 className="font-semibold">Upcoming events</h3>
-          {events.length ? (
-            <OrganizationEventList
-              club={details}
-              events={events.slice(0, 3)}
-              onOpenEvent={(event, trigger) => {
-                returnToEvent.current = {
-                  id: event._id,
-                  scrollTop: trigger.closest('dialog')?.scrollTop ?? 0,
-                }
-                setOpenedEvent(event._id)
-              }}
-            />
-          ) : (
-            <p className="py-5 text-sm text-muted">No upcoming events.</p>
-          )}
-          {events.length > 3 && (
-            <div className="pb-5 text-sm text-muted">
-              {joined ? (
-                <Link
-                  to={myClubPath(clubId, 'events')}
-                  className="underline underline-offset-4 hover:text-ink"
-                >
-                  More upcoming events
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  disabled={busy}
-                  className="underline underline-offset-4 hover:text-ink disabled:cursor-wait disabled:opacity-50"
-                  onClick={() => void join()}
-                >
-                  Join club to see more
-                </button>
-              )}
-            </div>
-          )}
-        </section>
-      )}
-      {club && (
-        <div className="flex justify-end border-t border-line pt-3">
-          <ClubReportButton clubId={clubId} />
-        </div>
-      )}
-    </Dialog>
+      onClose={onClose}
+    />
   )
 }

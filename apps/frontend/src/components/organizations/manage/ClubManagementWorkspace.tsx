@@ -6,7 +6,7 @@ import type { ManagedEvent } from '../../../types/management'
 import { AttendanceDialog } from '../../events/AttendanceDialog'
 import { Workspace } from '../../layout/Workspace'
 import { ClubRoles } from '../../roles/ClubRoles'
-import { ClubPreviewDialog } from '../ClubPreviewDialog'
+import { ClubPreview } from '../ClubPreview'
 import { OrganizationEvents } from '../OrganizationEvents'
 import { OrganizationInfo } from '../OrganizationInfo'
 import { OrganizationMembers } from '../OrganizationMembers'
@@ -242,7 +242,7 @@ export function ClubManagementWorkspace({
         />
       )}
       {previewOpen && (
-        <ClubPreviewDialog
+        <ClubPreview
           clubId={organizationId}
           initialClub={organization}
           onClose={() => setPreviewOpen(false)}

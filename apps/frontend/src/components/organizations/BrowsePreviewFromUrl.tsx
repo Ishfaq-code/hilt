@@ -1,8 +1,8 @@
 import { useSearchParams } from 'react-router-dom'
 import type { Organization } from '../../types'
-import { ClubPreviewDialog } from './ClubPreviewDialog'
+import { ClubPreview } from './ClubPreview'
 
-export function ClubPreviewFromUrl({ clubs }: { clubs: Organization[] }) {
+export function BrowsePreviewFromUrl({ clubs }: { clubs: Organization[] }) {
   const [params, setParams] = useSearchParams()
   const clubId = params.get('club')
   if (!clubId) return null
@@ -15,7 +15,7 @@ export function ClubPreviewFromUrl({ clubs }: { clubs: Organization[] }) {
   }
 
   return (
-    <ClubPreviewDialog
+    <ClubPreview
       key={clubId}
       clubId={clubId}
       eventId={params.get('event')}

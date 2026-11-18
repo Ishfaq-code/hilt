@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from 'react-router-dom'
-import { ClubPreviewFromUrl } from '../components/organizations/ClubPreviewFromUrl'
+import { BrowsePreviewFromUrl } from '../components/organizations/BrowsePreviewFromUrl'
 import { ClubSearchForm } from '../components/organizations/ClubSearchForm'
 import OrganizationCard from '../components/organizations/OrganizationCard'
 import { Icon } from '../components/ui/Icon'
@@ -90,7 +90,7 @@ export default function ClubSearchPage() {
             No clubs match your search.
           </p>
         ))}
-      <ClubPreviewFromUrl clubs={clubs} />
+      <BrowsePreviewFromUrl clubs={clubs} />
     </section>
   )
 }

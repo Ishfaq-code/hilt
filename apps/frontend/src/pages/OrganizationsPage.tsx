@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ClubPreviewFromUrl } from '../components/organizations/ClubPreviewFromUrl'
+import { BrowsePreviewFromUrl } from '../components/organizations/BrowsePreviewFromUrl'
 import OrganizationCard from '../components/organizations/OrganizationCard'
 import { inputClass, panelClass } from '../components/ui/styles'
 import { api } from '../lib/api'
@@ -160,7 +160,7 @@ function OrganizationResults({ filters }: { filters: string }) {
           </button>
         </div>
       )}
-      <ClubPreviewFromUrl clubs={result?.organizations ?? []} />
+      <BrowsePreviewFromUrl clubs={result?.organizations ?? []} />
     </>
   )
 }

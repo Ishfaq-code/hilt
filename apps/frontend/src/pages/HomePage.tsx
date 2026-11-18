@@ -1,5 +1,5 @@
 import { DiscoverEventList } from '../components/events/DiscoverEventList'
-import { ClubPreviewFromUrl } from '../components/organizations/ClubPreviewFromUrl'
+import { BrowsePreviewFromUrl } from '../components/organizations/BrowsePreviewFromUrl'
 import { ClubSearchForm } from '../components/organizations/ClubSearchForm'
 import { OrganizationRow } from '../components/organizations/OrganizationRow'
 import { panelClass } from '../components/ui/styles'
@@ -73,7 +73,7 @@ export default function HomePage() {
           )}
         </>
       )}
-      <ClubPreviewFromUrl clubs={clubs} />
+      <BrowsePreviewFromUrl clubs={clubs} />
     </section>
   )
 }
