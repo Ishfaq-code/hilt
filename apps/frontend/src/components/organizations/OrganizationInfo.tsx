@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { clubTagOptions } from '../../lib/clubTags'
 import type { Organization } from '../../types'
 import { buttonClass, inputClass, panelClass } from '../ui/styles'
-import { TagPicker } from './TagPicker'
+import { TagPicker } from '../ui/TagPicker'
 import { ImageUpload } from '../ui/ImageUpload'
 
 import type { OrganizationManagement } from '../../hooks/useOrganizationManagement'

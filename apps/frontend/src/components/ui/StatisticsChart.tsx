@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { panelClass } from '../ui/styles'
+import { panelClass } from './styles'
 
 export function StatisticsChart({
   title,

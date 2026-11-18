@@ -11,8 +11,8 @@ import {
   Cell,
 } from 'recharts'
 import MetricCard from '../ui/MetricCard'
-import { PublishedEventsTable } from '../admin/PublishedEventsTable'
-import { StatisticsChart } from '../admin/StatisticsChart'
+import { PublishedEventsTable } from '../events/PublishedEventsTable'
+import { StatisticsChart } from '../ui/StatisticsChart'
 import { buttonClass, panelClass } from '../ui/styles'
 import type { OrgStats } from '../../types/administration'
 

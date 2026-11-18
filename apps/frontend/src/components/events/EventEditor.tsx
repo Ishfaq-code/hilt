@@ -6,7 +6,7 @@ import { uploadBody } from '../../lib/uploads'
 import { EventBanner } from './EventBanner'
 import { ImageUpload } from '../ui/ImageUpload'
 import type { EditableEvent } from '../../types/management'
-import { TagPicker } from '../organizations/TagPicker'
+import { TagPicker } from '../ui/TagPicker'
 import { buttonClass, inputClass, secondaryClass } from '../ui/styles'
 
 export function EventEditor({

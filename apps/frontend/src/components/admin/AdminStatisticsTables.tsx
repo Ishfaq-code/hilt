@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom'
 import { secondaryClass } from '../ui/styles'
-import { PublishedEventsTable } from './PublishedEventsTable'
-import { SortablePaginatedTable } from './SortablePaginatedTable'
+import { PublishedEventsTable } from '../events/PublishedEventsTable'
+import { SortablePaginatedTable } from '../ui/SortablePaginatedTable'
 import type { Administration } from '../../hooks/useAdministration'
 import type { AdminOrganization } from '../../types/administration'
-import type { EventStatisticsRow } from './PublishedEventsTable'
+import type { EventStatisticsRow } from '../events/PublishedEventsTable'
 
 const money = new Intl.NumberFormat(undefined, {
   style: 'currency',

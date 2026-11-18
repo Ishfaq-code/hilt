@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { panelClass } from '../ui/styles'
+import { panelClass } from './styles'
 
 type SortValue = number | string | null
 

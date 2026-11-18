@@ -12,7 +12,7 @@ import {
 } from 'recharts'
 import MetricCard from '../ui/MetricCard'
 import { AdminStatisticsTables } from './AdminStatisticsTables'
-import { StatisticsChart } from './StatisticsChart'
+import { StatisticsChart } from '../ui/StatisticsChart'
 
 import type { Administration } from '../../hooks/useAdministration'
 

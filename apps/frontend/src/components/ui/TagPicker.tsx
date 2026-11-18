@@ -1,6 +1,6 @@
 import { useId, useRef, useState } from 'react'
-import { Icon } from '../ui/Icon'
-import { inputClass, panelClass } from '../ui/styles'
+import { Icon } from './Icon'
+import { inputClass, panelClass } from './styles'
 
 export function TagPicker({
   options,

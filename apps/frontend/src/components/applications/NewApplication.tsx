@@ -10,7 +10,7 @@ import { uploadBody } from '../../lib/uploads'
 import { ImageUpload } from '../ui/ImageUpload'
 import { clubTagOptions } from '../../lib/clubTags'
 import type { Application } from '../../types'
-import { TagPicker } from '../organizations/TagPicker'
+import { TagPicker } from '../ui/TagPicker'
 import {
   buttonClass,
   inputClass,

@@ -4,7 +4,7 @@ import {
   eventDateOptions,
   eventTagOptions,
 } from '../../lib/eventFilters'
-import { TagPicker } from '../organizations/TagPicker'
+import { TagPicker } from '../ui/TagPicker'
 import { Icon } from '../ui/Icon'
 import { inputClass } from '../ui/styles'
 import { EventDateRangeDialog } from './EventDateRangeDialog'

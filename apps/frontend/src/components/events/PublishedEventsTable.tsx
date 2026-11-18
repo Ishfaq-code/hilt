@@ -1,5 +1,5 @@
-import { SortablePaginatedTable } from './SortablePaginatedTable'
-import type { TableColumn } from './SortablePaginatedTable'
+import { SortablePaginatedTable } from '../ui/SortablePaginatedTable'
+import type { TableColumn } from '../ui/SortablePaginatedTable'
 
 export type EventStatisticsRow = {
   id: string

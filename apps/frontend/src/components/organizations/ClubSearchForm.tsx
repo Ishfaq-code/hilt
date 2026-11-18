@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { buttonClass, inputClass } from '../ui/styles'
-import { TagPicker } from './TagPicker'
+import { TagPicker } from '../ui/TagPicker'
 
 type Filters = { tags: string[]; selected: string[]; sort: string }
 
