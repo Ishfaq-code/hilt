@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { EventCalendar } from '../components/events/EventCalendar'
 import { JoinedOrganizationDetails } from '../components/organizations/JoinedOrganizationDetails'
-import { OrganizationSidebar } from '../components/organizations/OrganizationSidebar'
+import { ClubNavigation } from '../components/organizations/ClubNavigation'
 import { useAuthToken } from '../hooks/useAuthToken'
 import { useToast } from '../hooks/useToast'
 import { api } from '../lib/api'
@@ -110,7 +110,7 @@ export default function MyOrganizationsPage() {
       )}
       {!loading && !error && (
         <>
-          <OrganizationSidebar
+          <ClubNavigation
             organizations={organizations}
             selected={selected}
             onSelect={(id) => setParams(id ? { club: id } : {})}

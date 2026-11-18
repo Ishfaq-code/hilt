@@ -51,11 +51,7 @@ function ClubSwitcher({ organizations, selected, onSelect }: Props) {
   )
 }
 
-export function OrganizationSidebar({
-  organizations,
-  selected,
-  onSelect,
-}: Props) {
+export function ClubNavigation({ organizations, selected, onSelect }: Props) {
   return (
     <aside className="min-w-0 max-w-full self-center justify-self-end md:sticky md:top-4 md:self-start md:justify-self-stretch">
       <ClubSwitcher
