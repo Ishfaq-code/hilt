@@ -1,4 +1,12 @@
-import { lazy, Suspense, useCallback, useMemo, useRef, useState } from 'react'
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   Navigate,
   useLocation,
@@ -90,6 +98,7 @@ function OrganizationManagementWorkspace({
     [permissions],
   )
   const requestedSection = searchParams.get('tab')
+  const firstSection = visible[0]?.key
   const targetSection = (
     visible.find(({ key }) => key === requestedSection) ?? visible[0]
   )?.key
@@ -101,6 +110,32 @@ function OrganizationManagementWorkspace({
     },
     [targetSection],
   )
+
+  useEffect(() => {
+    function updateActiveSection(event: Event) {
+      const pane = scrollPane.current
+      if (!pane) return
+      const root = scrollRoot(pane)
+      if (!root || event.target !== (root === pane ? pane : document)) return
+
+      const sections = [...pane.querySelectorAll<HTMLElement>('[data-section]')]
+      const viewportTop = root === pane ? pane.getBoundingClientRect().top : 0
+      const current = sections.findLast(
+        (section) => section.getBoundingClientRect().top <= viewportTop + 80,
+      )
+      const atBottom =
+        root.scrollTop + root.clientHeight >= root.scrollHeight - 2
+      const selected = atBottom ? sections.at(-1) : current
+      setActiveSection(selected?.dataset.section ?? firstSection ?? '')
+    }
+
+    document.addEventListener('scroll', updateActiveSection, {
+      capture: true,
+      passive: true,
+    })
+    return () =>
+      document.removeEventListener('scroll', updateActiveSection, true)
+  }, [firstSection])
 
   if (loading) {
     return (
@@ -134,18 +169,6 @@ function OrganizationManagementWorkspace({
     },
   }))
 
-  function updateActiveSection() {
-    const pane = scrollPane.current
-    if (!pane) return
-    const sections = [...pane.querySelectorAll<HTMLElement>('[data-section]')]
-    const current = sections
-      .filter((section) => section.offsetTop <= pane.scrollTop + 80)
-      .at(-1)
-    const atBottom = pane.scrollTop + pane.clientHeight >= pane.scrollHeight - 2
-    const selected = atBottom ? sections.at(-1) : current
-    setActiveSection(selected?.dataset.section ?? visible[0]?.key ?? '')
-  }
-
   return (
     <Workspace
       title={organization.name}
@@ -175,8 +198,7 @@ function OrganizationManagementWorkspace({
           role="region"
           aria-label="Club management sections"
           tabIndex={0}
-          onScroll={updateActiveSection}
-          className="relative h-full space-y-12 overflow-y-auto overscroll-contain pr-3 [&>[data-section]:last-child]:min-h-full"
+          className="relative space-y-12 tall:h-full tall:overflow-y-auto tall:overscroll-contain tall:pr-3 tall:[&>[data-section]:last-child]:min-h-full"
         >
           {visible.some(({ key }) => key === 'overview') && (
             <div data-section="overview">
@@ -249,10 +271,16 @@ function OrganizationManagementWorkspace({
 function scrollToSection(pane: HTMLDivElement | null, key: string) {
   const section = pane?.querySelector<HTMLElement>(`[data-section="${key}"]`)
   if (!pane || !section) return
-  pane.scrollTo({
-    top: section.offsetTop,
-    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      ? 'instant'
-      : 'smooth',
-  })
+  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ? 'instant'
+    : 'smooth'
+  if (scrollRoot(pane) === pane)
+    pane.scrollTo({ top: section.offsetTop, behavior })
+  else section.scrollIntoView({ behavior })
+}
+
+function scrollRoot(pane: HTMLDivElement) {
+  return getComputedStyle(pane).overflowY === 'auto'
+    ? pane
+    : document.scrollingElement
 }

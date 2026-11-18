@@ -24,7 +24,7 @@ export function Workspace({
       className={
         'mx-auto w-full max-w-6xl px-4 pt-7 sm:px-8 md:pt-10' +
         (scrollable
-          ? ' flex h-[calc(100dvh-11rem)] flex-col pb-6 lg:h-[calc(100dvh-3.5rem)]'
+          ? ' pb-6 tall:flex tall:h-[calc(100dvh-11rem)] tall:flex-col lg:tall:h-[calc(100dvh-3.5rem)]'
           : '')
       }
     >
@@ -41,7 +41,7 @@ export function Workspace({
         className={
           'grid gap-6 md:grid-cols-[12rem_minmax(0,1fr)]' +
           (scrollable
-            ? ' min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] md:grid-rows-1'
+            ? ' tall:min-h-0 tall:flex-1 tall:grid-rows-[auto_minmax(0,1fr)] md:tall:grid-rows-1'
             : '')
         }
       >

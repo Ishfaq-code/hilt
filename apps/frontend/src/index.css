@@ -1,6 +1,8 @@
 @import 'tailwindcss' source(none);
 @source "./";
 
+@custom-variant tall (@media (min-height: 36rem));
+
 @theme {
   --color-paper: #f7f7f3;
   --color-ink: #232521;
