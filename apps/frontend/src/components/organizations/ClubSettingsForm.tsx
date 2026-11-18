@@ -11,7 +11,7 @@ type Props = Pick<OrganizationManagement, 'saveOrganization' | 'saving'> & {
   organization: Organization
 }
 
-export function OrganizationInfo({
+export function ClubSettingsForm({
   organization,
   saveOrganization,
   saving,

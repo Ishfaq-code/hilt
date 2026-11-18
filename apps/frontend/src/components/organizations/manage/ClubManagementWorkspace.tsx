@@ -8,7 +8,7 @@ import { Workspace } from '../../layout/Workspace'
 import { ClubRoles } from '../../roles/ClubRoles'
 import { ClubPreview } from '../ClubPreview'
 import { ManagedClubEvents } from '../ManagedClubEvents'
-import { OrganizationInfo } from '../OrganizationInfo'
+import { ClubSettingsForm } from '../ClubSettingsForm'
 import { OrganizationMembers } from '../OrganizationMembers'
 import { ClubOverview } from './ClubOverview'
 
@@ -155,7 +155,7 @@ export function ClubManagementWorkspace({
       />
     ),
     info: (
-      <OrganizationInfo
+      <ClubSettingsForm
         organization={organization}
         saveOrganization={management.saveOrganization}
         saving={management.saving}
