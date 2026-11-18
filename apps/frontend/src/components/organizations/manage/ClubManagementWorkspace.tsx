@@ -7,7 +7,7 @@ import { AttendanceDialog } from '../../events/AttendanceDialog'
 import { Workspace } from '../../layout/Workspace'
 import { ClubRoles } from '../../roles/ClubRoles'
 import { ClubPreview } from '../ClubPreview'
-import { OrganizationEvents } from '../OrganizationEvents'
+import { ManagedClubEvents } from '../ManagedClubEvents'
 import { OrganizationInfo } from '../OrganizationInfo'
 import { OrganizationMembers } from '../OrganizationMembers'
 import { ClubOverview } from './ClubOverview'
@@ -162,7 +162,7 @@ export function ClubManagementWorkspace({
       />
     ),
     events: (
-      <OrganizationEvents
+      <ManagedClubEvents
         club={organization}
         events={management.events}
         totals={management.statistics?.eventAttendance}

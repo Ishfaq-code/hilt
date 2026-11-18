@@ -61,7 +61,7 @@ function compareEventTimes(
   return descending ? second - first : first - second
 }
 
-export function OrganizationEvents({
+export function ManagedClubEvents({
   club,
   events,
   totals,
